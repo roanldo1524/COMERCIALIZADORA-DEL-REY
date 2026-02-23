@@ -1,94 +1,200 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
 
-st.set_page_config(page_title="LUCIDBOT — Seguimiento", page_icon="🚀", layout="wide")
+st.set_page_config(
+    page_title="LUCIDBOT Analytics",
+    page_icon="🚀",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 st.markdown("""
 <style>
-    .stApp { background-color: #f5f0e8; }
-    .block-container { padding: 1.5rem 2rem; }
-    .kpi-card {
-        background: white; border-radius: 14px; padding: 20px 16px;
-        text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-        border-top: 5px solid #c4a97d; margin-bottom: 10px;
-    }
-    .kpi-card.verde  { border-top-color: #059669; }
-    .kpi-card.rojo   { border-top-color: #dc2626; }
-    .kpi-card.amar   { border-top-color: #d97706; }
-    .kpi-card.azul   { border-top-color: #2563eb; }
-    .kpi-card.morado { border-top-color: #7c3aed; }
-    .kpi-num   { font-size: 2rem; font-weight: 800; color: #1e1b16; margin: 8px 0 4px; }
-    .kpi-label { font-size: 0.72rem; color: #6b7280; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
-    .kpi-sub   { font-size: 0.85rem; color: #059669; font-weight: 600; margin-top: 4px; }
-    .alerta-r  { background: #fef2f2; border-left: 4px solid #dc2626; border-radius: 8px; padding: 10px 14px; margin: 5px 0; font-size: 0.86rem; }
-    .alerta-a  { background: #fffbeb; border-left: 4px solid #d97706; border-radius: 8px; padding: 10px 14px; margin: 5px 0; font-size: 0.86rem; }
-    .badge-r   { background: #dc2626; color: white; border-radius: 20px; padding: 2px 10px; font-size: 0.75rem; font-weight: 700; }
-    .badge-a   { background: #d97706; color: white; border-radius: 20px; padding: 2px 10px; font-size: 0.75rem; font-weight: 700; }
-    .badge-v   { background: #059669; color: white; border-radius: 20px; padding: 2px 10px; font-size: 0.75rem; font-weight: 700; }
-    .caja      { background: white; border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    #MainMenu, footer, header { visibility: hidden; }
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
+.stApp { background-color: #0f0e17; }
+.block-container { padding: 1.5rem 2rem; }
+
+/* SIDEBAR */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #1a1829 0%, #0f0e17 100%);
+    border-right: 1px solid #2d2b45;
+}
+section[data-testid="stSidebar"] * { color: #e8e6f0 !important; }
+
+/* TÍTULOS */
+h1, h2, h3 { font-family: 'Playfair Display', serif !important; }
+
+/* TARJETAS KPI */
+.kpi {
+    background: linear-gradient(135deg, #1a1829 0%, #1f1d35 100%);
+    border: 1px solid #2d2b45;
+    border-radius: 16px;
+    padding: 22px 18px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+.kpi::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+}
+.kpi.gold::before  { background: linear-gradient(90deg, #c9a84c, #f0d080); }
+.kpi.green::before { background: linear-gradient(90deg, #10b981, #34d399); }
+.kpi.red::before   { background: linear-gradient(90deg, #ef4444, #f87171); }
+.kpi.blue::before  { background: linear-gradient(90deg, #6366f1, #818cf8); }
+.kpi.purple::before{ background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.kpi.cyan::before  { background: linear-gradient(90deg, #06b6d4, #67e8f9); }
+
+.kpi-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #f0ede8;
+    margin: 10px 0 4px;
+    letter-spacing: -0.02em;
+}
+.kpi-label {
+    font-size: 0.7rem;
+    color: #8b8aaa;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+.kpi-sub { font-size: 0.82rem; color: #10b981; font-weight: 600; margin-top: 6px; }
+
+/* TARJETA PRODUCTO ESTRELLA */
+.prod-card {
+    background: linear-gradient(135deg, #1a1829 0%, #1f1d35 100%);
+    border: 1px solid #2d2b45;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.prod-rank {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #c9a84c;
+    min-width: 40px;
+}
+.prod-name { font-size: 0.9rem; font-weight: 600; color: #f0ede8; }
+.prod-val  { font-size: 0.8rem; color: #8b8aaa; margin-top: 3px; }
+
+/* ALERTAS */
+.alerta-r {
+    background: rgba(239,68,68,0.08);
+    border-left: 3px solid #ef4444;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 5px 0;
+    font-size: 0.84rem;
+    color: #f0ede8;
+}
+.alerta-a {
+    background: rgba(245,158,11,0.08);
+    border-left: 3px solid #f59e0b;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 5px 0;
+    font-size: 0.84rem;
+    color: #f0ede8;
+}
+
+/* INSIGHT CARD */
+.insight {
+    background: linear-gradient(135deg, #1a1829, #1f1d35);
+    border: 1px solid #2d2b45;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 12px;
+}
+.insight-titulo { font-family: 'Playfair Display', serif; font-size: 1rem; color: #c9a84c; font-weight: 700; margin-bottom: 8px; }
+.insight-texto  { font-size: 0.86rem; color: #b0aec8; line-height: 1.6; }
+
+/* BADGES */
+.badge-r  { background: rgba(239,68,68,0.15); color:#f87171; border:1px solid #ef4444; border-radius:20px; padding:2px 10px; font-size:0.73rem; font-weight:700; }
+.badge-a  { background: rgba(245,158,11,0.15); color:#fbbf24; border:1px solid #f59e0b; border-radius:20px; padding:2px 10px; font-size:0.73rem; font-weight:700; }
+.badge-v  { background: rgba(16,185,129,0.15); color:#34d399; border:1px solid #10b981; border-radius:20px; padding:2px 10px; font-size:0.73rem; font-weight:700; }
+.badge-g  { background: rgba(201,168,76,0.15); color:#f0d080; border:1px solid #c9a84c; border-radius:20px; padding:2px 10px; font-size:0.73rem; font-weight:700; }
+
+/* SECCIÓN */
+.seccion-titulo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #f0ede8;
+    border-bottom: 1px solid #2d2b45;
+    padding-bottom: 10px;
+    margin: 28px 0 18px 0;
+}
+
+/* TABLA */
+.stDataFrame { border-radius: 12px; overflow: hidden; }
+
+/* UPLOADER */
+.stFileUploader {
+    background: #1a1829 !important;
+    border: 2px dashed #2d2b45 !important;
+    border-radius: 14px !important;
+}
+
+/* Streamlit overrides */
+div[data-testid="stMetricValue"] { color: #f0ede8; }
+#MainMenu, footer, header { visibility: hidden; }
+.stDeployButton { display: none; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── HEADER ──────────────────────────────────────────────────
-st.markdown("""
-<div style="background:linear-gradient(135deg,#1e1b16 0%,#3d2f1a 100%);
-            border-radius:16px;padding:28px 36px;margin-bottom:24px">
-    <div style="display:flex;align-items:center;gap:20px">
-        <div style="font-size:3rem">🚀</div>
-        <div>
-            <p style="color:#f5f0e8;font-size:2rem;font-weight:800;margin:0">LUCIDBOT</p>
-            <p style="color:#c4a97d;font-size:0.95rem;margin:4px 0 0 0">
-                Dashboard de Seguimiento de Pedidos · Dropi Colombia
-            </p>
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+# ═══════════════════════════════════════════════════════════
+# COLUMNAS EXACTAS DROPI
+# ═══════════════════════════════════════════════════════════
+C_FECHA     = "FECHA"
+C_FECHA_MOV = "FECHA DE ÚLTIMO MOVIMIENTO"
+C_ID        = "ID"
+C_GUIA      = "NÚMERO GUIA"
+C_ESTATUS   = "ESTATUS"
+C_CLIENTE   = "NOMBRE CLIENTE"
+C_DEPTO     = "DEPARTAMENTO DESTINO"
+C_CIUDAD    = "CIUDAD DESTINO"
+C_DIRECCION = "DIRECCION"
+C_TRANSP    = "TRANSPORTADORA"
+C_TOTAL     = "TOTAL DE LA ORDEN"
+C_GANANCIA  = "GANANCIA"
+C_FLETE     = "PRECIO FLETE"
+C_PRODUCTO  = "PRODUCTO"
+C_VARIACION = "VARIACION"
+C_CANTIDAD  = "CANTIDAD"
+C_TAGS      = "TAGS"
+C_NOVEDAD   = "NOVEDAD"
+C_NOV_SOL   = "FUE SOLUCIONADA LA NOVEDAD"
+C_TIENDA    = "TIENDA"
+C_VENDEDOR  = "VENDEDOR"
+C_INDEMN    = "CONTADOR DE INDEMNIZACIONES"
+C_ULT_MOV   = "ÚLTIMO MOVIMIENTO"
 
-# ── COLUMNAS EXACTAS DE TU EXCEL ────────────────────────────
-C_FECHA      = "FECHA"
-C_FECHA_MOV  = "FECHA DE ÚLTIMO MOVIMIENTO"   # para calcular tiempo sin cambio
-C_ID         = "ID"
-C_GUIA       = "NÚMERO GUIA"
-C_ESTATUS    = "ESTATUS"
-C_CLIENTE    = "NOMBRE CLIENTE"
-C_TELEFONO   = "TELÉFONO"
-C_DEPTO      = "DEPARTAMENTO DESTINO"
-C_CIUDAD     = "CIUDAD DESTINO"
-C_DIRECCION  = "DIRECCION"
-C_TRANSP     = "TRANSPORTADORA"
-C_TOTAL      = "TOTAL DE LA ORDEN"
-C_GANANCIA   = "GANANCIA"
-C_FLETE      = "PRECIO FLETE"
-C_PRODUCTO   = "PRODUCTO"
-C_VARIACION  = "VARIACION"
-C_CANTIDAD   = "CANTIDAD"
-C_TAGS       = "TAGS"
-C_NOVEDAD    = "NOVEDAD"
-C_NOV_SOL    = "FUE SOLUCIONADA LA NOVEDAD"
-C_SOLUCION   = "SOLUCIÓN"
-C_OBSERV     = "OBSERVACIÓN"
-C_TIENDA     = "TIENDA"
-C_VENDEDOR   = "VENDEDOR"
-C_INDEMN     = "CONTADOR DE INDEMNIZACIONES"
-C_CONCEP_IND = "CONCEPTO ÚLTIMA INDENMIZACIÓN"
-C_ULT_MOV    = "ÚLTIMO MOVIMIENTO"
-
-# ── TAGS ────────────────────────────────────────────────────
-TAGS_SEG  = ["prioridad de rastreo","en proceso indemnizacion","en proceso indemnización",
-             "reclamo en oficinas","cambios de estatus","cambios de estado"]
-TAGS_EST  = ["por flete elevado","cancelado por proveedor","cancelado por stock"]
-TAGS_CR   = ["cancelado por el cliente","cancelado por cliente - viajes","cancelado por reseñas",
-             "cancelado por precio","cancelado por datos incompletos","cancelado por alta devolucion",
-             "cancelado por alta devolución","sin cobertura","no abonaron"]
-TAGS_NCR  = ["se vuelve a subir","cancelado por pedido repetido","de pruebas"]
-TAGS_INFO = ["duplicado entre tiendas","recompra","garantia","garantía","dinero",
-             "reprogramada","confirmaciones erradas","pendiente por subir"]
+# ═══════════════════════════════════════════════════════════
+# TAGS
+# ═══════════════════════════════════════════════════════════
+TAGS_SEG = ["prioridad de rastreo","en proceso indemnizacion","en proceso indemnización","reclamo en oficinas","cambios de estatus","cambios de estado"]
+TAGS_EST = ["por flete elevado","cancelado por proveedor","cancelado por stock"]
+TAGS_CR  = ["cancelado por el cliente","cancelado por cliente - viajes","cancelado por reseñas","cancelado por precio","cancelado por datos incompletos","cancelado por alta devolucion","cancelado por alta devolución","sin cobertura","no abonaron"]
+TAGS_NCR = ["se vuelve a subir","cancelado por pedido repetido","de pruebas"]
+TAGS_INF = ["duplicado entre tiendas","recompra","garantia","garantía","dinero","reprogramada","confirmaciones erradas","pendiente por subir"]
 
 def clasificar_tag(tag):
     t = tag.lower().strip()
@@ -96,7 +202,7 @@ def clasificar_tag(tag):
     if any(x in t for x in TAGS_EST):  return 'estrategico'
     if any(x in t for x in TAGS_CR):   return 'cancelacion_real'
     if any(x in t for x in TAGS_NCR):  return 'no_cancelacion'
-    if any(x in t for x in TAGS_INFO): return 'informativo'
+    if any(x in t for x in TAGS_INF):  return 'informativo'
     return 'otro'
 
 def parse_tags(val):
@@ -109,75 +215,114 @@ def horas_desde(fecha):
         return (datetime.now() - pd.to_datetime(fecha)).total_seconds() / 3600
     except: return None
 
-def kpi_html(color, label, num, sub=""):
+def fmt_money(n):
+    if n >= 1e9:  return f"${n/1e9:.2f}B"
+    if n >= 1e6:  return f"${n/1e6:.1f}M"
+    return f"${n:,.0f}"
+
+def kpi(color, label, num, sub=""):
     s = f'<div class="kpi-sub">{sub}</div>' if sub else ''
-    return f'<div class="kpi-card {color}"><div class="kpi-label">{label}</div><div class="kpi-num">{num}</div>{s}</div>'
+    return f'<div class="kpi {color}"><div class="kpi-label">{label}</div><div class="kpi-num">{num}</div>{s}</div>'
 
-def barras(df_b, x, y, titulo, paleta, h=350):
-    fig = px.bar(df_b, x=x, y=y, orientation='h', color=x,
-                 color_continuous_scale=paleta, title=titulo)
-    fig.update_layout(height=h, plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-                      showlegend=False, coloraxis_showscale=False,
-                      margin=dict(l=10,r=10,t=40,b=10))
-    fig.update_traces(texttemplate='%{x}', textposition='outside')
-    st.plotly_chart(fig, use_container_width=True)
+PLOT_LAYOUT = dict(
+    plot_bgcolor='rgba(0,0,0,0)',
+    paper_bgcolor='rgba(0,0,0,0)',
+    font=dict(family='Inter', color='#b0aec8', size=12),
+    title_font=dict(family='Playfair Display', color='#f0ede8', size=16),
+    legend=dict(font=dict(color='#b0aec8', size=11), bgcolor='rgba(0,0,0,0)'),
+    xaxis=dict(gridcolor='#2d2b45', linecolor='#2d2b45', tickfont=dict(color='#8b8aaa')),
+    yaxis=dict(gridcolor='#2d2b45', linecolor='#2d2b45', tickfont=dict(color='#8b8aaa')),
+    margin=dict(l=10, r=10, t=50, b=10)
+)
+COLORES_ELEGANTES = ['#c9a84c','#6366f1','#10b981','#ef4444','#06b6d4','#8b5cf6','#f59e0b','#ec4899','#14b8a6','#f97316']
 
-# ── UPLOAD ──────────────────────────────────────────────────
-archivo = st.file_uploader("📁 Sube tu reporte Excel de Dropi", type=["xlsx","xls"])
+# ═══════════════════════════════════════════════════════════
+# SIDEBAR
+# ═══════════════════════════════════════════════════════════
+with st.sidebar:
+    st.markdown("""
+    <div style="text-align:center;padding:20px 0 10px">
+        <div style="font-size:2.5rem">🚀</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:800;color:#f0ede8">LUCIDBOT</div>
+        <div style="font-size:0.72rem;color:#8b8aaa;letter-spacing:0.1em;text-transform:uppercase">Analytics Dashboard</div>
+    </div>
+    <hr style="border-color:#2d2b45;margin:10px 0 20px">
+    """, unsafe_allow_html=True)
 
+    vista = st.radio("", ["📊  Ventas & Análisis", "🚨  Seguimiento & Alertas"],
+                     label_visibility="collapsed")
+
+    st.markdown("<hr style='border-color:#2d2b45;margin:20px 0'>", unsafe_allow_html=True)
+    archivo = st.file_uploader("📁 Subir reporte Dropi", type=["xlsx","xls"],
+                               help="Exporta el reporte de órdenes desde Dropi")
+
+    if archivo:
+        st.markdown('<div style="background:rgba(16,185,129,0.1);border:1px solid #10b981;border-radius:8px;padding:10px;text-align:center;font-size:0.8rem;color:#34d399;margin-top:10px">✅ Archivo cargado</div>', unsafe_allow_html=True)
+
+    st.markdown("""
+    <div style="position:fixed;bottom:20px;left:0;width:260px;text-align:center">
+        <div style="font-size:0.7rem;color:#3d3b55">LUCIDBOT · v2.0 · Colombia</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ═══════════════════════════════════════════════════════════
+# SIN ARCHIVO
+# ═══════════════════════════════════════════════════════════
 if archivo is None:
     st.markdown("""
-    <div class="caja" style="text-align:center;padding:60px">
-        <div style="font-size:4rem">📊</div>
-        <h3 style="color:#1e1b16;margin:16px 0 8px">Sube tu reporte de Dropi</h3>
-        <p style="color:#6b7280;font-size:0.95rem">
-            El archivo debe ser el reporte de órdenes exportado desde Dropi
-        </p>
-        <br>
-        <p style="color:#c4a97d;font-size:0.85rem">
-            Columnas detectadas automáticamente: FECHA · ESTATUS · TAGS · NOVEDAD · y más
-        </p>
-    </div>""", unsafe_allow_html=True)
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+                min-height:70vh;text-align:center">
+        <div style="font-size:5rem;margin-bottom:20px">📊</div>
+        <div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:800;
+                    color:#f0ede8;margin-bottom:12px">
+            LUCIDBOT Analytics
+        </div>
+        <div style="font-size:1rem;color:#8b8aaa;max-width:400px;line-height:1.7">
+            Sube tu reporte de Dropi desde el panel izquierdo para comenzar el análisis completo
+        </div>
+        <div style="margin-top:30px;background:rgba(201,168,76,0.1);border:1px solid #c9a84c;
+                    border-radius:12px;padding:16px 28px;color:#f0d080;font-size:0.85rem">
+            📁 Arrastra tu Excel en el panel izquierdo
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     st.stop()
 
-# ── CARGAR ──────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════
+# CARGAR DATOS
+# ═══════════════════════════════════════════════════════════
 @st.cache_data
 def cargar(f):
     df = pd.read_excel(f)
     df.columns = [str(c).strip() for c in df.columns]
     return df
 
-with st.spinner("Analizando pedidos..."):
+with st.spinner("Procesando datos..."):
     df = cargar(archivo)
 
-# Parsear fechas
 for col_f in [C_FECHA, C_FECHA_MOV]:
     if col_f in df.columns:
         df[col_f] = pd.to_datetime(df[col_f], dayfirst=True, errors='coerce')
 
-# Horas desde último movimiento (para alertas de cambio de estatus)
 if C_FECHA_MOV in df.columns:
     df['_h_mov'] = df[C_FECHA_MOV].apply(horas_desde)
     df['_d_mov'] = df['_h_mov'].apply(lambda h: round(h/24,1) if h is not None else None)
 
-# Horas desde fecha de pedido
 if C_FECHA in df.columns:
     df['_h_ped'] = df[C_FECHA].apply(horas_desde)
     df['_d_ped'] = df['_h_ped'].apply(lambda h: round(h/24,1) if h is not None else None)
     df['_mes']   = df[C_FECHA].dt.to_period('M').astype(str)
+    df['_dia']   = df[C_FECHA].dt.day
 
-# Numéricos
 for col_n in [C_TOTAL, C_GANANCIA, C_FLETE, C_CANTIDAD]:
     if col_n in df.columns:
         df[col_n] = pd.to_numeric(df[col_n], errors='coerce').fillna(0)
 
-# Tags
 if C_TAGS in df.columns:
     df['_tags_lista'] = df[C_TAGS].apply(parse_tags)
 
 total = len(df)
 
-# ── KPIs ────────────────────────────────────────────────────
 def contar(patron):
     if C_ESTATUS not in df.columns: return 0
     return len(df[df[C_ESTATUS].astype(str).str.upper().str.contains(patron, na=False)])
@@ -186,300 +331,562 @@ entregados = contar('ENTREGADO')
 cancelados = contar('CANCELADO')
 devolucion = contar('DEVOLUCI')
 novedades  = contar('NOVEDAD')
-en_reparto = contar('REPARTO')
-bdg_transp = contar('BDG TRANSP|BODEGA TRANS')
-bdg_prov   = contar('BDG PROV|BODEGA PROV')
-reclamo    = contar('RECLAMO|OFICINA')
 en_proceso = total - entregados - cancelados - devolucion
-
 pct_ent    = round(entregados/total*100,1) if total else 0
-tot_venta  = df[C_TOTAL].sum()   if C_TOTAL   in df.columns else 0
+tot_venta  = df[C_TOTAL].sum()    if C_TOTAL    in df.columns else 0
 tot_gan    = df[C_GANANCIA].sum() if C_GANANCIA in df.columns else 0
+pct_gan    = round(tot_gan/tot_venta*100,1) if tot_venta else 0
 
-st.markdown("### 📊 Resumen General")
-c1,c2,c3,c4,c5,c6,c7 = st.columns(7)
-def v(n): return f"${n/1e6:.1f}M" if n>=1e6 else f"${n:,.0f}"
-with c1: st.markdown(kpi_html("azul","📦 Total Pedidos",f"{total:,}"), unsafe_allow_html=True)
-with c2: st.markdown(kpi_html("verde","✅ Entregados",f"{entregados:,}",f"{pct_ent}%"), unsafe_allow_html=True)
-with c3: st.markdown(kpi_html("rojo","❌ Cancelados",f"{cancelados:,}"), unsafe_allow_html=True)
-with c4: st.markdown(kpi_html("amar","🔄 En Proceso",f"{en_proceso:,}"), unsafe_allow_html=True)
-with c5: st.markdown(kpi_html("","↩️ Devolución",f"{devolucion:,}"), unsafe_allow_html=True)
-with c6: st.markdown(kpi_html("","💰 Ventas",v(tot_venta)), unsafe_allow_html=True)
-with c7: st.markdown(kpi_html("verde","📈 Ganancia",v(tot_gan)), unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True)
+# ═══════════════════════════════════════════════════════════
+# ██████  VISTA 1: VENTAS & ANÁLISIS
+# ═══════════════════════════════════════════════════════════
+if "Ventas" in vista:
 
-# ── ALERTAS ─────────────────────────────────────────────────
-st.markdown("### 🚨 Centro de Alertas")
+    # Header
+    st.markdown(f"""
+    <div style="margin-bottom:28px">
+        <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;color:#f0ede8">
+            Ventas & Análisis
+        </div>
+        <div style="color:#8b8aaa;font-size:0.9rem;margin-top:4px">
+            {total:,} pedidos analizados · Actualizado ahora
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-alertas_r, alertas_a = [], []
+    # ── KPIs ──
+    c1,c2,c3,c4,c5,c6 = st.columns(6)
+    with c1: st.markdown(kpi("blue","Total Pedidos",f"{total:,}"), unsafe_allow_html=True)
+    with c2: st.markdown(kpi("green","Entregados",f"{entregados:,}",f"✓ {pct_ent}%"), unsafe_allow_html=True)
+    with c3: st.markdown(kpi("red","Cancelados",f"{cancelados:,}"), unsafe_allow_html=True)
+    with c4: st.markdown(kpi("gold","En Proceso",f"{en_proceso:,}"), unsafe_allow_html=True)
+    with c5: st.markdown(kpi("cyan","Ventas",fmt_money(tot_venta)), unsafe_allow_html=True)
+    with c6: st.markdown(kpi("purple","Ganancia",fmt_money(tot_gan),f"{pct_gan}% margen"), unsafe_allow_html=True)
 
-if C_ESTATUS in df.columns:
-    for _, row in df.iterrows():
-        est  = str(row.get(C_ESTATUS,'')).upper()
-        h_m  = row.get('_h_mov')   # horas desde último movimiento
-        d_m  = row.get('_d_mov')
-        h_p  = row.get('_h_ped')   # horas desde pedido (para reclamo en oficina)
-        d_p  = row.get('_d_ped')
-        num  = str(row.get(C_ID,'—'))
-        cli  = str(row.get(C_CLIENTE,''))[:25] if C_CLIENTE in df.columns else ''
-        guia = str(row.get(C_GUIA,''))         if C_GUIA    in df.columns else ''
+    st.markdown("<br>", unsafe_allow_html=True)
 
-        # Reclamo en Oficina: +8 días desde fecha pedido
-        if ('RECLAMO' in est or 'OFICINA' in est):
-            if d_p and d_p > 8:
-                alertas_r.append({'tipo':'🔴 Reclamo en Oficina','id':num,'cliente':cli,
-                    'msg':f"{d_p:.0f} días sin retiro del cliente | Guía: {guia}"})
+    # ── NAVEGACIÓN INTERACTIVA ──
+    st.markdown('<div class="seccion-titulo">Explorar datos</div>', unsafe_allow_html=True)
 
-        # En Reparto: +24h sin cambio de estatus (último movimiento)
-        if 'REPARTO' in est:
-            if h_m and h_m > 24:
-                alertas_r.append({'tipo':'🔴 En Reparto sin cambio','id':num,'cliente':cli,
+    nav = st.radio("", ["📅 Evolución Mensual","🗺️ Mapa Colombia","🏆 Productos Estrella","🚚 Transportadoras","💡 Insights"],
+                   horizontal=True, label_visibility="collapsed")
+
+    # ── EVOLUCIÓN MENSUAL ──
+    if "Evolución" in nav and '_mes' in df.columns and C_TOTAL in df.columns:
+        v_mes = df.groupby('_mes').agg(
+            Ventas=(C_TOTAL, 'sum'),
+            Ganancia=(C_GANANCIA, 'sum') if C_GANANCIA in df.columns else (C_TOTAL,'count'),
+            Ordenes=(C_TOTAL,'count')
+        ).reset_index().sort_values('_mes')
+
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=v_mes['_mes'], y=v_mes['Ventas']/1e6,
+            name='Ventas', marker=dict(color='#6366f1', opacity=0.85),
+        ))
+        if C_GANANCIA in df.columns:
+            fig.add_trace(go.Bar(
+                x=v_mes['_mes'], y=v_mes['Ganancia']/1e6,
+                name='Ganancia', marker=dict(color='#10b981', opacity=0.85),
+            ))
+        fig.add_trace(go.Scatter(
+            x=v_mes['_mes'], y=v_mes['Ordenes'],
+            name='Órdenes', yaxis='y2',
+            line=dict(color='#c9a84c', width=3),
+            marker=dict(size=8, color='#c9a84c')
+        ))
+        fig.update_layout(
+            **PLOT_LAYOUT,
+            barmode='group', height=420,
+            yaxis=dict(title='Millones COP', gridcolor='#2d2b45', tickfont=dict(color='#8b8aaa')),
+            yaxis2=dict(title='Órdenes', overlaying='y', side='right', gridcolor='rgba(0,0,0,0)', tickfont=dict(color='#c9a84c')),
+            title='Evolución Mensual de Ventas'
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        # Días pico
+        if '_dia' in df.columns:
+            dias_venta = df.groupby('_dia')[C_TOTAL].sum().reset_index()
+            dias_venta.columns = ['Día','Ventas']
+            fig_d = px.area(dias_venta, x='Día', y='Ventas',
+                           title='Ventas por Día del Mes (patrón quincenas)',
+                           color_discrete_sequence=['#c9a84c'])
+            fig_d.update_traces(fillcolor='rgba(201,168,76,0.15)', line=dict(color='#c9a84c',width=2))
+            fig_d.update_layout(**PLOT_LAYOUT, height=280)
+            st.plotly_chart(fig_d, use_container_width=True)
+
+    # ── MAPA COLOMBIA ──
+    elif "Mapa" in nav:
+        if C_DEPTO in df.columns:
+            dep_data = df.groupby(C_DEPTO).agg(
+                Pedidos=(C_TOTAL,'count'),
+                Ventas=(C_TOTAL,'sum') if C_TOTAL in df.columns else (C_DEPTO,'count'),
+                Ganancia=(C_GANANCIA,'sum') if C_GANANCIA in df.columns else (C_DEPTO,'count')
+            ).reset_index().sort_values('Pedidos', ascending=False)
+            dep_data.columns = ['Departamento','Pedidos','Ventas','Ganancia']
+
+            # Coordenadas aproximadas departamentos Colombia
+            coords = {
+                'CUNDINAMARCA':[4.60,−74.08],'BOGOTA':[4.60,−74.08],'BOGOTÁ':[4.60,−74.08],
+                'ANTIOQUIA':[6.25,−75.56],'MEDELLÍN':[6.25,−75.56],'MEDELLIN':[6.25,−75.56],
+                'VALLE DEL CAUCA':[3.43,−76.52],'CALI':[3.43,−76.52],
+                'ATLANTICO':[10.99,−74.81],'ATLÁNTICO':[10.99,−74.81],'BARRANQUILLA':[10.99,−74.81],
+                'BOLIVAR':[10.39,−75.51],'BOLÍVAR':[10.39,−75.51],'CARTAGENA':[10.39,−75.51],
+                'SANTANDER':[7.13,−73.12],'BUCARAMANGA':[7.13,−73.12],
+                'NORTE DE SANTANDER':[7.89,−72.51],'CUCUTA':[7.89,−72.51],'CÚCUTA':[7.89,−72.51],
+                'BOYACA':[5.53,−73.36],'BOYACÁ':[5.53,−73.36],
+                'TOLIMA':[4.09,−75.15],'IBAGUE':[4.09,−75.15],'IBAGUÉ':[4.09,−75.15],
+                'CALDAS':[5.07,−75.51],'MANIZALES':[5.07,−75.51],
+                'RISARALDA':[4.81,−75.69],'PEREIRA':[4.81,−75.69],
+                'QUINDIO':[4.53,−75.68],'QUINDÍO':[4.53,−75.68],'ARMENIA':[4.53,−75.68],
+                'HUILA':[2.53,−75.52],'NEIVA':[2.53,−75.52],
+                'NARIÑO':[1.21,−77.28],'NARINO':[1.21,−77.28],'PASTO':[1.21,−77.28],
+                'CAUCA':[2.44,−76.61],'POPAYAN':[2.44,−76.61],'POPAYÁN':[2.44,−76.61],
+                'CORDOBA':[8.74,−75.88],'CÓRDOBA':[8.74,−75.88],'MONTERIA':[8.74,−75.88],'MONTERÍA':[8.74,−75.88],
+                'SUCRE':[9.30,−75.39],'SINCELEJO':[9.30,−75.39],
+                'MAGDALENA':[11.24,−74.20],'SANTA MARTA':[11.24,−74.20],
+                'CESAR':[9.33,−73.36],'VALLEDUPAR':[9.33,−73.36],
+                'GUAJIRA':[11.54,−72.91],'LA GUAJIRA':[11.54,−72.91],'RIOHACHA':[11.54,−72.91],
+                'META':[4.14,−73.63],'VILLAVICENCIO':[4.14,−73.63],
+                'CASANARE':[5.33,−71.33],'YOPAL':[5.33,−71.33],
+                'ARAUCA':[7.08,−70.76],
+                'VICHADA':[4.42,−69.28],
+                'GUAVIARE':[2.57,−72.65],
+                'VAUPES':[1.25,−70.23],'VAUPÉS':[1.25,−70.23],
+                'AMAZONAS':[-1.44,−71.57],
+                'PUTUMAYO':[0.43,−76.64],'MOCOA':[0.43,−76.64],
+                'CAQUETA':[-1.61,−75.61],'CAQUETÁ':[-1.61,−75.61],'FLORENCIA':[-1.61,−75.61],
+                'CHOCO':[5.69,−76.65],'CHOCÓ':[5.69,−76.65],'QUIBDO':[5.69,−76.65],'QUIBDÓ':[5.69,−76.65],
+                'SAN ANDRES':[12.53,−81.72],'SAN ANDRÉS':[12.53,−81.72],
+            }
+
+            dep_data['lat'] = dep_data['Departamento'].str.upper().map(lambda d: next((v[0] for k,v in coords.items() if k in d or d in k), None))
+            dep_data['lon'] = dep_data['Departamento'].str.upper().map(lambda d: next((v[1] for k,v in coords.items() if k in d or d in k), None))
+            dep_geo = dep_data.dropna(subset=['lat','lon'])
+
+            if len(dep_geo) > 0:
+                fig_map = px.scatter_mapbox(
+                    dep_geo, lat='lat', lon='lon',
+                    size='Pedidos', color='Ventas',
+                    hover_name='Departamento',
+                    hover_data={'Pedidos':True,'Ventas':':,.0f','Ganancia':':,.0f','lat':False,'lon':False},
+                    color_continuous_scale=['#1a1829','#6366f1','#c9a84c'],
+                    size_max=50, zoom=4.5,
+                    mapbox_style='carto-darkmatter',
+                    title='Distribución Geográfica de Pedidos'
+                )
+                fig_map.update_layout(**PLOT_LAYOUT, height=550,
+                                      mapbox=dict(center=dict(lat=4.5, lon=-74.3)))
+                st.plotly_chart(fig_map, use_container_width=True)
+
+            # Tabla top departamentos
+            st.markdown("#### Top Departamentos")
+            cols_dep = st.columns(5)
+            for i, row in dep_data.head(5).iterrows():
+                with cols_dep[min(list(dep_data.index).index(i), 4)]:
+                    pct = round(row['Pedidos']/total*100,1)
+                    st.markdown(kpi("gold" if i==0 else "blue", row['Departamento'][:15].upper(), f"{row['Pedidos']:,}", f"{pct}% del total"), unsafe_allow_html=True)
+
+    # ── PRODUCTOS ESTRELLA ──
+    elif "Productos" in nav and C_PRODUCTO in df.columns:
+
+        sub_prod = st.radio("", ["🥇 Por Unidades","💰 Por Ventas","📈 Por Ganancia"],
+                           horizontal=True, label_visibility="collapsed")
+
+        if "Unidades" in sub_prod:
+            top = df[C_PRODUCTO].astype(str).value_counts().head(10).reset_index()
+            top.columns = ['Producto','Valor']
+            titulo = "Unidades vendidas"
+        elif "Ventas" in sub_prod and C_TOTAL in df.columns:
+            top = df.groupby(C_PRODUCTO)[C_TOTAL].sum().sort_values(ascending=False).head(10).reset_index()
+            top.columns = ['Producto','Valor']
+            titulo = "Ventas COP"
+        else:
+            top = df.groupby(C_PRODUCTO)[C_GANANCIA].sum().sort_values(ascending=False).head(10).reset_index() if C_GANANCIA in df.columns else pd.DataFrame()
+            top.columns = ['Producto','Valor'] if len(top) else []
+            titulo = "Ganancia COP"
+
+        if len(top):
+            med_col, right_col = st.columns([1, 1])
+            with med_col:
+                emojis = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
+                for idx, row in top.iterrows():
+                    rank = list(top.index).index(idx)
+                    val_str = fmt_money(row['Valor']) if titulo != "Unidades vendidas" else f"{int(row['Valor']):,} uds"
+                    pct_v = round(row['Valor']/top['Valor'].sum()*100,1)
+                    st.markdown(f"""
+                    <div class="prod-card">
+                        <div class="prod-rank">{emojis[rank]}</div>
+                        <div style="flex:1">
+                            <div class="prod-name">{str(row['Producto'])[:45]}</div>
+                            <div class="prod-val">{val_str} · {pct_v}% del total</div>
+                        </div>
+                    </div>""", unsafe_allow_html=True)
+
+            with right_col:
+                fig_prod = px.bar(
+                    top.sort_values('Valor'),
+                    x='Valor', y='Producto',
+                    orientation='h',
+                    color='Valor',
+                    color_continuous_scale=['#1a1829','#6366f1','#c9a84c'],
+                    title=f'Top 10 — {titulo}'
+                )
+                fig_prod.update_layout(**PLOT_LAYOUT, height=480, coloraxis_showscale=False)
+                fig_prod.update_traces(texttemplate='%{x:,.0f}', textposition='outside',
+                                       textfont=dict(color='#b0aec8', size=10))
+                st.plotly_chart(fig_prod, use_container_width=True)
+
+    # ── TRANSPORTADORAS ──
+    elif "Transportadora" in nav and C_TRANSP in df.columns:
+
+        tr_count = df[C_TRANSP].astype(str).value_counts().reset_index()
+        tr_count.columns = ['Transportadora','Pedidos']
+
+        t1, t2 = st.columns(2)
+        with t1:
+            fig_tr = px.pie(tr_count, values='Pedidos', names='Transportadora',
+                           color_discrete_sequence=COLORES_ELEGANTES,
+                           title='Pedidos por Transportadora', hole=0.45)
+            fig_tr.update_layout(**PLOT_LAYOUT, height=380)
+            fig_tr.update_traces(textposition='inside', textinfo='percent+label')
+            st.plotly_chart(fig_tr, use_container_width=True)
+
+        with t2:
+            if C_GANANCIA in df.columns:
+                tr_g = df.groupby(C_TRANSP)[C_GANANCIA].sum().sort_values(ascending=False).reset_index()
+                tr_g.columns = ['Transportadora','Ganancia']
+                fig_trg = px.bar(tr_g, x='Ganancia', y='Transportadora', orientation='h',
+                                color='Ganancia', color_continuous_scale=['#1a1829','#10b981'],
+                                title='Ganancia por Transportadora')
+                fig_trg.update_layout(**PLOT_LAYOUT, height=380, coloraxis_showscale=False)
+                st.plotly_chart(fig_trg, use_container_width=True)
+
+        if C_FLETE in df.columns and C_CIUDAD in df.columns:
+            st.markdown("#### 💸 Ciudades con Flete Elevado")
+            fl = df.groupby(C_CIUDAD)[C_FLETE].mean().sort_values(ascending=False).head(15).reset_index()
+            fl.columns = ['Ciudad','Flete Promedio']
+            fig_fl = px.bar(fl, x='Flete Promedio', y='Ciudad', orientation='h',
+                           color='Flete Promedio', color_continuous_scale=['#1a1829','#f59e0b','#ef4444'],
+                           title='Flete Promedio por Ciudad')
+            fig_fl.update_layout(**PLOT_LAYOUT, height=420, coloraxis_showscale=False)
+            st.plotly_chart(fig_fl, use_container_width=True)
+            st.caption("⚠️ Considera excluir ciudades de flete alto de tu pauta publicitaria")
+
+    # ── INSIGHTS ──
+    elif "Insights" in nav:
+        st.markdown("#### 💡 Insights Estratégicos Automáticos")
+
+        insights = []
+
+        if tot_venta > 0:
+            insights.append({
+                'ico':'💰','titulo':'Margen de Ganancia',
+                'texto': f"Tu margen actual es del {pct_gan}%. " +
+                         ("✅ Excelente rentabilidad." if pct_gan > 30 else
+                          "⚠️ Margen ajustado, revisa costos." if pct_gan > 15 else
+                          "🔴 Margen crítico, acción urgente requerida.")
+            })
+
+        if total > 0:
+            insights.append({
+                'ico':'📦','titulo':'Tasa de Entrega',
+                'texto': f"El {pct_ent}% de los pedidos están entregados. " +
+                         ("✅ Excelente tasa de entrega." if pct_ent > 85 else
+                          "⚠️ Hay oportunidad de mejora en entrega." if pct_ent > 70 else
+                          "🔴 Tasa de entrega baja, revisa operación logística.")
+            })
+
+        if cancelados > 0 and total > 0:
+            pct_can = round(cancelados/total*100,1)
+            insights.append({
+                'ico':'❌','titulo':'Tasa de Cancelación',
+                'texto': f"{pct_can}% de cancelación ({cancelados:,} pedidos). " +
+                         ("✅ Tasa controlada." if pct_can < 10 else
+                          "⚠️ Tasa de cancelación alta, analiza las causas por tags." if pct_can < 20 else
+                          "🔴 Cancelación crítica. Revisa la calidad del tráfico y los proveedores.")
+            })
+
+        if C_DEPTO in df.columns:
+            top2_dep = df[C_DEPTO].value_counts().head(2)
+            if len(top2_dep) >= 2:
+                conc = round(top2_dep.sum()/total*100,1)
+                insights.append({
+                    'ico':'🗺️','titulo':'Concentración Geográfica',
+                    'texto': f"{top2_dep.index[0]} y {top2_dep.index[1]} representan el {conc}% de tus pedidos. " +
+                             ("✅ Buena diversificación geográfica." if conc < 50 else
+                              "⚠️ Alta concentración — considera expandir pauta a más departamentos.")
+                })
+
+        if C_PRODUCTO in df.columns:
+            top1 = df[C_PRODUCTO].value_counts().iloc[0]
+            top1_name = df[C_PRODUCTO].value_counts().index[0]
+            pct_top1 = round(top1/total*100,1)
+            insights.append({
+                'ico':'🏆','titulo':'Producto Estrella',
+                'texto': f'"{top1_name}" lidera con {top1:,} unidades ({pct_top1}% del total). ' +
+                         ("✅ Buen balance del portafolio." if pct_top1 < 40 else
+                          "⚠️ Alta dependencia de un solo producto — diversifica el catálogo.")
+            })
+
+        if '_mes' in df.columns and C_TOTAL in df.columns:
+            v_mes = df.groupby('_mes')[C_TOTAL].sum().sort_values(ascending=False)
+            if len(v_mes) >= 2:
+                mejor_mes = v_mes.index[0]
+                insights.append({
+                    'ico':'📅','titulo':'Mejor Mes',
+                    'texto': f"El mes con más ventas fue {mejor_mes} con {fmt_money(v_mes.iloc[0])}. "
+                             f"Analiza qué campaña o factor impulsó ese resultado para replicarlo."
+                })
+
+        for ins in insights:
+            st.markdown(f"""
+            <div class="insight">
+                <div class="insight-titulo">{ins['ico']} {ins['titulo']}</div>
+                <div class="insight-texto">{ins['texto']}</div>
+            </div>""", unsafe_allow_html=True)
+
+        if not insights:
+            st.info("Sube más datos para generar insights automáticos.")
+
+
+# ═══════════════════════════════════════════════════════════
+# ██████  VISTA 2: SEGUIMIENTO & ALERTAS
+# ═══════════════════════════════════════════════════════════
+else:
+    st.markdown(f"""
+    <div style="margin-bottom:28px">
+        <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;color:#f0ede8">
+            Seguimiento & Alertas
+        </div>
+        <div style="color:#8b8aaa;font-size:0.9rem;margin-top:4px">
+            Centro de control operativo · {total:,} pedidos activos
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # KPIs operativos
+    c1,c2,c3,c4,c5,c6 = st.columns(6)
+    with c1: st.markdown(kpi("blue","Total",f"{total:,}"), unsafe_allow_html=True)
+    with c2: st.markdown(kpi("green","✅ Entregados",f"{entregados:,}",f"{pct_ent}%"), unsafe_allow_html=True)
+    with c3: st.markdown(kpi("red","❌ Cancelados",f"{cancelados:,}"), unsafe_allow_html=True)
+    with c4: st.markdown(kpi("gold","🔄 En Proceso",f"{en_proceso:,}"), unsafe_allow_html=True)
+    with c5: st.markdown(kpi("purple","↩️ Devolución",f"{devolucion:,}"), unsafe_allow_html=True)
+    with c6: st.markdown(kpi("cyan","⚠️ Novedades",f"{novedades:,}"), unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Calcular alertas
+    alertas_r, alertas_a = [], []
+    if C_ESTATUS in df.columns:
+        for _, row in df.iterrows():
+            est  = str(row.get(C_ESTATUS,'')).upper()
+            h_m  = row.get('_h_mov')
+            d_m  = row.get('_d_mov')
+            h_p  = row.get('_h_ped')
+            d_p  = row.get('_d_ped')
+            num  = str(row.get(C_ID,'—'))
+            cli  = str(row.get(C_CLIENTE,''))[:22] if C_CLIENTE in df.columns else ''
+            guia = str(row.get(C_GUIA,''))         if C_GUIA    in df.columns else ''
+
+            if ('RECLAMO' in est or 'OFICINA' in est) and d_p and d_p > 8:
+                alertas_r.append({'tipo':'Reclamo en Oficina','id':num,'cliente':cli,
+                    'msg':f"{d_p:.0f} días sin retiro | Guía: {guia}"})
+
+            if 'REPARTO' in est and h_m and h_m > 24:
+                alertas_r.append({'tipo':'En Reparto sin cambio','id':num,'cliente':cli,
                     'msg':f"{h_m:.0f}h sin cambio de estatus | Guía: {guia}"})
 
-        # Novedad sin solucionar
-        if 'NOVEDAD' in est:
-            sol = str(row.get(C_NOV_SOL,'')).upper() if C_NOV_SOL in df.columns else ''
-            if 'SI' not in sol and 'SÍ' not in sol:
-                nov_tipo = str(row.get(C_NOVEDAD,''))[:40] if C_NOVEDAD in df.columns else ''
-                alertas_r.append({'tipo':'🔴 Novedad sin resolver','id':num,'cliente':cli,
-                    'msg':f"Tipo: {nov_tipo or 'No especificado'} | {d_m or '?'} días"})
+            if 'NOVEDAD' in est:
+                sol = str(row.get(C_NOV_SOL,'')).upper() if C_NOV_SOL in df.columns else ''
+                if 'SI' not in sol and 'SÍ' not in sol:
+                    nov = str(row.get(C_NOVEDAD,''))[:35] if C_NOVEDAD in df.columns else ''
+                    alertas_r.append({'tipo':'Novedad sin resolver','id':num,'cliente':cli,
+                        'msg':f"{nov or 'Sin tipo'} | {d_m or '?'} días"})
 
-        # BDG Transportadora: amarillo +24h, rojo +8 días
-        if 'BDG TRANSP' in est or 'BODEGA TRANS' in est:
-            if d_m and d_m > 8:
-                alertas_r.append({'tipo':'🔴 BDG Transp CRÍTICO','id':num,'cliente':cli,
-                    'msg':f"{d_m:.0f} días en bodega sin entrega | Guía: {guia}"})
-            elif h_m and h_m > 24:
-                alertas_a.append({'tipo':'🟡 BDG Transportadora','id':num,'cliente':cli,
-                    'msg':f"{h_m:.0f}h sin movimiento | Guía: {guia}"})
+            if ('BDG TRANSP' in est or 'BODEGA TRANS' in est):
+                if d_m and d_m > 8:
+                    alertas_r.append({'tipo':'BDG Transp CRÍTICO','id':num,'cliente':cli,
+                        'msg':f"{d_m:.0f} días sin entrega | Guía: {guia}"})
+                elif h_m and h_m > 24:
+                    alertas_a.append({'tipo':'BDG Transportadora','id':num,'cliente':cli,
+                        'msg':f"{h_m:.0f}h sin movimiento | Guía: {guia}"})
 
-        # BDG Proveedor: +24h
-        if 'BDG PROV' in est or 'BODEGA PROV' in est:
-            if h_m and h_m > 24:
-                alertas_r.append({'tipo':'🔴 BDG Proveedor','id':num,'cliente':cli,
-                    'msg':f"{h_m:.0f}h sin despacho desde proveedor"})
+            if ('BDG PROV' in est or 'BODEGA PROV' in est) and h_m and h_m > 24:
+                alertas_r.append({'tipo':'BDG Proveedor','id':num,'cliente':cli,
+                    'msg':f"{h_m:.0f}h sin despacho"})
 
-# Mostrar alertas
-al, am = st.columns(2)
-with al:
-    st.markdown(f'<div class="caja"><b>🔴 Alertas Críticas <span class="badge-r">{len(alertas_r)}</span></b><br><br>', unsafe_allow_html=True)
-    if alertas_r:
-        for a in alertas_r[:30]:
-            st.markdown(f'<div class="alerta-r"><b>{a["tipo"]}</b> · ID {a["id"]} · {a["cliente"]}<br><span style="color:#6b7280;font-size:0.82rem">{a["msg"]}</span></div>', unsafe_allow_html=True)
-        if len(alertas_r) > 30: st.caption(f"... y {len(alertas_r)-30} alertas más")
-    else:
-        st.success("✅ Sin alertas críticas")
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Mostrar alertas
+    al, am = st.columns(2)
+    with al:
+        st.markdown(f'<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:14px;padding:20px">'
+                    f'<div style="font-family:Playfair Display,serif;font-size:1.1rem;color:#f0ede8;font-weight:700;margin-bottom:14px">'
+                    f'🔴 Alertas Críticas <span class="badge-r">{len(alertas_r)}</span></div>', unsafe_allow_html=True)
+        if alertas_r:
+            for a in alertas_r[:25]:
+                st.markdown(f'<div class="alerta-r"><b>{a["tipo"]}</b> · #{a["id"]} · {a["cliente"]}<br>'
+                            f'<span style="color:#8b8aaa;font-size:0.8rem">{a["msg"]}</span></div>', unsafe_allow_html=True)
+            if len(alertas_r)>25: st.caption(f"... y {len(alertas_r)-25} más")
+        else:
+            st.markdown('<div style="color:#34d399;text-align:center;padding:20px">✅ Sin alertas críticas</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-with am:
-    st.markdown(f'<div class="caja"><b>🟡 Alertas de Atención <span class="badge-a">{len(alertas_a)}</span></b><br><br>', unsafe_allow_html=True)
-    if alertas_a:
-        for a in alertas_a[:30]:
-            st.markdown(f'<div class="alerta-a"><b>{a["tipo"]}</b> · ID {a["id"]} · {a["cliente"]}<br><span style="color:#6b7280;font-size:0.82rem">{a["msg"]}</span></div>', unsafe_allow_html=True)
-    else:
-        st.success("✅ Sin alertas de atención")
-    st.markdown('</div>', unsafe_allow_html=True)
+    with am:
+        st.markdown(f'<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:14px;padding:20px">'
+                    f'<div style="font-family:Playfair Display,serif;font-size:1.1rem;color:#f0ede8;font-weight:700;margin-bottom:14px">'
+                    f'🟡 Alertas de Atención <span class="badge-a">{len(alertas_a)}</span></div>', unsafe_allow_html=True)
+        if alertas_a:
+            for a in alertas_a[:25]:
+                st.markdown(f'<div class="alerta-a"><b>{a["tipo"]}</b> · #{a["id"]} · {a["cliente"]}<br>'
+                            f'<span style="color:#8b8aaa;font-size:0.8rem">{a["msg"]}</span></div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div style="color:#34d399;text-align:center;padding:20px">✅ Sin alertas de atención</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
-# ── GRÁFICAS ESTATUS ────────────────────────────────────────
-if C_ESTATUS in df.columns:
-    st.markdown("### 📦 Análisis por Estatus")
-    g1, g2 = st.columns(2)
-    COLS = ['#1e1b16','#c4a97d','#059669','#dc2626','#2563eb','#d97706','#7c3aed','#0891b2','#65a30d','#f43f5e']
-    with g1:
-        ed = df[C_ESTATUS].astype(str).value_counts().reset_index()
-        ed.columns = ['Estatus','Cantidad']
-        fig = px.pie(ed, values='Cantidad', names='Estatus', color_discrete_sequence=COLS,
-                    title='Distribución de Estados')
-        fig.update_layout(height=380, paper_bgcolor='rgba(0,0,0,0)')
-        fig.update_traces(textposition='inside', textinfo='percent+label')
-        st.plotly_chart(fig, use_container_width=True)
-    with g2:
-        if '_mes' in df.columns:
-            em = df.groupby(['_mes', C_ESTATUS]).size().reset_index(name='Cantidad')
-            fig2 = px.bar(em, x='_mes', y='Cantidad', color=C_ESTATUS, barmode='stack',
-                         color_discrete_sequence=COLS, title='Estados por Mes')
-            fig2.update_layout(height=380, plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
-            st.plotly_chart(fig2, use_container_width=True)
+    # Tabs de análisis operativo
+    op_nav = st.radio("", ["📦 Estados","⚠️ Novedades","🏷️ Tags","🔍 Pedidos"],
+                     horizontal=True, label_visibility="collapsed")
 
-# ── NOVEDADES ───────────────────────────────────────────────
-if C_ESTATUS in df.columns and C_NOVEDAD in df.columns:
-    nov_df = df[df[C_ESTATUS].astype(str).str.upper().str.contains('NOVEDAD', na=False)]
-    if len(nov_df) > 0:
-        st.markdown("### ⚠️ Análisis de Novedades")
+    if "Estados" in op_nav and C_ESTATUS in df.columns:
+        g1,g2 = st.columns(2)
+        with g1:
+            ed = df[C_ESTATUS].astype(str).value_counts().reset_index()
+            ed.columns = ['Estatus','Cantidad']
+            fig = px.pie(ed, values='Cantidad', names='Estatus', hole=0.4,
+                        color_discrete_sequence=COLORES_ELEGANTES, title='Distribución de Estados')
+            fig.update_layout(**PLOT_LAYOUT, height=380)
+            fig.update_traces(textposition='inside', textinfo='percent+label')
+            st.plotly_chart(fig, use_container_width=True)
+        with g2:
+            if '_mes' in df.columns:
+                em = df.groupby(['_mes', C_ESTATUS]).size().reset_index(name='Cantidad')
+                fig2 = px.bar(em, x='_mes', y='Cantidad', color=C_ESTATUS, barmode='stack',
+                             color_discrete_sequence=COLORES_ELEGANTES, title='Estados por Mes')
+                fig2.update_layout(**PLOT_LAYOUT, height=380)
+                st.plotly_chart(fig2, use_container_width=True)
+
+    elif "Novedades" in op_nav and C_NOVEDAD in df.columns:
+        nov_df = df[df[C_ESTATUS].astype(str).str.upper().str.contains('NOVEDAD', na=False)] if C_ESTATUS in df.columns else df
         total_nov = len(nov_df)
-        sol = sum(1 for v in nov_df[C_NOV_SOL].astype(str).str.upper() if 'SI' in v or 'SÍ' in v) if C_NOV_SOL in df.columns else 0
-        no_sol = total_nov - sol
-        n1,n2,n3 = st.columns(3)
-        with n1: st.markdown(kpi_html("amar","⚠️ Total Novedades",total_nov), unsafe_allow_html=True)
-        with n2: st.markdown(kpi_html("verde","✅ Solucionadas",sol,f"{round(sol/total_nov*100,1)}%"), unsafe_allow_html=True)
-        with n3: st.markdown(kpi_html("rojo","❌ Pendientes",no_sol), unsafe_allow_html=True)
+        if total_nov > 0:
+            sol = sum(1 for v in nov_df[C_NOV_SOL].astype(str).str.upper() if 'SI' in v or 'SÍ' in v) if C_NOV_SOL in df.columns else 0
+            no_sol = total_nov - sol
+            n1,n2,n3 = st.columns(3)
+            with n1: st.markdown(kpi("gold","Total Novedades",total_nov), unsafe_allow_html=True)
+            with n2: st.markdown(kpi("green","✅ Solucionadas",sol,f"{round(sol/total_nov*100,1)}%"), unsafe_allow_html=True)
+            with n3: st.markdown(kpi("red","❌ Pendientes",no_sol), unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+            tipos = nov_df[C_NOVEDAD].astype(str).value_counts().head(12).reset_index()
+            tipos.columns = ['Novedad','Cantidad']
+            fig_n = px.bar(tipos, x='Cantidad', y='Novedad', orientation='h',
+                          color='Cantidad', color_continuous_scale=['#1a1829','#f59e0b','#ef4444'],
+                          title='Top Tipos de Novedad')
+            fig_n.update_layout(**PLOT_LAYOUT, height=380, coloraxis_showscale=False)
+            st.plotly_chart(fig_n, use_container_width=True)
+        else:
+            st.success("✅ Sin novedades registradas")
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        tipos_nov = nov_df[C_NOVEDAD].astype(str).value_counts().head(15).reset_index()
-        tipos_nov.columns = ['Tipo de Novedad','Cantidad']
-        barras(tipos_nov, 'Cantidad', 'Tipo de Novedad', 'Top Tipos de Novedad', 'Oranges', 350)
+    elif "Tags" in op_nav and C_TAGS in df.columns:
+        todos = []
+        for tl in df['_tags_lista']: todos.extend(tl)
+        if todos:
+            tags_df = pd.DataFrame({'tag':todos})
+            tags_df['cat'] = tags_df['tag'].apply(clasificar_tag)
+            t1,t2,t3,t4 = st.tabs(["🚨 Seguimiento","❌ Cancelaciones","📊 Estratégico","📋 Todos"])
+            def gtab(cat, paleta, titulo, h=320):
+                d = tags_df[tags_df['cat']==cat]['tag'].value_counts().reset_index()
+                d.columns = ['Tag','Cantidad']
+                if len(d):
+                    fig = px.bar(d, x='Cantidad', y='Tag', orientation='h', color='Cantidad',
+                                color_continuous_scale=paleta, title=titulo)
+                    fig.update_layout(**PLOT_LAYOUT, height=h, coloraxis_showscale=False)
+                    st.plotly_chart(fig, use_container_width=True)
+                else: st.info("Sin tags en esta categoría")
+            with t1: gtab('seguimiento',['#1a1829','#ef4444'],'Tags Seguimiento Activo')
+            with t2:
+                cr = tags_df[tags_df['cat']=='cancelacion_real']['tag'].value_counts().reset_index()
+                cr.columns=['Tag','Cantidad']
+                nc = tags_df[tags_df['cat']=='no_cancelacion']['tag'].value_counts().reset_index()
+                nc.columns=['Tag','Cantidad']
+                ca,cb = st.columns(2)
+                with ca:
+                    if len(cr):
+                        fig=px.bar(cr,x='Cantidad',y='Tag',orientation='h',color='Cantidad',
+                                  color_continuous_scale=['#1a1829','#ef4444'],title='❌ Reales')
+                        fig.update_layout(**PLOT_LAYOUT,height=300,coloraxis_showscale=False)
+                        st.plotly_chart(fig,use_container_width=True)
+                with cb:
+                    if len(nc):
+                        fig=px.bar(nc,x='Cantidad',y='Tag',orientation='h',color='Cantidad',
+                                  color_continuous_scale=['#1a1829','#10b981'],title='✅ No son cancelaciones')
+                        fig.update_layout(**PLOT_LAYOUT,height=300,coloraxis_showscale=False)
+                        st.plotly_chart(fig,use_container_width=True)
+                tcr=len(tags_df[tags_df['cat']=='cancelacion_real'])
+                tnc=len(tags_df[tags_df['cat']=='no_cancelacion'])
+                if tcr+tnc>0:
+                    st.markdown(f'<div style="background:rgba(16,185,129,0.08);border:1px solid #10b981;border-radius:10px;padding:14px;margin-top:8px">'
+                                f'<b style="color:#f0ede8">📊 Resumen:</b> '
+                                f'<span class="badge-r">{tcr} cancelaciones reales</span> &nbsp; '
+                                f'<span class="badge-v">{tnc} no son cancelaciones reales</span></div>', unsafe_allow_html=True)
+            with t3: gtab('estrategico',['#1a1829','#6366f1'],'Tags Estratégicos')
+            with t4:
+                top50=tags_df['tag'].value_counts().head(50).reset_index()
+                top50.columns=['Tag','Cantidad']
+                fig=px.bar(top50,x='Cantidad',y='Tag',orientation='h',color='Cantidad',
+                          color_continuous_scale=['#1a1829','#c9a84c'],title='Top Tags')
+                fig.update_layout(**PLOT_LAYOUT,height=900,coloraxis_showscale=False)
+                st.plotly_chart(fig,use_container_width=True)
 
-# ── TAGS ────────────────────────────────────────────────────
-if C_TAGS in df.columns:
-    st.markdown("### 🏷️ Análisis de Tags")
-    todos = []
-    for tl in df['_tags_lista']: todos.extend(tl)
+    elif "Pedidos" in op_nav:
+        f1,f2,f3 = st.columns(3)
+        df_fil = df.copy()
+        with f1:
+            if C_ESTATUS in df.columns:
+                opts=['Todos']+sorted(df[C_ESTATUS].astype(str).unique().tolist())
+                fe=st.selectbox("Estatus",opts)
+                if fe!='Todos': df_fil=df_fil[df_fil[C_ESTATUS].astype(str)==fe]
+        with f2:
+            if C_TRANSP in df.columns:
+                opts_t=['Todas']+sorted(df[C_TRANSP].astype(str).unique().tolist())
+                ft=st.selectbox("Transportadora",opts_t)
+                if ft!='Todas': df_fil=df_fil[df_fil[C_TRANSP].astype(str)==ft]
+        with f3:
+            only_alert=st.checkbox("🔴 Solo con alerta crítica")
+            if only_alert and alertas_r:
+                ids_a=set(str(a['id']) for a in alertas_r)
+                df_fil=df_fil[df_fil[C_ID].astype(str).isin(ids_a)]
 
-    if todos:
-        tags_df = pd.DataFrame({'tag': todos})
-        tags_df['cat'] = tags_df['tag'].apply(clasificar_tag)
+        cols_v=[c for c in [C_ID,C_FECHA,C_ESTATUS,C_CLIENTE,C_PRODUCTO,C_DEPTO,C_CIUDAD,C_TRANSP,C_TOTAL,C_GANANCIA,C_TAGS,C_NOVEDAD,C_NOV_SOL] if c in df.columns]
+        st.dataframe(df_fil[cols_v].head(500), use_container_width=True, height=420)
+        st.caption(f"Mostrando {min(len(df_fil),500):,} de {len(df_fil):,} pedidos")
 
-        tab1, tab2, tab3, tab4, tab5 = st.tabs(["🚨 Seguimiento","📊 Estratégico","❌ Cancelaciones","✅ No Cancelaciones","📋 Todos"])
+    # Claude
+    st.divider()
+    CLAUDE_ACTIVO = False
+    if CLAUDE_ACTIVO:
+        import anthropic
+        st.markdown('<div class="seccion-titulo">🤖 Asistente Claude</div>', unsafe_allow_html=True)
+        resumen = f"Pedidos:{total}, Entregados:{entregados}({pct_ent}%), Cancelados:{cancelados}, Alertas críticas:{len(alertas_r)}"
+        if "messages" not in st.session_state: st.session_state.messages=[]
+        for msg in st.session_state.messages:
+            with st.chat_message(msg["role"]): st.write(msg["content"])
+        if prompt:=st.chat_input("Pregúntame sobre tus pedidos..."):
+            st.session_state.messages.append({"role":"user","content":prompt})
+            with st.chat_message("user"): st.write(prompt)
+            with st.chat_message("assistant"):
+                client=anthropic.Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
+                ph=st.empty(); resp=""
+                with client.messages.stream(model="claude-sonnet-4-6",max_tokens=1024,
+                    system=f"Eres asistente LUCIDBOT Colombia. Datos:{resumen}. Responde en español.",
+                    messages=st.session_state.messages) as stream:
+                    for text in stream.text_stream:
+                        resp+=text; ph.write(resp+"▌")
+                ph.write(resp)
+            st.session_state.messages.append({"role":"assistant","content":resp})
+    else:
+        st.markdown('<div style="background:rgba(201,168,76,0.08);border:1px solid #c9a84c;border-radius:12px;padding:14px;text-align:center;color:#f0d080;font-size:0.85rem">🤖 Claude IA se activa cuando configures tu API Key · El dashboard funciona completo sin él</div>', unsafe_allow_html=True)
 
-        def tab_barras(cat, paleta, titulo):
-            d = tags_df[tags_df['cat']==cat]['tag'].value_counts().reset_index()
-            d.columns = ['Tag','Cantidad']
-            if len(d): barras(d, 'Cantidad', 'Tag', titulo, paleta)
-            else: st.info("Sin tags de esta categoría en los datos actuales")
-
-        with tab1: tab_barras('seguimiento', 'Reds', 'Tags de Seguimiento Activo')
-        with tab2: tab_barras('estrategico', 'Blues', 'Tags Estratégicos')
-        with tab3:
-            cr_d = tags_df[tags_df['cat']=='cancelacion_real']['tag'].value_counts().reset_index()
-            cr_d.columns = ['Tag','Cantidad']
-            nc_d = tags_df[tags_df['cat']=='no_cancelacion']['tag'].value_counts().reset_index()
-            nc_d.columns = ['Tag','Cantidad']
-            c_a, c_b = st.columns(2)
-            with c_a:
-                if len(cr_d): barras(cr_d,'Cantidad','Tag','❌ Cancelaciones Reales','Reds',300)
-            with c_b:
-                if len(nc_d): barras(nc_d,'Cantidad','Tag','✅ NO son Cancelaciones Reales','Greens',300)
-            total_cr = len(tags_df[tags_df['cat']=='cancelacion_real'])
-            total_nc = len(tags_df[tags_df['cat']=='no_cancelacion'])
-            if total_cr + total_nc > 0:
-                pct_real = round(total_cr/(total_cr+total_nc)*100,1)
-                st.markdown(f'<div style="background:#f0fdf4;border-radius:10px;padding:16px">'
-                            f'<b>📊 De los cancelados:</b> '
-                            f'<span class="badge-r">{total_cr} reales ({pct_real}%)</span> &nbsp; '
-                            f'<span class="badge-v">{total_nc} no son cancelaciones reales</span>'
-                            f'</div>', unsafe_allow_html=True)
-        with tab4: tab_barras('informativo', 'Purples', 'Tags Informativos')
-        with tab5:
-            top40 = tags_df['tag'].value_counts().head(40).reset_index()
-            top40.columns = ['Tag','Cantidad']
-            barras(top40,'Cantidad','Tag','Top 40 Tags',['#f5f0e8','#c4a97d','#1e1b16'],800)
-
-# ── TRANSPORTADORA ──────────────────────────────────────────
-if C_TRANSP in df.columns:
-    st.markdown("### 🚚 Transportadoras")
-    t1, t2 = st.columns(2)
-    with t1:
-        tr = df[C_TRANSP].astype(str).value_counts().reset_index()
-        tr.columns = ['Transportadora','Pedidos']
-        fig_tr = px.pie(tr, values='Pedidos', names='Transportadora',
-                       color_discrete_sequence=['#1e1b16','#c4a97d','#059669','#2563eb','#d97706'],
-                       title='Pedidos por Transportadora')
-        fig_tr.update_layout(height=350, paper_bgcolor='rgba(0,0,0,0)')
-        st.plotly_chart(fig_tr, use_container_width=True)
-    with t2:
-        if C_GANANCIA in df.columns:
-            tr_g = df.groupby(C_TRANSP)[C_GANANCIA].sum().reset_index()
-            tr_g.columns = ['Transportadora','Ganancia']
-            tr_g = tr_g.sort_values('Ganancia', ascending=False)
-            barras(tr_g,'Ganancia','Transportadora','Ganancia por Transportadora',['#f5f0e8','#c4a97d','#059669'],350)
-
-# ── GEO ─────────────────────────────────────────────────────
-if C_DEPTO in df.columns or C_CIUDAD in df.columns:
-    st.markdown("### 🗺️ Cobertura Geográfica")
-    g3, g4 = st.columns(2)
-    with g3:
-        if C_DEPTO in df.columns:
-            dep = df[C_DEPTO].astype(str).value_counts().head(15).reset_index()
-            dep.columns = ['Departamento','Pedidos']
-            barras(dep,'Pedidos','Departamento','Top Departamentos',['#f5f0e8','#c4a97d','#1e1b16'],450)
-    with g4:
-        if C_CIUDAD in df.columns:
-            ciu = df[C_CIUDAD].astype(str).value_counts().head(15).reset_index()
-            ciu.columns = ['Ciudad','Pedidos']
-            barras(ciu,'Pedidos','Ciudad','Top Ciudades',['#f5f0e8','#c4a97d','#3d2f1a'],450)
-
-# ── PRODUCTOS ───────────────────────────────────────────────
-if C_PRODUCTO in df.columns:
-    st.markdown("### 📦 Productos")
-    p1, p2 = st.columns(2)
-    with p1:
-        pr = df[C_PRODUCTO].astype(str).value_counts().head(12).reset_index()
-        pr.columns = ['Producto','Unidades']
-        pr['Producto'] = pr['Producto'].str[:40]
-        barras(pr,'Unidades','Producto','Top Productos por Unidades',['#f5f0e8','#c4a97d','#1e1b16'],450)
-    with p2:
-        if C_GANANCIA in df.columns:
-            pg = df.groupby(C_PRODUCTO)[C_GANANCIA].sum().sort_values(ascending=False).head(12).reset_index()
-            pg.columns = ['Producto','Ganancia']
-            pg['Producto'] = pg['Producto'].astype(str).str[:40]
-            barras(pg,'Ganancia','Producto','Top Productos por Ganancia',['#f5f0e8','#c4a97d','#059669'],450)
-
-# ── FLETE ───────────────────────────────────────────────────
-if C_FLETE in df.columns and C_CIUDAD in df.columns:
-    st.markdown("### 💸 Ciudades con Flete Elevado")
-    fl = df.groupby(C_CIUDAD)[C_FLETE].mean().sort_values(ascending=False).head(15).reset_index()
-    fl.columns = ['Ciudad','Flete Promedio']
-    barras(fl,'Flete Promedio','Ciudad','Flete Promedio por Ciudad (Top 15)',['#fffbeb','#d97706','#dc2626'],380)
-    st.caption("⚠️ Ciudades con flete alto pueden no ser rentables. Considera excluirlas de pauta publicitaria.")
-
-# ── TABLA FILTRADA ──────────────────────────────────────────
-st.markdown("### 🔍 Explorar Pedidos")
-f1, f2, f3 = st.columns(3)
-df_fil = df.copy()
-
-with f1:
-    if C_ESTATUS in df.columns:
-        opts = ['Todos'] + sorted(df[C_ESTATUS].astype(str).unique().tolist())
-        filt_est = st.selectbox("Estatus", opts)
-        if filt_est != 'Todos':
-            df_fil = df_fil[df_fil[C_ESTATUS].astype(str) == filt_est]
-with f2:
-    if C_TRANSP in df.columns:
-        opts_t = ['Todas'] + sorted(df[C_TRANSP].astype(str).unique().tolist())
-        filt_t = st.selectbox("Transportadora", opts_t)
-        if filt_t != 'Todas':
-            df_fil = df_fil[df_fil[C_TRANSP].astype(str) == filt_t]
-with f3:
-    solo_alert = st.checkbox("🔴 Solo pedidos con alerta crítica")
-    if solo_alert and alertas_r:
-        ids_alerta = set(str(a['id']) for a in alertas_r)
-        df_fil = df_fil[df_fil[C_ID].astype(str).isin(ids_alerta)]
-
-cols_vis = [c for c in [C_ID, C_FECHA, C_ESTATUS, C_CLIENTE, C_PRODUCTO, C_DEPTO, C_CIUDAD,
-                         C_TRANSP, C_TOTAL, C_GANANCIA, C_TAGS, C_NOVEDAD, C_NOV_SOL] if c in df.columns]
-st.dataframe(df_fil[cols_vis].head(500), use_container_width=True, height=380)
-st.caption(f"Mostrando {min(len(df_fil),500):,} de {len(df_fil):,} pedidos")
-
-# ── CLAUDE ──────────────────────────────────────────────────
-st.divider()
-CLAUDE_ACTIVO = False
-if CLAUDE_ACTIVO:
-    import anthropic
-    st.markdown("### 🤖 Asistente Claude")
-    resumen = (f"Pedidos:{total}, Entregados:{entregados}({pct_ent}%), Cancelados:{cancelados}, "
-               f"Devoluciones:{devolucion}, Ganancia:{v(tot_gan)}, "
-               f"Alertas críticas:{len(alertas_r)}, Alertas atención:{len(alertas_a)}")
-    if "messages" not in st.session_state: st.session_state.messages = []
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]): st.write(msg["content"])
-    if prompt := st.chat_input("Pregúntame sobre tus pedidos..."):
-        st.session_state.messages.append({"role":"user","content":prompt})
-        with st.chat_message("user"): st.write(prompt)
-        with st.chat_message("assistant"):
-            client = anthropic.Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
-            ph = st.empty(); resp = ""
-            with client.messages.stream(model="claude-sonnet-4-6", max_tokens=1024,
-                system=f"Eres asistente de LUCIDBOT Colombia. Datos actuales: {resumen}. Responde en español.",
-                messages=st.session_state.messages) as stream:
-                for text in stream.text_stream:
-                    resp += text; ph.write(resp+"▌")
-            ph.write(resp)
-        st.session_state.messages.append({"role":"assistant","content":resp})
-else:
-    st.info("🤖 Claude IA se activará cuando configures tu API Key. El dashboard funciona completo sin él.")
-
-st.caption("🚀 LUCIDBOT · Dashboard de Seguimiento Dropi · Colombia")
-
+st.markdown('<div style="text-align:center;color:#3d3b55;font-size:0.7rem;margin-top:30px">🚀 LUCIDBOT Analytics · Dashboard Profesional · Colombia</div>', unsafe_allow_html=True)
