@@ -428,7 +428,7 @@ if "Ventas" in vista:
 
             # Coordenadas aproximadas departamentos Colombia
             coords = {
-                'CUNDINAMARCA':[4.60,−74.08],'BOGOTA':[4.60,−74.08],'BOGOTÁ':[4.60,−74.08],
+                'CUNDINAMARCA':[4.60,-74.08],'BOGOTA':[4.60,-74.08],'BOGOTÁ':[4.60,-74.08],
                 'ANTIOQUIA':[6.25,−75.56],'MEDELLÍN':[6.25,−75.56],'MEDELLIN':[6.25,−75.56],
                 'VALLE DEL CAUCA':[3.43,−76.52],'CALI':[3.43,−76.52],
                 'ATLANTICO':[10.99,−74.81],'ATLÁNTICO':[10.99,−74.81],'BARRANQUILLA':[10.99,−74.81],
