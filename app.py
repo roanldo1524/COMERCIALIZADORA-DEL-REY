@@ -534,60 +534,266 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         nav = st.radio("", ["📅 Evolución Mensual","🗺️ Mapa Colombia","🏆 Productos Estrella","🚚 Transportadoras","💡 Insights"],
                        horizontal=True, label_visibility="collapsed")
 
-    # ── P&G ──
+
+    # ── P&G COMPLETO ──
     if nav == "💰 P&G":
         st.markdown('<div class="seccion-titulo">📈 Estado de Pérdidas y Ganancias</div>', unsafe_allow_html=True)
-        if C_TOTAL in df.columns and C_GANANCIA in df.columns:
-            tot_flete   = df[C_FLETE].sum()    if C_FLETE    in df.columns else 0
-            tot_proveedor = df["PRECIO PROVEEDOR X CANTIDAD"].sum() if "PRECIO PROVEEDOR X CANTIDAD" in df.columns else 0
-            tot_comision  = df["COMISION"].sum()   if "COMISION"  in df.columns else 0
-            margen = round(tot_gan/tot_venta*100,1) if tot_venta else 0
 
-            p1,p2,p3,p4 = st.columns(4)
-            with p1: st.markdown(kpi("cyan",  "💰 Ingresos Brutos",  fmt_money(tot_venta)), unsafe_allow_html=True)
-            with p2: st.markdown(kpi("red",   "📦 Costo Proveedor",  fmt_money(tot_proveedor)), unsafe_allow_html=True)
-            with p3: st.markdown(kpi("gold",  "🚚 Fletes",           fmt_money(tot_flete)), unsafe_allow_html=True)
-            with p4: st.markdown(kpi("green", "✅ Ganancia Neta",    fmt_money(tot_gan), f"{margen}% margen"), unsafe_allow_html=True)
+        # ── Selector de mes ──
+        meses_pg = sorted(df['_mes'].dropna().unique().tolist(), reverse=True) if '_mes' in df.columns else []
+        mes_pg = st.selectbox("📅 Mes", meses_pg if meses_pg else ["Sin datos"], key="mes_pg")
+        df_pg = df[df['_mes'] == mes_pg].copy() if '_mes' in df.columns and mes_pg != "Sin datos" else df.copy()
 
-            st.markdown("<br>", unsafe_allow_html=True)
+        # ── Helper: filtrar por semana ──
+        def sem(df_base, n):
+            if n == 0: return df_base
+            r = {1:(1,8),2:(9,16),3:(17,24),4:(25,31)}
+            i,f = r[n]
+            return df_base[df_base[C_FECHA].dt.day.between(i,f)] if C_FECHA in df_base.columns else df_base
 
-            if '_mes' in df.columns:
-                pg_mes = df.groupby('_mes').agg(
-                    Ingresos=(C_TOTAL,'sum'),
-                    Ganancia=(C_GANANCIA,'sum'),
-                    Flete=(C_FLETE,'sum') if C_FLETE in df.columns else (C_TOTAL,'count')
-                ).reset_index()
-                pg_mes['Costo'] = pg_mes['Ingresos'] - pg_mes['Ganancia']
-                pg_mes['Margen_%'] = (pg_mes['Ganancia'] / pg_mes['Ingresos'] * 100).round(1)
+        # ── Calcular métricas Dropi por período ──
+        def metricas_dropi(dfs):
+            shopify    = dfs[C_TOTAL].sum()    if C_TOTAL    in dfs.columns else 0
+            cancelado  = dfs[dfs[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD',na=False)][C_TOTAL].sum() if C_ESTATUS in dfs.columns and C_TOTAL in dfs.columns else 0
+            devolucion = dfs[dfs[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI',na=False)][C_TOTAL].sum() if C_ESTATUS in dfs.columns and C_TOTAL in dfs.columns else 0
+            novedad    = dfs[dfs[C_ESTATUS].astype(str).str.upper().str.contains('NOVEDAD',na=False)][C_TOTAL].sum()  if C_ESTATUS in dfs.columns and C_TOTAL in dfs.columns else 0
+            reparto    = dfs[dfs[C_ESTATUS].astype(str).str.upper().str.contains('REPARTO',na=False)][C_TOTAL].sum()  if C_ESTATUS in dfs.columns and C_TOTAL in dfs.columns else 0
+            recaudo    = shopify - cancelado - devolucion - novedad - reparto
+            c_proveedor = dfs["PRECIO PROVEEDOR X CANTIDAD"].sum() if "PRECIO PROVEEDOR X CANTIDAD" in dfs.columns else 0
+            # Flete entregados vs devoluciones
+            mask_ent = dfs[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD',na=False) if C_ESTATUS in dfs.columns else pd.Series([True]*len(dfs))
+            mask_dev = dfs[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI',na=False) if C_ESTATUS in dfs.columns else pd.Series([False]*len(dfs))
+            flete_ent = dfs[mask_ent][C_FLETE].sum() if C_FLETE in dfs.columns else 0
+            flete_dev = dfs[mask_dev][C_FLETE].sum() if C_FLETE in dfs.columns else 0
+            costo_total = c_proveedor + flete_ent + flete_dev
+            margen_bruto = recaudo - costo_total
+            return dict(shopify=shopify,cancelado=cancelado,devolucion=devolucion,
+                        novedad=novedad,reparto=reparto,recaudo=recaudo,
+                        c_proveedor=c_proveedor,flete_ent=flete_ent,flete_dev=flete_dev,
+                        costo_total=costo_total,margen_bruto=margen_bruto)
 
-                fig_pg = go.Figure()
-                fig_pg.add_trace(go.Bar(x=pg_mes['_mes'], y=pg_mes['Ingresos']/1e6, name='Ingresos',
-                                       marker_color='#6366f1', opacity=0.85))
-                fig_pg.add_trace(go.Bar(x=pg_mes['_mes'], y=pg_mes['Costo']/1e6, name='Costos',
-                                       marker_color='#ef4444', opacity=0.85))
-                fig_pg.add_trace(go.Bar(x=pg_mes['_mes'], y=pg_mes['Ganancia']/1e6, name='Ganancia',
-                                       marker_color='#10b981', opacity=0.85))
-                fig_pg.add_trace(go.Scatter(x=pg_mes['_mes'], y=pg_mes['Margen_%'], name='Margen %',
-                                           yaxis='y2', line=dict(color='#c9a84c', width=3),
-                                           marker=dict(size=8, color='#c9a84c')))
-                fig_pg.update_layout(**PLOT_LAYOUT, barmode='group', height=420,
-                                     title='P&G Mensual — Ingresos vs Costos vs Ganancia',
-                                     xaxis=AXIS_STYLE,
-                                     yaxis=dict(title='Millones COP', **AXIS_STYLE),
-                                     yaxis2=dict(title='Margen %', overlaying='y', side='right',
-                                                gridcolor='rgba(0,0,0,0)', tickfont=dict(color='#c9a84c'),
-                                                ticksuffix='%'))
-                st.plotly_chart(fig_pg, use_container_width=True)
+        periodos = {
+            "Sem I\n1-8":    sem(df_pg,1),
+            "Sem II\n9-16":  sem(df_pg,2),
+            "Sem III\n17-24":sem(df_pg,3),
+            "Sem IV\n25-31": sem(df_pg,4),
+            "Total Mes":     df_pg
+        }
+        met = {k: metricas_dropi(v) for k,v in periodos.items()}
 
-                # Tabla P&G por mes
-                pg_mes['Ingresos']  = pg_mes['Ingresos'].apply(fmt_money)
-                pg_mes['Ganancia']  = pg_mes['Ganancia'].apply(fmt_money)
-                pg_mes['Costo']     = pg_mes['Costo'].apply(fmt_money)
-                pg_mes['Margen_%']  = pg_mes['Margen_%'].astype(str) + '%'
-                pg_mes = pg_mes.rename(columns={'_mes':'Mes','Margen_%':'Margen'})
-                st.dataframe(pg_mes[['Mes','Ingresos','Costo','Ganancia','Margen']], use_container_width=True)
-        else:
-            st.info("Se necesitan las columnas TOTAL DE LA ORDEN y GANANCIA para el P&G")
+        # ── INPUTS MANUALES ──
+        st.markdown('<div style="height:18px"></div>', unsafe_allow_html=True)
+
+        with st.expander("✏️ Ingresar costos manuales (Marketing · Admin · Imports)", expanded=False):
+            st.caption("Ingresa los valores del mes completo en pesos COP. Se distribuyen proporcionalmente por semana.")
+            col_m1, col_m2, col_m3 = st.columns(3)
+
+            with col_m1:
+                st.markdown('<div style="font-size:0.72rem;color:#c9a84c;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">📣 MARKETING</div>', unsafe_allow_html=True)
+                pauta        = st.number_input("Pauta (Ads)",         0, 500000000, 0, 100000, key="m_pauta",      format="%d")
+                lucid_bot    = st.number_input("Lucid Bot",           0, 50000000,  0, 10000,  key="m_lucidbot",   format="%d")
+                open_ia      = st.number_input("Open IA",             0, 20000000,  0, 10000,  key="m_openia",     format="%d")
+                luci_voice   = st.number_input("Luci Voice",          0, 20000000,  0, 10000,  key="m_lucivoz",    format="%d")
+                contingencias= st.number_input("Contingencias",       0, 20000000,  0, 10000,  key="m_conting",    format="%d")
+                plat_spy     = st.number_input("Plataformas Spy",     0, 10000000,  0, 10000,  key="m_platspy",    format="%d")
+                dominios     = st.number_input("Dominios / GoDaddy",  0, 5000000,   0, 10000,  key="m_dominios",   format="%d")
+                total_mkt    = pauta+lucid_bot+open_ia+luci_voice+contingencias+plat_spy+dominios
+                st.markdown(f'<div style="background:rgba(201,168,76,0.1);border-radius:6px;padding:8px;text-align:center;color:#f0d080;font-size:0.85rem"><b>Total: {fmt_money(total_mkt)}</b></div>', unsafe_allow_html=True)
+
+            with col_m2:
+                st.markdown('<div style="font-size:0.72rem;color:#6366f1;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">🏢 ADMINISTRATIVOS</div>', unsafe_allow_html=True)
+                adm_coord    = st.number_input("Coord Leidy",             0, 20000000, 0, 100000, key="a_coord",   format="%d")
+                adm_logis    = st.number_input("Samanta Logística",       0, 20000000, 0, 100000, key="a_logis",   format="%d")
+                adm_sandra   = st.number_input("Sandra Confirmación",     0, 20000000, 0, 100000, key="a_sandra",  format="%d")
+                adm_cont     = st.number_input("Contador",                0, 10000000, 0, 100000, key="a_contad",  format="%d")
+                adm_ceo      = st.number_input("C.E.O. - Ronaldo",        0, 20000000, 0, 100000, key="a_ceo",     format="%d")
+                total_adm    = adm_coord+adm_logis+adm_sandra+adm_cont+adm_ceo
+                st.markdown(f'<div style="background:rgba(99,102,241,0.1);border-radius:6px;padding:8px;text-align:center;color:#a5b4fc;font-size:0.85rem"><b>Total: {fmt_money(total_adm)}</b></div>', unsafe_allow_html=True)
+
+            with col_m3:
+                st.markdown('<div style="font-size:0.72rem;color:#06b6d4;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">📦 IMPORTACIONES</div>', unsafe_allow_html=True)
+                imp_compras  = st.number_input("Importaciones & Compras", 0, 200000000, 0, 100000, key="i_comp",   format="%d")
+                imp_sky      = st.number_input("Sky Carga USA-Col",       0, 50000000,  0, 100000, key="i_sky",    format="%d")
+                imp_tax8     = st.number_input("Impuesto 8x1000",         0, 5000000,   0, 10000,  key="i_tax8",   format="%d")
+                imp_banco    = st.number_input("Costos Bancarios",        0, 5000000,   0, 10000,  key="i_banco",  format="%d")
+                imp_activ    = st.number_input("Actividades & Capac.",    0, 10000000,  0, 10000,  key="i_activ",  format="%d")
+                total_imp    = imp_compras+imp_sky+imp_tax8+imp_banco+imp_activ
+                st.markdown(f'<div style="background:rgba(6,182,212,0.1);border-radius:6px;padding:8px;text-align:center;color:#67e8f9;font-size:0.85rem"><b>Total: {fmt_money(total_imp)}</b></div>', unsafe_allow_html=True)
+
+        # Distribuir costos manuales por semana (proporcional a ingresos)
+        shopify_total = met["Total Mes"]["shopify"] or 1
+        def factor(k):
+            return met[k]["shopify"] / shopify_total if shopify_total else 0.25
+
+        manuales = {}
+        for k in met.keys():
+            f = factor(k)
+            manuales[k] = dict(
+                mkt_items={
+                    "Pauta":          pauta*f,
+                    "Lucid Bot":      lucid_bot*f,
+                    "Open IA":        open_ia*f,
+                    "Luci Voice":     luci_voice*f,
+                    "Contingencias":  contingencias*f,
+                    "Plat. Spy":      plat_spy*f,
+                    "Dominios":       dominios*f,
+                },
+                total_mkt=total_mkt*f,
+                adm_items={
+                    "Coord Leidy":    adm_coord*f,
+                    "Sam. Logística": adm_logis*f,
+                    "S. Confirmación":adm_sandra*f,
+                    "Contador":       adm_cont*f,
+                    "C.E.O.":         adm_ceo*f,
+                },
+                total_adm=total_adm*f,
+                imp_items={
+                    "Importaciones":  imp_compras*f,
+                    "Sky Carga":      imp_sky*f,
+                    "Imp. 8x1000":    imp_tax8*f,
+                    "C. Bancarios":   imp_banco*f,
+                    "Actividades":    imp_activ*f,
+                },
+                total_imp=total_imp*f,
+            )
+
+        # ── TABLA P&G VISUAL ──
+        def pct(val, base):
+            return f"{round(val/base*100,1)}%" if base else "—"
+
+        def celda(val, base, invertir=False):
+            p = val/base*100 if base else 0
+            if invertir:
+                color = "#ef4444" if p > 25 else "#fbbf24" if p > 15 else "#34d399"
+            else:
+                color = "#34d399" if p >= 60 else "#fbbf24" if p >= 40 else "#ef4444"
+            bg = f"rgba({','.join(str(int(c,16)) for c in [color[1:3],color[3:5],color[5:7]])},0.12)" if color.startswith('#') else "transparent"
+            return f'<td style="padding:8px 12px;text-align:right;color:{color};font-weight:700;font-size:0.82rem">{pct(val,base)}</td>'
+
+        def fila_seccion(label, color="#f0ede8", bold=True, bg="transparent", colspan=11):
+            fw = "800" if bold else "600"
+            return f'<tr><td colspan="{colspan}" style="padding:10px 12px 4px;background:{bg};color:{color};font-family:Syne,sans-serif;font-weight:{fw};font-size:0.82rem;text-transform:uppercase;letter-spacing:0.06em">{label}</td></tr>'
+
+        def fila(label, vals_dict, base_dict, meta=None, kpi_meta=None, invertir=False, destacar=False, color_label="#b0aec8"):
+            bg = "rgba(201,168,76,0.06)" if destacar else "rgba(0,0,0,0)"
+            fw = "700" if destacar else "400"
+            html = f'<tr style="background:{bg};border-bottom:1px solid rgba(45,43,69,0.5)">'
+            html += f'<td style="padding:8px 12px;color:{color_label};font-weight:{fw};font-size:0.82rem;white-space:nowrap">{label}</td>'
+            if meta is not None:
+                html += f'<td style="padding:8px 12px;text-align:right;color:#5a5878;font-size:0.78rem">{fmt_money(meta)}</td>'
+                html += f'<td style="padding:8px 12px;text-align:right;color:#c9a84c;font-size:0.78rem;font-weight:700">{kpi_meta}</td>'
+            else:
+                html += '<td colspan="2"></td>'
+            for k, v in vals_dict.items():
+                base = base_dict.get(k, 1)
+                p = v/base*100 if base else 0
+                if invertir:
+                    pc = "#ef4444" if p > 25 else "#fbbf24" if p > 15 else "#34d399"
+                elif destacar:
+                    pc = "#34d399" if p >= 55 else "#fbbf24" if p >= 40 else "#ef4444"
+                else:
+                    pc = "#f0ede8"
+                bg_p = "rgba(239,68,68,0.08)" if pc=="#ef4444" else "rgba(245,158,11,0.08)" if pc=="#fbbf24" else "transparent"
+                html += f'<td style="padding:8px 12px;text-align:right;color:#8b8aaa;font-size:0.8rem">{fmt_money(v)}</td>'
+                html += f'<td style="padding:8px 12px;text-align:right;background:{bg_p};color:{pc};font-weight:700;font-size:0.8rem;border-radius:4px">{pct(v,base)}</td>'
+            html += '</tr>'
+            return html
+
+        # Cabeceras de columnas
+        cols_hdr = list(met.keys())
+        shopifys = {k: met[k]["shopify"] for k in cols_hdr}
+        recaudos = {k: met[k]["recaudo"] for k in cols_hdr}
+        mbrutos  = {k: met[k]["margen_bruto"] for k in cols_hdr}
+
+        marg_ops  = {k: met[k]["margen_bruto"] - manuales[k]["total_mkt"] for k in cols_hdr}
+        ebitdas   = {k: marg_ops[k] - manuales[k]["total_adm"] - manuales[k]["total_imp"] for k in cols_hdr}
+        imptos    = {k: met[k]["shopify"] * 0.08 for k in cols_hdr}
+        netos     = {k: ebitdas[k] - imptos[k] for k in cols_hdr}
+
+        header_cols = ""
+        for c in cols_hdr:
+            col_color = {"Sem I\n1-8":"#c0392b","Sem II\n9-16":"#d4ac0d","Sem III\n17-24":"#7fb3d3","Sem IV\n25-31":"#a9dfbf","Total Mes":"#27ae60"}.get(c,"#6366f1")
+            label = c.replace("\n","<br>")
+            header_cols += f'<th colspan="2" style="padding:10px 8px;text-align:center;background:{col_color};color:#fff;font-family:Syne,sans-serif;font-size:0.8rem;font-weight:800;letter-spacing:0.04em">{label}</th>'
+
+        html_pg = f"""
+        <div style="overflow-x:auto;border-radius:14px;border:1px solid #2d2b45;margin-top:16px">
+        <table style="width:100%;border-collapse:collapse;background:#0f0e17;font-family:Space Grotesk,sans-serif">
+        <thead>
+          <tr style="background:#0f0e17">
+            <th style="padding:12px;text-align:left;color:#8b8aaa;font-size:0.75rem;min-width:160px">Concepto</th>
+            <th style="padding:12px;text-align:right;color:#8b8aaa;font-size:0.72rem">Meta</th>
+            <th style="padding:12px;text-align:right;color:#8b8aaa;font-size:0.72rem">KPI</th>
+            {header_cols}
+          </tr>
+        </thead>
+        <tbody>
+        """
+
+        # BLOQUE 1 — OPERACIÓN LOGÍSTICA
+        html_pg += fila_seccion("⚙️ Operación Logística", "#10b981", bg="rgba(16,185,129,0.06)")
+        html_pg += fila("SHOPIFY (Total Pedidos)",   {k:met[k]["shopify"]    for k in cols_hdr}, shopifys, destacar=True, color_label="#10b981")
+        html_pg += fila("  Cancelación",             {k:met[k]["cancelado"]  for k in cols_hdr}, shopifys, invertir=True)
+        html_pg += fila("  Devolución",              {k:met[k]["devolucion"] for k in cols_hdr}, shopifys, invertir=True)
+        html_pg += fila("  Novedades",               {k:met[k]["novedad"]    for k in cols_hdr}, shopifys, invertir=True)
+        html_pg += fila("  En Reparto",              {k:met[k]["reparto"]    for k in cols_hdr}, shopifys, invertir=True)
+        html_pg += fila("T. INGRESO x VENTAS",       recaudos,                                   shopifys, destacar=True, color_label="#c9a84c")
+
+        # BLOQUE 2 — COSTO DE VENTA
+        html_pg += fila_seccion("📦 Costo de Venta", "#ef4444", bg="rgba(239,68,68,0.05)")
+        html_pg += fila("  V/R Producto Entregado",  {k:met[k]["c_proveedor"] for k in cols_hdr}, recaudos, invertir=True)
+        html_pg += fila("  Flete de Entrega",        {k:met[k]["flete_ent"]   for k in cols_hdr}, recaudos, invertir=True)
+        html_pg += fila("  Flete de Devolución",     {k:met[k]["flete_dev"]   for k in cols_hdr}, recaudos, invertir=True)
+        html_pg += fila("TOTAL COSTO",               {k:met[k]["costo_total"] for k in cols_hdr}, recaudos, invertir=True, destacar=True, color_label="#ef4444")
+        html_pg += fila("MARGEN BRUTO | WALLET",     mbrutos,                                     recaudos, destacar=True, color_label="#c9a84c")
+
+        # BLOQUE 3 — MARKETING
+        html_pg += fila_seccion("📣 Ret. Inv. Marketing / Ingresos", "#f59e0b", bg="rgba(245,158,11,0.05)")
+        for nombre in ["Pauta","Lucid Bot","Open IA","Luci Voice","Contingencias","Plat. Spy","Dominios"]:
+            key_map = {"Pauta":"Pauta","Lucid Bot":"Lucid Bot","Open IA":"Open IA","Luci Voice":"Luci Voice","Contingencias":"Contingencias","Plat. Spy":"Plat. Spy","Dominios":"Dominios"}
+            html_pg += fila(f"  {nombre}", {k: manuales[k]["mkt_items"].get(key_map[nombre],0) for k in cols_hdr}, recaudos, invertir=True)
+        html_pg += fila("TOTAL MARKETING",           {k:manuales[k]["total_mkt"] for k in cols_hdr}, recaudos, invertir=True, destacar=True, color_label="#f59e0b")
+        html_pg += fila("MARGEN OPERACIONAL",        marg_ops, recaudos, destacar=True, color_label="#a5b4fc")
+
+        # BLOQUE 4 — IMPORTS & ADMIN
+        html_pg += fila_seccion("🌐 Importaciones & Costos Bancarios", "#06b6d4", bg="rgba(6,182,212,0.04)")
+        for nombre in ["Importaciones","Sky Carga","Imp. 8x1000","C. Bancarios","Actividades"]:
+            html_pg += fila(f"  {nombre}", {k: manuales[k]["imp_items"].get(nombre,0) for k in cols_hdr}, recaudos, invertir=True)
+        html_pg += fila("TOTAL IMPORTS",             {k:manuales[k]["total_imp"] for k in cols_hdr}, recaudos, invertir=True, destacar=True, color_label="#67e8f9")
+
+        html_pg += fila_seccion("🏢 Administrativos", "#8b5cf6", bg="rgba(139,92,246,0.04)")
+        for nombre in ["Coord Leidy","Sam. Logística","S. Confirmación","Contador","C.E.O."]:
+            html_pg += fila(f"  {nombre}", {k: manuales[k]["adm_items"].get(nombre,0) for k in cols_hdr}, recaudos, invertir=True)
+        html_pg += fila("TOTAL ADMINISTRACIÓN",      {k:manuales[k]["total_adm"] for k in cols_hdr}, recaudos, invertir=True, destacar=True, color_label="#a78bfa")
+
+        # BLOQUE 5 — EBITDA, IMPUESTOS, MARGEN NETO
+        html_pg += fila_seccion("📊 Resultado Final", "#c9a84c", bg="rgba(201,168,76,0.06)")
+        html_pg += fila("EBITDA",                    ebitdas, recaudos, destacar=True, color_label="#c9a84c")
+        html_pg += fila("  Impuestos Estimados 8%",  imptos,  recaudos, invertir=True)
+        html_pg += fila("MARGEN NETO",               netos,   recaudos, destacar=True, color_label="#f0d080")
+
+        html_pg += "</tbody></table></div>"
+        st.markdown(html_pg, unsafe_allow_html=True)
+
+        # ── Gráfica resumen ──
+        st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
+        fig_pg2 = go.Figure()
+        xs = [k.replace("\n"," ") for k in cols_hdr]
+        fig_pg2.add_trace(go.Bar(x=xs, y=[met[k]["shopify"]/1e6    for k in cols_hdr], name="Shopify",      marker_color="#6366f1", opacity=0.85))
+        fig_pg2.add_trace(go.Bar(x=xs, y=[met[k]["recaudo"]/1e6    for k in cols_hdr], name="Recaudo",      marker_color="#06b6d4", opacity=0.85))
+        fig_pg2.add_trace(go.Bar(x=xs, y=[mbrutos[k]/1e6           for k in cols_hdr], name="Margen Bruto", marker_color="#10b981", opacity=0.85))
+        fig_pg2.add_trace(go.Bar(x=xs, y=[netos[k]/1e6             for k in cols_hdr], name="Margen Neto",  marker_color="#c9a84c", opacity=0.85))
+        fig_pg2.add_trace(go.Scatter(x=xs, y=[netos[k]/max(met[k]["shopify"],1)*100 for k in cols_hdr],
+                                     name="Margen Neto %", yaxis="y2",
+                                     line=dict(color="#f0d080",width=3), marker=dict(size=9)))
+        fig_pg2.update_layout(**PLOT_LAYOUT, barmode="group", height=400,
+                              title="Cascada P&G por Semana",
+                              xaxis=AXIS_STYLE,
+                              yaxis=dict(title="Millones COP", **AXIS_STYLE),
+                              yaxis2=dict(title="Margen %", overlaying="y", side="right",
+                                         gridcolor="rgba(0,0,0,0)", tickfont=dict(color="#f0d080"), ticksuffix="%"))
+        st.plotly_chart(fig_pg2, use_container_width=True)
+
 
     # ── PROYECCIONES ──
     elif nav == "🔮 Proyecciones":
