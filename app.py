@@ -7,7 +7,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 st.set_page_config(
-    page_title="LUCIDBOT Analytics",
+    page_title="VisióN360",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -15,10 +15,10 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
 
 html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
 }
 .stApp { background-color: #0f0e17; }
 .block-container { padding: 1.5rem 2rem; }
@@ -31,7 +31,7 @@ section[data-testid="stSidebar"] {
 section[data-testid="stSidebar"] * { color: #e8e6f0 !important; }
 
 /* TÍTULOS */
-h1, h2, h3 { font-family: 'Playfair Display', serif !important; }
+h1, h2, h3 { font-family: 'Syne', sans-serif !important; }
 
 /* TARJETAS KPI */
 .kpi {
@@ -227,8 +227,8 @@ def kpi(color, label, num, sub=""):
 PLOT_LAYOUT = dict(
     plot_bgcolor='rgba(0,0,0,0)',
     paper_bgcolor='rgba(0,0,0,0)',
-    font=dict(family='Inter', color='#b0aec8', size=12),
-    title_font=dict(family='Playfair Display', color='#f0ede8', size=16),
+    font=dict(family='Space Grotesk', color='#b0aec8', size=12),
+    title_font=dict(family='Syne', color='#f0ede8', size=16),
     legend=dict(font=dict(color='#b0aec8', size=11), bgcolor='rgba(0,0,0,0)'),
     margin=dict(l=10, r=10, t=50, b=10)
 )
@@ -240,12 +240,35 @@ COLORES_ELEGANTES = ['#c9a84c','#6366f1','#10b981','#ef4444','#06b6d4','#8b5cf6'
 # ═══════════════════════════════════════════════════════════
 with st.sidebar:
     st.markdown("""
-    <div style="text-align:center;padding:20px 0 10px">
-        <div style="font-size:2.5rem">🚀</div>
-        <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:800;color:#f0ede8">LUCIDBOT</div>
-        <div style="font-size:0.72rem;color:#8b8aaa;letter-spacing:0.1em;text-transform:uppercase">Analytics Dashboard</div>
+    <div style="padding:24px 12px 16px;text-align:center">
+
+        <!-- Ícono circular con gradiente -->
+        <div style="display:inline-flex;align-items:center;justify-content:center;
+                    width:56px;height:56px;border-radius:16px;margin-bottom:14px;
+                    background:linear-gradient(135deg,#6366f1 0%,#06b6d4 100%);
+                    box-shadow:0 8px 24px rgba(99,102,241,0.35)">
+            <span style="font-size:1.7rem;line-height:1">🌐</span>
+        </div>
+
+        <!-- Nombre con tipografía Syne -->
+        <div style="font-family:'Syne',sans-serif;font-size:1.55rem;font-weight:800;
+                    color:#f0ede8;letter-spacing:-0.02em;line-height:1;margin-bottom:6px">
+            Visió<span style="background:linear-gradient(90deg,#6366f1,#06b6d4);
+                              -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                              background-clip:text">N360</span>
+        </div>
+
+        <!-- Slogan -->
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:0.68rem;
+                    color:#5a5878;font-weight:500;letter-spacing:0.08em;
+                    text-transform:uppercase;line-height:1.5">
+            Todo tu negocio<br>una sola vista
+        </div>
     </div>
-    <hr style="border-color:#2d2b45;margin:10px 0 20px">
+
+    <!-- Línea divisora con gradiente -->
+    <div style="height:1px;background:linear-gradient(90deg,transparent,#2d2b45,transparent);
+                margin:0 0 16px"></div>
     """, unsafe_allow_html=True)
 
     # Sección PANEL PRINCIPAL
@@ -356,7 +379,7 @@ with st.sidebar:
 
     st.markdown("""
     <div style="position:fixed;bottom:20px;left:0;width:260px;text-align:center">
-        <div style="font-size:0.7rem;color:#3d3b55">LUCIDBOT · v2.0 · Colombia</div>
+        <div style="font-size:0.7rem;color:#3d3b55">VisióN360 · v2.0 · Colombia</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -366,18 +389,48 @@ with st.sidebar:
 if archivo is None:
     st.markdown("""
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
-                min-height:70vh;text-align:center">
-        <div style="font-size:5rem;margin-bottom:20px">📊</div>
-        <div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:800;
-                    color:#f0ede8;margin-bottom:12px">
-            LUCIDBOT Analytics
+                min-height:72vh;text-align:center;padding:40px">
+
+        <!-- Ícono grande -->
+        <div style="display:inline-flex;align-items:center;justify-content:center;
+                    width:90px;height:90px;border-radius:24px;margin-bottom:28px;
+                    background:linear-gradient(135deg,#6366f1 0%,#06b6d4 100%);
+                    box-shadow:0 16px 48px rgba(99,102,241,0.3)">
+            <span style="font-size:3rem;line-height:1">🌐</span>
         </div>
-        <div style="font-size:1rem;color:#8b8aaa;max-width:400px;line-height:1.7">
-            Sube tu reporte de Dropi desde el panel izquierdo para comenzar el análisis completo
+
+        <!-- Nombre -->
+        <div style="font-family:'Syne',sans-serif;font-size:3.2rem;font-weight:800;
+                    color:#f0ede8;letter-spacing:-0.03em;line-height:1;margin-bottom:10px">
+            Visió<span style="background:linear-gradient(90deg,#6366f1,#06b6d4);
+                              -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                              background-clip:text">N360</span>
         </div>
-        <div style="margin-top:30px;background:rgba(201,168,76,0.1);border:1px solid #c9a84c;
-                    border-radius:12px;padding:16px 28px;color:#f0d080;font-size:0.85rem">
-            📁 Arrastra tu Excel en el panel izquierdo
+
+        <!-- Slogan -->
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:1rem;color:#5a5878;
+                    font-weight:500;letter-spacing:0.06em;text-transform:uppercase;
+                    margin-bottom:36px">
+            Todo tu negocio · Una sola vista
+        </div>
+
+        <!-- Divider -->
+        <div style="width:60px;height:2px;background:linear-gradient(90deg,#6366f1,#06b6d4);
+                    border-radius:2px;margin-bottom:36px"></div>
+
+        <!-- Instrucción -->
+        <div style="font-size:0.95rem;color:#8b8aaa;max-width:380px;line-height:1.8;
+                    font-family:'Space Grotesk',sans-serif;margin-bottom:28px">
+            Selecciona tu operación y sube<br>tu reporte de Dropi para comenzar
+        </div>
+
+        <!-- CTA -->
+        <div style="background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(6,182,212,0.12));
+                    border:1px solid rgba(99,102,241,0.3);
+                    border-radius:14px;padding:16px 32px;
+                    font-family:'Space Grotesk',sans-serif;
+                    color:#a5b4fc;font-size:0.88rem;font-weight:500">
+            ← &nbsp; Importar datos desde el panel lateral
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -459,7 +512,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             <div>
                 <div style="font-size:0.7rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;
                             text-transform:uppercase;margin-bottom:4px">{op_pais} · {op_moneda}</div>
-                <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:800;
+                <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;
                             color:#f0ede8;line-height:1">{op_nombre}</div>
                 <div style="color:#8b8aaa;font-size:0.85rem;margin-top:6px">
                     {vista_activa.split('  ')[1]} · {total:,} pedidos analizados
@@ -906,7 +959,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
             <div>
                 <div style="font-size:0.7rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;
                             text-transform:uppercase;margin-bottom:4px">{op_pais} · {op_moneda}</div>
-                <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:800;
+                <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;
                             color:#f0ede8;line-height:1">{op_nombre}</div>
                 <div style="color:#8b8aaa;font-size:0.85rem;margin-top:6px">
                     Operaciones · Centro de control · {total:,} pedidos activos
@@ -1283,7 +1336,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 client=anthropic.Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
                 ph=st.empty(); resp=""
                 with client.messages.stream(model="claude-sonnet-4-6",max_tokens=1024,
-                    system=f"Eres asistente LUCIDBOT Colombia. Datos:{resumen}. Responde en español.",
+                    system=f"Eres el asistente de VisióN360 para e-commerce en Colombia. Datos:{resumen}. Responde en español.",
                     messages=st.session_state.messages) as stream:
                     for text in stream.text_stream:
                         resp+=text; ph.write(resp+"▌")
@@ -1292,4 +1345,4 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
     else:
         st.markdown('<div style="background:rgba(201,168,76,0.08);border:1px solid #c9a84c;border-radius:12px;padding:14px;text-align:center;color:#f0d080;font-size:0.85rem">🤖 Claude IA se activa cuando configures tu API Key · El dashboard funciona completo sin él</div>', unsafe_allow_html=True)
 
-st.markdown('<div style="text-align:center;color:#3d3b55;font-size:0.7rem;margin-top:30px">🚀 LUCIDBOT Analytics · Dashboard Profesional · Colombia</div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align:center;color:#3d3b55;font-size:0.7rem;margin-top:30px">🚀 VisióN360 · Dashboard Profesional · Colombia</div>', unsafe_allow_html=True)
