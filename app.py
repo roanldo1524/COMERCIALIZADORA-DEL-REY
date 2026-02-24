@@ -251,8 +251,8 @@ with st.sidebar:
     # Sección PANEL PRINCIPAL
     st.markdown('<div style="font-size:0.62rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:0 4px;margin-bottom:6px">PANEL PRINCIPAL</div>', unsafe_allow_html=True)
 
-    # Grupo 1: Análisis
-    st.markdown('<div style="font-size:0.58rem;color:#3d3b55;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 4px;margin:4px 0 4px">ANÁLISIS</div>', unsafe_allow_html=True)
+    # PANEL PRINCIPAL — un solo radio unificado
+    st.markdown('<div style="font-size:0.58rem;color:#3d3b55;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 4px;margin:4px 0 6px">ANÁLISIS</div>', unsafe_allow_html=True)
     vista = st.radio("", [
         "📊  Panel Ejecutivo",
         "📈  P&G",
@@ -260,8 +260,7 @@ with st.sidebar:
         "🔮  Proyecciones",
     ], label_visibility="collapsed")
 
-    # Grupo 2: Operacional
-    st.markdown('<div style="font-size:0.58rem;color:#3d3b55;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 4px;margin:12px 0 4px">OPERACIONAL</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.58rem;color:#3d3b55;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 4px;margin:14px 0 6px">OPERACIONAL</div>', unsafe_allow_html=True)
     vista2 = st.radio("_op", [
         "📦  Operaciones",
         "🚦  Monitor de Estatus",
@@ -270,13 +269,9 @@ with st.sidebar:
         "🤖  Asistente IA",
     ], label_visibility="collapsed")
 
-    # Unificar en una sola variable activa
-    # Si el usuario toca el grupo operacional, vista queda en su última selección
-    # Usamos session_state para saber cuál fue el último tocado
+    # Detectar cuál grupo tocó el usuario por último
     if "last_group" not in st.session_state:
-        st.session_state.last_group = "analisis"
-    
-    # Detectar cuál grupo está activo comparando con session_state
+        st.session_state.last_group  = "analisis"
     if "prev_vista" not in st.session_state:
         st.session_state.prev_vista  = vista
         st.session_state.prev_vista2 = vista2
@@ -289,6 +284,14 @@ with st.sidebar:
         st.session_state.prev_vista2 = vista2
 
     vista_activa = vista if st.session_state.last_group == "analisis" else vista2
+
+    # Resaltar Monitor de Estatus visualmente cuando está activo
+    if "Monitor" in vista_activa:
+        st.markdown(f'''
+        <div style="background:rgba(6,182,212,0.1);border:1px solid #06b6d4;border-radius:8px;
+                    padding:8px 12px;margin:6px 0;font-size:0.8rem;color:#67e8f9;font-weight:600">
+            🚦 Monitor activo
+        </div>''', unsafe_allow_html=True)
 
     st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
 
