@@ -230,10 +230,9 @@ PLOT_LAYOUT = dict(
     font=dict(family='Inter', color='#b0aec8', size=12),
     title_font=dict(family='Playfair Display', color='#f0ede8', size=16),
     legend=dict(font=dict(color='#b0aec8', size=11), bgcolor='rgba(0,0,0,0)'),
-    xaxis=dict(gridcolor='#2d2b45', linecolor='#2d2b45', tickfont=dict(color='#8b8aaa')),
-    yaxis=dict(gridcolor='#2d2b45', linecolor='#2d2b45', tickfont=dict(color='#8b8aaa')),
     margin=dict(l=10, r=10, t=50, b=10)
 )
+AXIS_STYLE = dict(gridcolor='#2d2b45', linecolor='#2d2b45', tickfont=dict(color='#8b8aaa'))
 COLORES_ELEGANTES = ['#c9a84c','#6366f1','#10b981','#ef4444','#06b6d4','#8b5cf6','#f59e0b','#ec4899','#14b8a6','#f97316']
 
 # ═══════════════════════════════════════════════════════════
@@ -399,9 +398,11 @@ if "Ventas" in vista:
         fig.update_layout(
             **PLOT_LAYOUT,
             barmode='group', height=420,
-            yaxis=dict(title='Millones COP', gridcolor='#2d2b45', tickfont=dict(color='#8b8aaa')),
-            yaxis2=dict(title='Órdenes', overlaying='y', side='right', gridcolor='rgba(0,0,0,0)', tickfont=dict(color='#c9a84c')),
-            title='Evolución Mensual de Ventas'
+            title='Evolución Mensual de Ventas',
+            xaxis=AXIS_STYLE,
+            yaxis=dict(title='Millones COP', **AXIS_STYLE),
+            yaxis2=dict(title='Órdenes', overlaying='y', side='right',
+                       gridcolor='rgba(0,0,0,0)', tickfont=dict(color='#c9a84c'))
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -413,7 +414,7 @@ if "Ventas" in vista:
                            title='Ventas por Día del Mes (patrón quincenas)',
                            color_discrete_sequence=['#c9a84c'])
             fig_d.update_traces(fillcolor='rgba(201,168,76,0.15)', line=dict(color='#c9a84c',width=2))
-            fig_d.update_layout(**PLOT_LAYOUT, height=280)
+            fig_d.update_layout(**PLOT_LAYOUT, height=280, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
             st.plotly_chart(fig_d, use_container_width=True)
 
     # ── MAPA COLOMBIA ──
@@ -477,7 +478,7 @@ if "Ventas" in vista:
                     title='Distribución Geográfica de Pedidos'
                 )
                 fig_map.update_layout(**PLOT_LAYOUT, height=550,
-                                      mapbox=dict(center=dict(lat=4.5, lon=-74.3)))
+                                      mapbox=dict(center=dict(lat=4.5, lon=-74.3, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)))
                 st.plotly_chart(fig_map, use_container_width=True)
 
             # Tabla top departamentos
@@ -533,7 +534,7 @@ if "Ventas" in vista:
                     color_continuous_scale=['#1a1829','#6366f1','#c9a84c'],
                     title=f'Top 10 — {titulo}'
                 )
-                fig_prod.update_layout(**PLOT_LAYOUT, height=480, coloraxis_showscale=False)
+                fig_prod.update_layout(**PLOT_LAYOUT, height=480, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
                 fig_prod.update_traces(texttemplate='%{x:,.0f}', textposition='outside',
                                        textfont=dict(color='#b0aec8', size=10))
                 st.plotly_chart(fig_prod, use_container_width=True)
@@ -549,7 +550,7 @@ if "Ventas" in vista:
             fig_tr = px.pie(tr_count, values='Pedidos', names='Transportadora',
                            color_discrete_sequence=COLORES_ELEGANTES,
                            title='Pedidos por Transportadora', hole=0.45)
-            fig_tr.update_layout(**PLOT_LAYOUT, height=380)
+            fig_tr.update_layout(**PLOT_LAYOUT, height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
             fig_tr.update_traces(textposition='inside', textinfo='percent+label')
             st.plotly_chart(fig_tr, use_container_width=True)
 
@@ -560,7 +561,7 @@ if "Ventas" in vista:
                 fig_trg = px.bar(tr_g, x='Ganancia', y='Transportadora', orientation='h',
                                 color='Ganancia', color_continuous_scale=['#1a1829','#10b981'],
                                 title='Ganancia por Transportadora')
-                fig_trg.update_layout(**PLOT_LAYOUT, height=380, coloraxis_showscale=False)
+                fig_trg.update_layout(**PLOT_LAYOUT, height=380, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
                 st.plotly_chart(fig_trg, use_container_width=True)
 
         if C_FLETE in df.columns and C_CIUDAD in df.columns:
@@ -570,7 +571,7 @@ if "Ventas" in vista:
             fig_fl = px.bar(fl, x='Flete Promedio', y='Ciudad', orientation='h',
                            color='Flete Promedio', color_continuous_scale=['#1a1829','#f59e0b','#ef4444'],
                            title='Flete Promedio por Ciudad')
-            fig_fl.update_layout(**PLOT_LAYOUT, height=420, coloraxis_showscale=False)
+            fig_fl.update_layout(**PLOT_LAYOUT, height=420, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
             st.plotly_chart(fig_fl, use_container_width=True)
             st.caption("⚠️ Considera excluir ciudades de flete alto de tu pauta publicitaria")
 
@@ -757,7 +758,7 @@ else:
             ed.columns = ['Estatus','Cantidad']
             fig = px.pie(ed, values='Cantidad', names='Estatus', hole=0.4,
                         color_discrete_sequence=COLORES_ELEGANTES, title='Distribución de Estados')
-            fig.update_layout(**PLOT_LAYOUT, height=380)
+            fig.update_layout(**PLOT_LAYOUT, height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
             fig.update_traces(textposition='inside', textinfo='percent+label')
             st.plotly_chart(fig, use_container_width=True)
         with g2:
@@ -765,7 +766,7 @@ else:
                 em = df.groupby(['_mes', C_ESTATUS]).size().reset_index(name='Cantidad')
                 fig2 = px.bar(em, x='_mes', y='Cantidad', color=C_ESTATUS, barmode='stack',
                              color_discrete_sequence=COLORES_ELEGANTES, title='Estados por Mes')
-                fig2.update_layout(**PLOT_LAYOUT, height=380)
+                fig2.update_layout(**PLOT_LAYOUT, height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
                 st.plotly_chart(fig2, use_container_width=True)
 
     elif "Novedades" in op_nav and C_NOVEDAD in df.columns:
@@ -784,7 +785,7 @@ else:
             fig_n = px.bar(tipos, x='Cantidad', y='Novedad', orientation='h',
                           color='Cantidad', color_continuous_scale=['#1a1829','#f59e0b','#ef4444'],
                           title='Top Tipos de Novedad')
-            fig_n.update_layout(**PLOT_LAYOUT, height=380, coloraxis_showscale=False)
+            fig_n.update_layout(**PLOT_LAYOUT, height=380, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
             st.plotly_chart(fig_n, use_container_width=True)
         else:
             st.success("✅ Sin novedades registradas")
@@ -802,7 +803,7 @@ else:
                 if len(d):
                     fig = px.bar(d, x='Cantidad', y='Tag', orientation='h', color='Cantidad',
                                 color_continuous_scale=paleta, title=titulo)
-                    fig.update_layout(**PLOT_LAYOUT, height=h, coloraxis_showscale=False)
+                    fig.update_layout(**PLOT_LAYOUT, height=h, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
                     st.plotly_chart(fig, use_container_width=True)
                 else: st.info("Sin tags en esta categoría")
             with t1: gtab('seguimiento',['#1a1829','#ef4444'],'Tags Seguimiento Activo')
@@ -816,13 +817,13 @@ else:
                     if len(cr):
                         fig=px.bar(cr,x='Cantidad',y='Tag',orientation='h',color='Cantidad',
                                   color_continuous_scale=['#1a1829','#ef4444'],title='❌ Reales')
-                        fig.update_layout(**PLOT_LAYOUT,height=300,coloraxis_showscale=False)
+                        fig.update_layout(**PLOT_LAYOUT,height=300,coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
                         st.plotly_chart(fig,use_container_width=True)
                 with cb:
                     if len(nc):
                         fig=px.bar(nc,x='Cantidad',y='Tag',orientation='h',color='Cantidad',
                                   color_continuous_scale=['#1a1829','#10b981'],title='✅ No son cancelaciones')
-                        fig.update_layout(**PLOT_LAYOUT,height=300,coloraxis_showscale=False)
+                        fig.update_layout(**PLOT_LAYOUT,height=300,coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
                         st.plotly_chart(fig,use_container_width=True)
                 tcr=len(tags_df[tags_df['cat']=='cancelacion_real'])
                 tnc=len(tags_df[tags_df['cat']=='no_cancelacion'])
@@ -837,7 +838,7 @@ else:
                 top50.columns=['Tag','Cantidad']
                 fig=px.bar(top50,x='Cantidad',y='Tag',orientation='h',color='Cantidad',
                           color_continuous_scale=['#1a1829','#c9a84c'],title='Top Tags')
-                fig.update_layout(**PLOT_LAYOUT,height=900,coloraxis_showscale=False)
+                fig.update_layout(**PLOT_LAYOUT,height=900,coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
                 st.plotly_chart(fig,use_container_width=True)
 
     elif "Pedidos" in op_nav:
