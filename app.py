@@ -248,15 +248,108 @@ with st.sidebar:
     <hr style="border-color:#2d2b45;margin:10px 0 20px">
     """, unsafe_allow_html=True)
 
-    vista = st.radio("", ["📊  Ventas & Análisis", "🚨  Seguimiento & Alertas"],
-                     label_visibility="collapsed")
+    # Sección PANEL PRINCIPAL
+    st.markdown('<div style="font-size:0.62rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:0 4px;margin-bottom:6px">PANEL PRINCIPAL</div>', unsafe_allow_html=True)
 
-    st.markdown("<hr style='border-color:#2d2b45;margin:20px 0'>", unsafe_allow_html=True)
-    archivo = st.file_uploader("📁 Subir reporte Dropi", type=["xlsx","xls"],
+    # Grupo 1: Análisis
+    st.markdown('<div style="font-size:0.58rem;color:#3d3b55;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 4px;margin:4px 0 4px">ANÁLISIS</div>', unsafe_allow_html=True)
+    vista = st.radio("", [
+        "📊  Panel Ejecutivo",
+        "📈  P&G",
+        "💹  Finanzas",
+        "🔮  Proyecciones",
+    ], label_visibility="collapsed")
+
+    # Grupo 2: Operacional
+    st.markdown('<div style="font-size:0.58rem;color:#3d3b55;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 4px;margin:12px 0 4px">OPERACIONAL</div>', unsafe_allow_html=True)
+    vista2 = st.radio("_op", [
+        "📦  Operaciones",
+        "🚦  Monitor de Estatus",
+        "📣  Marketing",
+        "🛍️  Catálogo",
+        "🤖  Asistente IA",
+    ], label_visibility="collapsed")
+
+    # Unificar en una sola variable activa
+    # Si el usuario toca el grupo operacional, vista queda en su última selección
+    # Usamos session_state para saber cuál fue el último tocado
+    if "last_group" not in st.session_state:
+        st.session_state.last_group = "analisis"
+    
+    # Detectar cuál grupo está activo comparando con session_state
+    if "prev_vista" not in st.session_state:
+        st.session_state.prev_vista  = vista
+        st.session_state.prev_vista2 = vista2
+
+    if vista != st.session_state.prev_vista:
+        st.session_state.last_group  = "analisis"
+        st.session_state.prev_vista  = vista
+    elif vista2 != st.session_state.prev_vista2:
+        st.session_state.last_group  = "operacional"
+        st.session_state.prev_vista2 = vista2
+
+    vista_activa = vista if st.session_state.last_group == "analisis" else vista2
+
+    st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
+
+    # Sección OPERACIONES
+    st.markdown('<div style="font-size:0.62rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:0 4px;margin-bottom:8px">OPERACIÓN ACTIVA</div>', unsafe_allow_html=True)
+
+    OPERACIONES = {
+        "🤖  LUCID BOT":      {"pais": "🇨🇴 Colombia", "moneda": "COP", "color": "#6366f1",
+                               "bg": "rgba(99,102,241,0.08)",  "border": "#6366f1"},
+        "✨  ESSENTYA":        {"pais": "🇨🇴 Colombia", "moneda": "COP", "color": "#ec4899",
+                               "bg": "rgba(236,72,153,0.08)",  "border": "#ec4899"},
+        "🐂  EL TORO":         {"pais": "🇨🇴 Colombia", "moneda": "COP", "color": "#ef4444",
+                               "bg": "rgba(239,68,68,0.08)",   "border": "#ef4444"},
+        "🛒  Carrito Naranja": {"pais": "🇨🇱 Chile",    "moneda": "CLP", "color": "#f97316",
+                               "bg": "rgba(249,115,22,0.08)",  "border": "#f97316"},
+    }
+
+    operacion = st.radio("", list(OPERACIONES.keys()), label_visibility="collapsed")
+    op_info = OPERACIONES[operacion]
+    es_clp   = op_info["moneda"] == "CLP"
+
+    st.markdown(f'''<div style="background:{op_info["bg"]};border:1px solid {op_info["border"]};
+        border-radius:8px;padding:8px 12px;margin:8px 0;font-size:0.8rem;
+        color:{op_info["color"]};font-weight:600">
+        {op_info["pais"]} · {op_info["moneda"]}
+    </div>''', unsafe_allow_html=True)
+
+    # TRM solo para Carrito Naranja
+    trm_clp_cop = 4.2
+    if es_clp:
+        st.markdown("<hr style='border-color:#2d2b45;margin:12px 0 8px'>", unsafe_allow_html=True)
+        st.markdown('<div style="font-size:0.62rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:0 4px;margin-bottom:6px">💱 CONVERSIÓN CLP → COP</div>', unsafe_allow_html=True)
+        trm_clp_cop = st.number_input(
+            "1 CLP = ? COP",
+            min_value=1.0, max_value=20.0,
+            value=4.2, step=0.1,
+            help="Tasa de cambio CLP a COP. Actualiza según el valor del día. (Referencia: 1 CLP ≈ 4.2 COP)"
+        )
+        st.markdown(f'<div style="font-size:0.75rem;color:#8b8aaa;padding:4px">= ${trm_clp_cop:.2f} COP por cada CLP</div>', unsafe_allow_html=True)
+
+    st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
+
+    # Sección DATOS
+    st.markdown('<div style="font-size:0.62rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:0 4px;margin-bottom:8px">IMPORTAR DATOS</div>', unsafe_allow_html=True)
+    archivo = st.file_uploader(f"📁 Reporte {operacion.split('  ')[1]}", type=["xlsx","xls"],
                                help="Exporta el reporte de órdenes desde Dropi")
 
     if archivo:
-        st.markdown('<div style="background:rgba(16,185,129,0.1);border:1px solid #10b981;border-radius:8px;padding:10px;text-align:center;font-size:0.8rem;color:#34d399;margin-top:10px">✅ Archivo cargado</div>', unsafe_allow_html=True)
+        st.markdown(f'''<div style="background:{op_info["bg"]};border:1px solid {op_info["border"]};
+            border-radius:8px;padding:10px;text-align:center;font-size:0.8rem;
+            color:{op_info["color"]};margin-top:10px">
+            ✅ {operacion.split("  ")[1]}<br>
+            <span style="font-size:0.72rem;opacity:0.8">Archivo cargado</span>
+        </div>''', unsafe_allow_html=True)
+
+    st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
+
+    # Sección CONFIGURACIÓN
+    st.markdown('<div style="font-size:0.62rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:0 4px;margin-bottom:8px">CONFIGURACIÓN</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.82rem;color:#8b8aaa;padding:6px 4px;cursor:pointer">⚙️  Configuración</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.82rem;color:#8b8aaa;padding:6px 4px;cursor:pointer">🌐  Colombia · CO</div>', unsafe_allow_html=True)
 
     st.markdown("""
     <div style="position:fixed;bottom:20px;left:0;width:260px;text-align:center">
@@ -317,6 +410,13 @@ for col_n in [C_TOTAL, C_GANANCIA, C_FLETE, C_CANTIDAD]:
     if col_n in df.columns:
         df[col_n] = pd.to_numeric(df[col_n], errors='coerce').fillna(0)
 
+# Conversión CLP → COP para Carrito Naranja
+if es_clp and trm_clp_cop > 0:
+    for col_n in [C_TOTAL, C_GANANCIA, C_FLETE]:
+        if col_n in df.columns:
+            df[col_n] = df[col_n] * trm_clp_cop
+    st.toast(f"💱 Valores convertidos: 1 CLP = {trm_clp_cop} COP", icon="🇨🇱")
+
 if C_TAGS in df.columns:
     df['_tags_lista'] = df[C_TAGS].apply(parse_tags)
 
@@ -340,16 +440,29 @@ pct_gan    = round(tot_gan/tot_venta*100,1) if tot_venta else 0
 # ═══════════════════════════════════════════════════════════
 # ██████  VISTA 1: VENTAS & ANÁLISIS
 # ═══════════════════════════════════════════════════════════
-if "Ventas" in vista:
+if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" in vista_activa or "Finanzas" in vista_activa or "Marketing" in vista_activa or "Catálogo" in vista_activa:
 
     # Header
+    op_nombre = operacion.split("  ")[1]
+    op_color  = op_info["color"]
+    op_pais   = op_info["pais"]
+    op_moneda = op_info["moneda"]
+
     st.markdown(f"""
-    <div style="margin-bottom:28px">
-        <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;color:#f0ede8">
-            Ventas & Análisis
-        </div>
-        <div style="color:#8b8aaa;font-size:0.9rem;margin-top:4px">
-            {total:,} pedidos analizados · Actualizado ahora
+    <div style="margin-bottom:28px;background:linear-gradient(135deg,#1a1829,#1f1d35);
+                border:1px solid #2d2b45;border-radius:16px;padding:24px 28px">
+        <div style="display:flex;align-items:center;gap:16px">
+            <div style="width:4px;height:48px;background:{op_color};border-radius:4px"></div>
+            <div>
+                <div style="font-size:0.7rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;
+                            text-transform:uppercase;margin-bottom:4px">{op_pais} · {op_moneda}</div>
+                <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:800;
+                            color:#f0ede8;line-height:1">{op_nombre}</div>
+                <div style="color:#8b8aaa;font-size:0.85rem;margin-top:6px">
+                    {vista_activa.split('  ')[1]} · {total:,} pedidos analizados
+                    {"&nbsp;&nbsp;·&nbsp;&nbsp;<span style='color:#f97316;font-size:0.78rem'>💱 CLP→COP @ " + str(trm_clp_cop) + "</span>" if es_clp else ""}
+                </div>
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -368,11 +481,132 @@ if "Ventas" in vista:
     # ── NAVEGACIÓN INTERACTIVA ──
     st.markdown('<div class="seccion-titulo">Explorar datos</div>', unsafe_allow_html=True)
 
-    nav = st.radio("", ["📅 Evolución Mensual","🗺️ Mapa Colombia","🏆 Productos Estrella","🚚 Transportadoras","💡 Insights"],
-                   horizontal=True, label_visibility="collapsed")
+    # Sub-navegación según módulo activo
+    if "P&G" in vista_activa:
+        nav = "💰 P&G"
+    elif "Proyecciones" in vista_activa:
+        nav = "🔮 Proyecciones"
+    elif "Finanzas" in vista_activa:
+        nav = "📅 Evolución Mensual"
+    else:
+        nav = st.radio("", ["📅 Evolución Mensual","🗺️ Mapa Colombia","🏆 Productos Estrella","🚚 Transportadoras","💡 Insights"],
+                       horizontal=True, label_visibility="collapsed")
+
+    # ── P&G ──
+    if nav == "💰 P&G":
+        st.markdown('<div class="seccion-titulo">📈 Estado de Pérdidas y Ganancias</div>', unsafe_allow_html=True)
+        if C_TOTAL in df.columns and C_GANANCIA in df.columns:
+            tot_flete   = df[C_FLETE].sum()    if C_FLETE    in df.columns else 0
+            tot_proveedor = df["PRECIO PROVEEDOR X CANTIDAD"].sum() if "PRECIO PROVEEDOR X CANTIDAD" in df.columns else 0
+            tot_comision  = df["COMISION"].sum()   if "COMISION"  in df.columns else 0
+            margen = round(tot_gan/tot_venta*100,1) if tot_venta else 0
+
+            p1,p2,p3,p4 = st.columns(4)
+            with p1: st.markdown(kpi("cyan",  "💰 Ingresos Brutos",  fmt_money(tot_venta)), unsafe_allow_html=True)
+            with p2: st.markdown(kpi("red",   "📦 Costo Proveedor",  fmt_money(tot_proveedor)), unsafe_allow_html=True)
+            with p3: st.markdown(kpi("gold",  "🚚 Fletes",           fmt_money(tot_flete)), unsafe_allow_html=True)
+            with p4: st.markdown(kpi("green", "✅ Ganancia Neta",    fmt_money(tot_gan), f"{margen}% margen"), unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            if '_mes' in df.columns:
+                pg_mes = df.groupby('_mes').agg(
+                    Ingresos=(C_TOTAL,'sum'),
+                    Ganancia=(C_GANANCIA,'sum'),
+                    Flete=(C_FLETE,'sum') if C_FLETE in df.columns else (C_TOTAL,'count')
+                ).reset_index()
+                pg_mes['Costo'] = pg_mes['Ingresos'] - pg_mes['Ganancia']
+                pg_mes['Margen_%'] = (pg_mes['Ganancia'] / pg_mes['Ingresos'] * 100).round(1)
+
+                fig_pg = go.Figure()
+                fig_pg.add_trace(go.Bar(x=pg_mes['_mes'], y=pg_mes['Ingresos']/1e6, name='Ingresos',
+                                       marker_color='#6366f1', opacity=0.85))
+                fig_pg.add_trace(go.Bar(x=pg_mes['_mes'], y=pg_mes['Costo']/1e6, name='Costos',
+                                       marker_color='#ef4444', opacity=0.85))
+                fig_pg.add_trace(go.Bar(x=pg_mes['_mes'], y=pg_mes['Ganancia']/1e6, name='Ganancia',
+                                       marker_color='#10b981', opacity=0.85))
+                fig_pg.add_trace(go.Scatter(x=pg_mes['_mes'], y=pg_mes['Margen_%'], name='Margen %',
+                                           yaxis='y2', line=dict(color='#c9a84c', width=3),
+                                           marker=dict(size=8, color='#c9a84c')))
+                fig_pg.update_layout(**PLOT_LAYOUT, barmode='group', height=420,
+                                     title='P&G Mensual — Ingresos vs Costos vs Ganancia',
+                                     xaxis=AXIS_STYLE,
+                                     yaxis=dict(title='Millones COP', **AXIS_STYLE),
+                                     yaxis2=dict(title='Margen %', overlaying='y', side='right',
+                                                gridcolor='rgba(0,0,0,0)', tickfont=dict(color='#c9a84c'),
+                                                ticksuffix='%'))
+                st.plotly_chart(fig_pg, use_container_width=True)
+
+                # Tabla P&G por mes
+                pg_mes['Ingresos']  = pg_mes['Ingresos'].apply(fmt_money)
+                pg_mes['Ganancia']  = pg_mes['Ganancia'].apply(fmt_money)
+                pg_mes['Costo']     = pg_mes['Costo'].apply(fmt_money)
+                pg_mes['Margen_%']  = pg_mes['Margen_%'].astype(str) + '%'
+                pg_mes = pg_mes.rename(columns={'_mes':'Mes','Margen_%':'Margen'})
+                st.dataframe(pg_mes[['Mes','Ingresos','Costo','Ganancia','Margen']], use_container_width=True)
+        else:
+            st.info("Se necesitan las columnas TOTAL DE LA ORDEN y GANANCIA para el P&G")
+
+    # ── PROYECCIONES ──
+    elif nav == "🔮 Proyecciones":
+        st.markdown('<div class="seccion-titulo">🔮 Proyecciones</div>', unsafe_allow_html=True)
+        if '_mes' in df.columns and C_TOTAL in df.columns and len(df['_mes'].unique()) >= 2:
+            v_mes = df.groupby('_mes')[C_TOTAL].sum().reset_index()
+            v_mes.columns = ['Mes','Ventas']
+            v_mes = v_mes.sort_values('Mes')
+
+            # Promedio últimos 3 meses como base de proyección
+            ult3  = v_mes['Ventas'].tail(3).mean()
+            ult1  = v_mes['Ventas'].iloc[-1]
+            meses_hist = list(v_mes['Mes'])
+
+            pr1,pr2,pr3 = st.columns(3)
+            with pr1:
+                crecimiento = st.slider("📈 Crecimiento mensual %", -30, 100, 10, 5,
+                                       help="Ajusta el crecimiento esperado mes a mes")
+            with pr2:
+                n_meses = st.slider("🗓️ Meses a proyectar", 1, 12, 3)
+            with pr3:
+                base = st.radio("Base de cálculo", ["Último mes","Promedio 3 meses"],
+                               horizontal=False)
+
+            base_val = ult1 if base == "Último mes" else ult3
+            proyecciones = []
+            for i in range(1, n_meses+1):
+                val = base_val * ((1 + crecimiento/100) ** i)
+                proyecciones.append({'Mes': f"Proyección +{i}", 'Ventas': val, 'Tipo': 'Proyección'})
+
+            v_mes['Tipo'] = 'Histórico'
+            proj_df = pd.concat([v_mes, pd.DataFrame(proyecciones)], ignore_index=True)
+
+            fig_proj = go.Figure()
+            hist = proj_df[proj_df['Tipo']=='Histórico']
+            proy = proj_df[proj_df['Tipo']=='Proyección']
+            fig_proj.add_trace(go.Scatter(x=hist['Mes'], y=hist['Ventas']/1e6, name='Histórico',
+                                         line=dict(color=op_color, width=3), marker=dict(size=8)))
+            fig_proj.add_trace(go.Scatter(x=[hist['Mes'].iloc[-1]] + list(proy['Mes']),
+                                         y=[hist['Ventas'].iloc[-1]/1e6] + list(proy['Ventas']/1e6),
+                                         name='Proyección', line=dict(color='#c9a84c', width=3, dash='dash'),
+                                         marker=dict(size=8, symbol='diamond')))
+            fig_proj.update_layout(**PLOT_LAYOUT, height=420, title='Proyección de Ventas',
+                                   xaxis=AXIS_STYLE,
+                                   yaxis=dict(title='Millones COP', **AXIS_STYLE))
+            st.plotly_chart(fig_proj, use_container_width=True)
+
+            # KPIs de proyección
+            total_proy = sum(p['Ventas'] for p in proyecciones)
+            mejor_mes_proy = max(proyecciones, key=lambda x: x['Ventas'])
+            pp1, pp2, pp3 = st.columns(3)
+            with pp1: st.markdown(kpi("gold","📅 Proyección Total",fmt_money(total_proy),f"{n_meses} meses"), unsafe_allow_html=True)
+            with pp2: st.markdown(kpi("green","📈 Mejor mes proy.",fmt_money(mejor_mes_proy['Ventas'])), unsafe_allow_html=True)
+            with pp3:
+                gan_proy = total_proy * (pct_gan/100) if pct_gan else 0
+                st.markdown(kpi("purple","💰 Ganancia estimada",fmt_money(gan_proy),f"{pct_gan}% margen actual"), unsafe_allow_html=True)
+        else:
+            st.info("Se necesitan al menos 2 meses de datos para generar proyecciones.")
 
     # ── EVOLUCIÓN MENSUAL ──
-    if "Evolución" in nav and '_mes' in df.columns and C_TOTAL in df.columns:
+    elif "Evolución" in nav and '_mes' in df.columns and C_TOTAL in df.columns:
         v_mes = df.groupby('_mes').agg(
             Ventas=(C_TOTAL, 'sum'),
             Ganancia=(C_GANANCIA, 'sum') if C_GANANCIA in df.columns else (C_TOTAL,'count'),
@@ -653,16 +887,29 @@ if "Ventas" in vista:
 
 
 # ═══════════════════════════════════════════════════════════
-# ██████  VISTA 2: SEGUIMIENTO & ALERTAS
+# ██████  VISTA 2: OPERACIONES
 # ═══════════════════════════════════════════════════════════
-else:
+elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" in vista_activa:
+    op_nombre = operacion.split("  ")[1]
+    op_color  = op_info["color"]
+    op_pais   = op_info["pais"]
+    op_moneda = op_info["moneda"]
+
     st.markdown(f"""
-    <div style="margin-bottom:28px">
-        <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;color:#f0ede8">
-            Seguimiento & Alertas
-        </div>
-        <div style="color:#8b8aaa;font-size:0.9rem;margin-top:4px">
-            Centro de control operativo · {total:,} pedidos activos
+    <div style="margin-bottom:28px;background:linear-gradient(135deg,#1a1829,#1f1d35);
+                border:1px solid #2d2b45;border-radius:16px;padding:24px 28px">
+        <div style="display:flex;align-items:center;gap:16px">
+            <div style="width:4px;height:48px;background:{op_color};border-radius:4px"></div>
+            <div>
+                <div style="font-size:0.7rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;
+                            text-transform:uppercase;margin-bottom:4px">{op_pais} · {op_moneda}</div>
+                <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:800;
+                            color:#f0ede8;line-height:1">{op_nombre}</div>
+                <div style="color:#8b8aaa;font-size:0.85rem;margin-top:6px">
+                    Operaciones · Centro de control · {total:,} pedidos activos
+                    {"&nbsp;&nbsp;·&nbsp;&nbsp;<span style='color:#f97316;font-size:0.78rem'>💱 CLP→COP @ " + str(trm_clp_cop) + "</span>" if es_clp else ""}
+                </div>
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
