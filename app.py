@@ -241,32 +241,24 @@ COLORES_ELEGANTES = ['#c9a84c','#6366f1','#10b981','#ef4444','#06b6d4','#8b5cf6'
 with st.sidebar:
     st.markdown("""
     <div style="padding:24px 12px 16px;text-align:center">
-
-        <!-- Ícono circular con gradiente -->
         <div style="display:inline-flex;align-items:center;justify-content:center;
                     width:56px;height:56px;border-radius:16px;margin-bottom:14px;
                     background:linear-gradient(135deg,#6366f1 0%,#06b6d4 100%);
                     box-shadow:0 8px 24px rgba(99,102,241,0.35)">
             <span style="font-size:1.7rem;line-height:1">🌐</span>
         </div>
-
-        <!-- Nombre con tipografía Syne -->
         <div style="font-family:'Syne',sans-serif;font-size:1.55rem;font-weight:800;
                     color:#f0ede8;letter-spacing:-0.02em;line-height:1;margin-bottom:6px">
             Visió<span style="background:linear-gradient(90deg,#6366f1,#06b6d4);
                               -webkit-background-clip:text;-webkit-text-fill-color:transparent;
                               background-clip:text">N360</span>
         </div>
-
-        <!-- Slogan -->
         <div style="font-family:'Space Grotesk',sans-serif;font-size:0.68rem;
                     color:#5a5878;font-weight:500;letter-spacing:0.08em;
                     text-transform:uppercase;line-height:1.5">
             Todo tu negocio<br>una sola vista
         </div>
     </div>
-
-    <!-- Línea divisora con gradiente -->
     <div style="height:1px;background:linear-gradient(90deg,transparent,#2d2b45,transparent);
                 margin:0 0 16px"></div>
     """, unsafe_allow_html=True)
@@ -387,53 +379,47 @@ with st.sidebar:
 # SIN ARCHIVO
 # ═══════════════════════════════════════════════════════════
 if archivo is None:
-    st.markdown("""
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
-                min-height:72vh;text-align:center;padding:40px">
+    html_bienvenida = (
+        '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;'
+        'min-height:72vh;text-align:center;padding:40px">'
 
-        <!-- Ícono grande -->
-        <div style="display:inline-flex;align-items:center;justify-content:center;
-                    width:90px;height:90px;border-radius:24px;margin-bottom:28px;
-                    background:linear-gradient(135deg,#6366f1 0%,#06b6d4 100%);
-                    box-shadow:0 16px 48px rgba(99,102,241,0.3)">
-            <span style="font-size:3rem;line-height:1">🌐</span>
-        </div>
+        '<div style="display:inline-flex;align-items:center;justify-content:center;'
+        'width:90px;height:90px;border-radius:24px;margin-bottom:28px;'
+        'background:linear-gradient(135deg,#6366f1 0%,#06b6d4 100%);'
+        'box-shadow:0 16px 48px rgba(99,102,241,0.3)">'
+        '<span style="font-size:3rem;line-height:1">&#127758;</span>'
+        '</div>'
 
-        <!-- Nombre -->
-        <div style="font-family:'Syne',sans-serif;font-size:3.2rem;font-weight:800;
-                    color:#f0ede8;letter-spacing:-0.03em;line-height:1;margin-bottom:10px">
-            Visió<span style="background:linear-gradient(90deg,#6366f1,#06b6d4);
-                              -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-                              background-clip:text">N360</span>
-        </div>
+        '<div style="font-family:Syne,sans-serif;font-size:3.2rem;font-weight:800;'
+        'color:#f0ede8;letter-spacing:-0.03em;line-height:1;margin-bottom:10px">'
+        'Visi&#243;'
+        '<span style="background:linear-gradient(90deg,#6366f1,#06b6d4);'
+        '-webkit-background-clip:text;-webkit-text-fill-color:transparent;'
+        'background-clip:text">N360</span>'
+        '</div>'
 
-        <!-- Slogan -->
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:1rem;color:#5a5878;
-                    font-weight:500;letter-spacing:0.06em;text-transform:uppercase;
-                    margin-bottom:36px">
-            Todo tu negocio · Una sola vista
-        </div>
+        '<div style="font-family:Space Grotesk,sans-serif;font-size:1rem;color:#5a5878;'
+        'font-weight:500;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:36px">'
+        'Todo tu negocio &nbsp;&middot;&nbsp; Una sola vista'
+        '</div>'
 
-        <!-- Divider -->
-        <div style="width:60px;height:2px;background:linear-gradient(90deg,#6366f1,#06b6d4);
-                    border-radius:2px;margin-bottom:36px"></div>
+        '<div style="width:60px;height:2px;'
+        'background:linear-gradient(90deg,#6366f1,#06b6d4);'
+        'border-radius:2px;margin-bottom:36px"></div>'
 
-        <!-- Instrucción -->
-        <div style="font-size:0.95rem;color:#8b8aaa;max-width:380px;line-height:1.8;
-                    font-family:'Space Grotesk',sans-serif;margin-bottom:28px">
-            Selecciona tu operación y sube<br>tu reporte de Dropi para comenzar
-        </div>
+        '<div style="font-size:0.95rem;color:#8b8aaa;max-width:380px;line-height:1.9;'
+        'font-family:Space Grotesk,sans-serif;margin-bottom:28px">'
+        'Selecciona tu operaci&#243;n y sube<br>tu reporte de Dropi para comenzar'
+        '</div>'
 
-        <!-- CTA -->
-        <div style="background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(6,182,212,0.12));
-                    border:1px solid rgba(99,102,241,0.3);
-                    border-radius:14px;padding:16px 32px;
-                    font-family:'Space Grotesk',sans-serif;
-                    color:#a5b4fc;font-size:0.88rem;font-weight:500">
-            ← &nbsp; Importar datos desde el panel lateral
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+        '<div style="background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(6,182,212,0.12));'
+        'border:1px solid rgba(99,102,241,0.3);border-radius:14px;padding:16px 32px;'
+        'font-family:Space Grotesk,sans-serif;color:#a5b4fc;font-size:0.88rem;font-weight:500">'
+        '&#8592; &nbsp; Importar datos desde el panel lateral'
+        '</div>'
+        '</div>'
+    )
+    st.markdown(html_bienvenida, unsafe_allow_html=True)
     st.stop()
 
 # ═══════════════════════════════════════════════════════════
