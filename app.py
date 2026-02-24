@@ -995,10 +995,162 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
     st.markdown("<br>", unsafe_allow_html=True)
 
     # Tabs de análisis operativo
-    op_nav = st.radio("", ["📦 Estados","⚠️ Novedades","🏷️ Tags","🔍 Pedidos"],
-                     horizontal=True, label_visibility="collapsed")
+    if "Monitor" in vista_activa:
+        op_nav = "🚦 Monitor"
+    else:
+        op_nav = st.radio("", ["📦 Estados","🚦 Monitor de Estatus","⚠️ Novedades","🏷️ Tags","🔍 Pedidos"],
+                         horizontal=True, label_visibility="collapsed")
 
-    if "Estados" in op_nav and C_ESTATUS in df.columns:
+    # ══════════════════════════════════════════════════════
+    # MONITOR DE ESTATUS — Tabla dinámica por semanas
+    # ══════════════════════════════════════════════════════
+    if "Monitor" in op_nav and C_ESTATUS in df.columns and C_FECHA in df.columns:
+
+        st.markdown('<div class="seccion-titulo">🚦 Monitor de Estatus</div>', unsafe_allow_html=True)
+
+        # Columnas necesarias
+        C_UND  = C_CANTIDAD
+        C_CLTS = C_CLIENTE
+        C_PDD  = C_TOTAL
+        C_UTIL = C_GANANCIA
+        C_CST  = "PRECIO PROVEEDOR X CANTIDAD"
+        C_FLT  = C_FLETE
+
+        # Selector de período
+        meses_disp = sorted(df['_mes'].dropna().unique().tolist(), reverse=True) if '_mes' in df.columns else []
+        mes_sel = st.selectbox("📅 Mes a analizar", ["Mes completo"] + meses_disp if meses_disp else ["Mes completo"])
+
+        semana_tabs = st.tabs(["📅 Mes Completo", "Sem 1 (1-8)", "Sem 2 (9-16)", "Sem 3 (17-24)", "Sem 4 (25-31)"])
+
+        def semana_df(df_base, sem):
+            if sem == 0: return df_base
+            rangos = {1:(1,8), 2:(9,16), 3:(17,24), 4:(25,31)}
+            ini, fin = rangos[sem]
+            return df_base[df_base[C_FECHA].dt.day.between(ini, fin)]
+
+        def construir_tabla(df_filtrado):
+            if len(df_filtrado) == 0:
+                return pd.DataFrame()
+
+            # Verificar columnas disponibles
+            tiene_und  = C_UND  in df_filtrado.columns
+            tiene_clts = C_CLTS in df_filtrado.columns
+            tiene_pdd  = C_PDD  in df_filtrado.columns
+            tiene_util = C_UTIL in df_filtrado.columns
+            tiene_cst  = C_CST  in df_filtrado.columns
+            tiene_flt  = C_FLT  in df_filtrado.columns
+
+            grupos = df_filtrado.groupby(C_ESTATUS)
+            filas = []
+            total_pdd_global = df_filtrado[C_PDD].sum() if tiene_pdd else 1
+
+            for estatus, grp in grupos:
+                fila = {"Estatus": estatus}
+                if tiene_und:  fila["# UND"]   = int(grp[C_UND].sum())
+                if tiene_clts: fila["# CLTS"]  = grp[C_CLTS].nunique()
+                if tiene_pdd:  fila["$ PDD"]   = grp[C_PDD].sum()
+                if tiene_util: fila["$ UTIL"]  = grp[C_UTIL].sum()
+                if tiene_cst:  fila["$ CST"]   = grp[C_CST].sum()
+                if tiene_flt:  fila["$ FLT"]   = grp[C_FLT].sum()
+                if tiene_pdd:  fila["% PDD"]   = grp[C_PDD].sum() / total_pdd_global * 100
+                filas.append(fila)
+
+            tabla = pd.DataFrame(filas).sort_values("$ PDD" if "$ PDD" in (filas[0] if filas else {}) else "Estatus", ascending=False)
+
+            # Fila TOTAL
+            total_fila = {"Estatus": "TOTAL GENERAL"}
+            if tiene_und:  total_fila["# UND"]  = int(df_filtrado[C_UND].sum())
+            if tiene_clts: total_fila["# CLTS"] = df_filtrado[C_CLTS].nunique()
+            if tiene_pdd:  total_fila["$ PDD"]  = df_filtrado[C_PDD].sum()
+            if tiene_util: total_fila["$ UTIL"] = df_filtrado[C_UTIL].sum()
+            if tiene_cst:  total_fila["$ CST"]  = df_filtrado[C_CST].sum()
+            if tiene_flt:  total_fila["$ FLT"]  = df_filtrado[C_FLT].sum()
+            if tiene_pdd:  total_fila["% PDD"]  = 100.0
+            tabla = pd.concat([tabla, pd.DataFrame([total_fila])], ignore_index=True)
+
+            return tabla
+
+        def renderizar_tabla(tabla):
+            if len(tabla) == 0:
+                st.info("Sin datos para este período")
+                return
+
+            # Colores por estatus
+            COLORES_EST = {
+                "PEDIDO ENTREGADO":   "#10b981",
+                "ENTREGADO":          "#10b981",
+                "CANCELADO":          "#ef4444",
+                "PEDIDO CANCELADO":   "#ef4444",
+                "DEVOLUCION":         "#f59e0b",
+                "DEVOLUCIÓN":         "#f59e0b",
+                "PEDIDO EN DEVOLUCIÓN":"#f59e0b",
+                "NOVEDAD":            "#8b5cf6",
+                "EN REPARTO":         "#06b6d4",
+                "BDG TRANSP":         "#f97316",
+                "BDG PROV":           "#ec4899",
+                "RECLAME EN OFICINA": "#dc2626",
+                "RECLAMO EN OFICINA": "#dc2626",
+                "TOTAL GENERAL":      "#c9a84c",
+            }
+
+            # Header HTML
+            cols_tabla = [c for c in ["Estatus","# UND","# CLTS","$ PDD","$ UTIL","$ CST","$ FLT","% PDD"] if c in tabla.columns]
+            header = "".join([f'<th style="padding:10px 14px;text-align:{"left" if c=="Estatus" else "right"};font-size:0.72rem;color:#8b8aaa;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border-bottom:2px solid #2d2b45">{c}</th>' for c in cols_tabla])
+
+            filas_html = ""
+            for _, row in tabla.iterrows():
+                est_upper = str(row["Estatus"]).upper()
+                color = next((v for k,v in COLORES_EST.items() if k in est_upper), "#b0aec8")
+                es_total = "TOTAL" in est_upper
+                bg = "rgba(201,168,76,0.08)" if es_total else "rgba(255,255,255,0.02)"
+                bold = "font-weight:700;" if es_total else ""
+                border_top = "border-top:2px solid #2d2b45;" if es_total else ""
+
+                celdas = f'<td style="padding:10px 14px;{bold}{border_top}"><span style="color:{color}">{row["Estatus"]}</span></td>'
+                for col in cols_tabla[1:]:
+                    if col not in row.index: continue
+                    val = row[col]
+                    if col in ["# UND","# CLTS"]:
+                        txt = f"{int(val):,}" if pd.notna(val) else "—"
+                        align = "right"
+                    elif col == "% PDD":
+                        txt = f"{val:.1f}%" if pd.notna(val) else "—"
+                        align = "right"
+                    else:
+                        txt = f"$ {val:,.0f}" if pd.notna(val) else "—"
+                        align = "right"
+                    celdas += f'<td style="padding:10px 14px;text-align:{align};{bold}{border_top}color:#f0ede8;font-size:0.88rem">{txt}</td>'
+
+                filas_html += f'<tr style="background:{bg};border-bottom:1px solid #1a1829">{celdas}</tr>'
+
+            html_tabla = f"""
+            <div style="overflow-x:auto;border-radius:12px;border:1px solid #2d2b45;margin-top:12px">
+                <table style="width:100%;border-collapse:collapse;background:#1a1829">
+                    <thead><tr>{header}</tr></thead>
+                    <tbody>{filas_html}</tbody>
+                </table>
+            </div>"""
+            st.markdown(html_tabla, unsafe_allow_html=True)
+
+        # Filtrar por mes si se seleccionó
+        if mes_sel != "Mes completo" and '_mes' in df.columns:
+            df_mon = df[df['_mes'] == mes_sel].copy()
+        else:
+            df_mon = df.copy()
+
+        # Renderizar cada tab
+        for i, tab in enumerate(semana_tabs):
+            with tab:
+                df_sem = semana_df(df_mon, i)
+                n_peds = len(df_sem)
+                if n_peds == 0:
+                    st.info("Sin pedidos en este período")
+                    continue
+                st.caption(f"{n_peds:,} pedidos en este período")
+                tabla = construir_tabla(df_sem)
+                renderizar_tabla(tabla)
+
+    elif "Estados" in op_nav and C_ESTATUS in df.columns:
         g1,g2 = st.columns(2)
         with g1:
             ed = df[C_ESTATUS].astype(str).value_counts().reset_index()
