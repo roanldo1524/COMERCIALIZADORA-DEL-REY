@@ -1173,81 +1173,20 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Calcular alertas
-    alertas_r, alertas_a = [], []
-    if C_ESTATUS in df.columns:
-        for _, row in df.iterrows():
-            est  = str(row.get(C_ESTATUS,'')).upper()
-            h_m  = row.get('_h_mov')
-            d_m  = row.get('_d_mov')
-            h_p  = row.get('_h_ped')
-            d_p  = row.get('_d_ped')
-            num  = str(row.get(C_ID,'—'))
-            cli  = str(row.get(C_CLIENTE,''))[:22] if C_CLIENTE in df.columns else ''
-            guia = str(row.get(C_GUIA,''))         if C_GUIA    in df.columns else ''
-
-            if ('RECLAMO' in est or 'OFICINA' in est) and d_p and d_p > 8:
-                alertas_r.append({'tipo':'Reclamo en Oficina','id':num,'cliente':cli,
-                    'msg':f"{d_p:.0f} días sin retiro | Guía: {guia}"})
-
-            if 'REPARTO' in est and h_m and h_m > 24:
-                alertas_r.append({'tipo':'En Reparto sin cambio','id':num,'cliente':cli,
-                    'msg':f"{h_m:.0f}h sin cambio de estatus | Guía: {guia}"})
-
-            if 'NOVEDAD' in est:
-                sol = str(row.get(C_NOV_SOL,'')).upper() if C_NOV_SOL in df.columns else ''
-                if 'SI' not in sol and 'SÍ' not in sol:
-                    nov = str(row.get(C_NOVEDAD,''))[:35] if C_NOVEDAD in df.columns else ''
-                    alertas_r.append({'tipo':'Novedad sin resolver','id':num,'cliente':cli,
-                        'msg':f"{nov or 'Sin tipo'} | {d_m or '?'} días"})
-
-            if ('BDG TRANSP' in est or 'BODEGA TRANS' in est):
-                if d_m and d_m > 8:
-                    alertas_r.append({'tipo':'BDG Transp CRÍTICO','id':num,'cliente':cli,
-                        'msg':f"{d_m:.0f} días sin entrega | Guía: {guia}"})
-                elif h_m and h_m > 24:
-                    alertas_a.append({'tipo':'BDG Transportadora','id':num,'cliente':cli,
-                        'msg':f"{h_m:.0f}h sin movimiento | Guía: {guia}"})
-
-            if ('BDG PROV' in est or 'BODEGA PROV' in est) and h_m and h_m > 24:
-                alertas_r.append({'tipo':'BDG Proveedor','id':num,'cliente':cli,
-                    'msg':f"{h_m:.0f}h sin despacho"})
-
-    # Mostrar alertas
-    al, am = st.columns(2)
-    with al:
-        st.markdown(f'<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:14px;padding:20px">'
-                    f'<div style="font-family:Playfair Display,serif;font-size:1.1rem;color:#f0ede8;font-weight:700;margin-bottom:14px">'
-                    f'🔴 Alertas Críticas <span class="badge-r">{len(alertas_r)}</span></div>', unsafe_allow_html=True)
-        if alertas_r:
-            for a in alertas_r[:25]:
-                st.markdown(f'<div class="alerta-r"><b>{a["tipo"]}</b> · #{a["id"]} · {a["cliente"]}<br>'
-                            f'<span style="color:#8b8aaa;font-size:0.8rem">{a["msg"]}</span></div>', unsafe_allow_html=True)
-            if len(alertas_r)>25: st.caption(f"... y {len(alertas_r)-25} más")
-        else:
-            st.markdown('<div style="color:#34d399;text-align:center;padding:20px">✅ Sin alertas críticas</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with am:
-        st.markdown(f'<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:14px;padding:20px">'
-                    f'<div style="font-family:Playfair Display,serif;font-size:1.1rem;color:#f0ede8;font-weight:700;margin-bottom:14px">'
-                    f'🟡 Alertas de Atención <span class="badge-a">{len(alertas_a)}</span></div>', unsafe_allow_html=True)
-        if alertas_a:
-            for a in alertas_a[:25]:
-                st.markdown(f'<div class="alerta-a"><b>{a["tipo"]}</b> · #{a["id"]} · {a["cliente"]}<br>'
-                            f'<span style="color:#8b8aaa;font-size:0.8rem">{a["msg"]}</span></div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div style="color:#34d399;text-align:center;padding:20px">✅ Sin alertas de atención</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Tabs de análisis operativo
+    # ── Tabs de navegación operacional ──
     if "Monitor" in vista_activa:
         op_nav = "🚦 Monitor"
     else:
-        op_nav = st.radio("", ["📦 Estados","🚦 Monitor de Estatus","⚠️ Novedades","🏷️ Tags","🔍 Pedidos"],
-                         horizontal=True, label_visibility="collapsed")
+        op_nav = st.radio("", [
+            "🚦 Monitor de Estatus",
+            "🚚 Transportadoras",
+            "👥 Proveedores",
+            "📦 Inventario",
+            "🔁 Devoluciones",
+            "📋 Novedades",
+            "🏷️ Tags",
+            "🔍 Pedidos",
+        ], horizontal=True, label_visibility="collapsed")
 
     # ══════════════════════════════════════════════════════
     # MONITOR DE ESTATUS — Tabla dinámica por semanas
@@ -1397,6 +1336,359 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 st.caption(f"{n_peds:,} pedidos en este período")
                 tabla = construir_tabla(df_sem)
                 renderizar_tabla(tabla)
+
+    # ══════════════════════════════════════════════════════════════════
+    # 🚚 TRANSPORTADORAS
+    # ══════════════════════════════════════════════════════════════════
+    elif "Transportadoras" in op_nav:
+        st.markdown('<div class="seccion-titulo">🚚 Rendimiento por Transportadora</div>', unsafe_allow_html=True)
+        C_TRANSP = next((c for c in df.columns if any(x in c.upper() for x in ["TRANSPORT","CARRIER","MENSAJER","OPERADOR"])), None)
+
+        if C_TRANSP and C_ESTATUS in df.columns:
+            df_t = df.copy()
+            df_t['_es_ent'] = df_t[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD', na=False)
+            df_t['_es_dev'] = df_t[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI', na=False)
+            df_t['_es_can'] = df_t[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD', na=False)
+            df_t['_es_nov'] = df_t[C_ESTATUS].astype(str).str.upper().str.contains('NOVEDAD', na=False)
+
+            grp_t = df_t.groupby(C_TRANSP).agg(
+                Total=('_es_ent','count'),
+                Entregados=('_es_ent','sum'),
+                Devoluciones=('_es_dev','sum'),
+                Cancelados=('_es_can','sum'),
+                Novedades=('_es_nov','sum'),
+            ).reset_index()
+            grp_t['Tasa Entrega'] = (grp_t['Entregados'] / grp_t['Total'] * 100).round(1)
+            grp_t['Tasa Dev']     = (grp_t['Devoluciones'] / grp_t['Total'] * 100).round(1)
+
+            # Costo por pedido entregado
+            if C_FLETE in df_t.columns:
+                flete_t = df_t[df_t['_es_ent']].groupby(C_TRANSP)[C_FLETE].sum()
+                grp_t['Flete Total'] = grp_t[C_TRANSP].map(flete_t).fillna(0)
+                grp_t['Costo/Pedido'] = (grp_t['Flete Total'] / grp_t['Entregados'].replace(0,1)).round(0)
+            else:
+                grp_t['Flete Total'] = 0
+                grp_t['Costo/Pedido'] = 0
+
+            grp_t = grp_t.sort_values('Total', ascending=False)
+
+            # Tiempo promedio si hay fechas
+            if C_FECHA in df_t.columns and '_d_mov' in df_t.columns:
+                tiempo_t = df_t[df_t['_es_ent']].groupby(C_TRANSP)['_d_mov'].mean().round(1)
+                grp_t['Días Prom.'] = grp_t[C_TRANSP].map(tiempo_t).fillna(0)
+            else:
+                grp_t['Días Prom.'] = '—'
+
+            # KPIs top transportadora
+            mejor = grp_t.loc[grp_t['Tasa Entrega'].idxmax()] if len(grp_t) else None
+            peor  = grp_t.loc[grp_t['Tasa Dev'].idxmax()] if len(grp_t) else None
+            k1,k2,k3,k4 = st.columns(4)
+            with k1: st.markdown(kpi("blue","🚚 Transportadoras",f"{len(grp_t)}"), unsafe_allow_html=True)
+            with k2: st.markdown(kpi("green","⭐ Mejor Entrega",f"{mejor[C_TRANSP][:15] if mejor is not None else '—'}",f"{mejor['Tasa Entrega']}%" if mejor is not None else ""), unsafe_allow_html=True)
+            with k3: st.markdown(kpi("red","⚠️ Más Devoluciones",f"{peor[C_TRANSP][:15] if peor is not None else '—'}",f"{peor['Tasa Dev']}%" if peor is not None else ""), unsafe_allow_html=True)
+            with k4:
+                costo_prom = int(grp_t['Costo/Pedido'].mean()) if 'Costo/Pedido' in grp_t else 0
+                st.markdown(kpi("gold","💸 Costo Prom/Pedido",fmt_money(costo_prom)), unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            g1, g2 = st.columns(2)
+
+            with g1:
+                fig_t = go.Figure()
+                fig_t.add_trace(go.Bar(x=grp_t[C_TRANSP], y=grp_t['Tasa Entrega'], name='Tasa Entrega %',
+                                       marker_color='#10b981', text=grp_t['Tasa Entrega'].astype(str)+'%',
+                                       textposition='outside'))
+                fig_t.add_trace(go.Bar(x=grp_t[C_TRANSP], y=grp_t['Tasa Dev'], name='Tasa Devolución %',
+                                       marker_color='#ef4444', text=grp_t['Tasa Dev'].astype(str)+'%',
+                                       textposition='outside'))
+                fig_t.update_layout(**PLOT_LAYOUT, barmode='group', height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
+                                    title='Tasa de Entrega vs Devolución por Transportadora', yaxis_ticksuffix='%')
+                st.plotly_chart(fig_t, use_container_width=True)
+
+            with g2:
+                fig_t2 = go.Figure()
+                fig_t2.add_trace(go.Bar(x=grp_t[C_TRANSP], y=grp_t['Total'], name='Total', marker_color='#6366f1'))
+                fig_t2.add_trace(go.Bar(x=grp_t[C_TRANSP], y=grp_t['Entregados'], name='Entregados', marker_color='#10b981'))
+                fig_t2.add_trace(go.Bar(x=grp_t[C_TRANSP], y=grp_t['Devoluciones'], name='Devoluciones', marker_color='#f59e0b'))
+                fig_t2.add_trace(go.Bar(x=grp_t[C_TRANSP], y=grp_t['Novedades'], name='Novedades', marker_color='#8b5cf6'))
+                fig_t2.update_layout(**PLOT_LAYOUT, barmode='group', height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
+                                     title='Volumen de Pedidos por Transportadora')
+                st.plotly_chart(fig_t2, use_container_width=True)
+
+            # Tabla detallada
+            st.markdown('<div class="seccion-titulo" style="font-size:0.9rem">📊 Detalle por Transportadora</div>', unsafe_allow_html=True)
+            cols_show = [C_TRANSP,'Total','Entregados','Devoluciones','Cancelados','Novedades','Tasa Entrega','Tasa Dev','Costo/Pedido','Días Prom.']
+            cols_show = [c for c in cols_show if c in grp_t.columns]
+            display_t = grp_t[cols_show].copy()
+            if 'Costo/Pedido' in display_t.columns:
+                display_t['Costo/Pedido'] = display_t['Costo/Pedido'].apply(lambda x: f"$ {int(x):,}" if x else '—')
+            if 'Tasa Entrega' in display_t.columns:
+                display_t['Tasa Entrega'] = display_t['Tasa Entrega'].astype(str) + '%'
+            if 'Tasa Dev' in display_t.columns:
+                display_t['Tasa Dev'] = display_t['Tasa Dev'].astype(str) + '%'
+            st.dataframe(display_t, use_container_width=True, hide_index=True)
+        else:
+            st.info("No se encontró columna de Transportadora en el Excel. Verifica que exista una columna con nombre 'Transportadora', 'Carrier' o similar.")
+
+    # ══════════════════════════════════════════════════════════════════
+    # 👥 PROVEEDORES
+    # ══════════════════════════════════════════════════════════════════
+    elif "Proveedores" in op_nav:
+        st.markdown('<div class="seccion-titulo">👥 Ranking de Proveedores</div>', unsafe_allow_html=True)
+        C_PROVE = next((c for c in df.columns if any(x in c.upper() for x in ["PROVEEDOR","SUPPLIER","PROVE","VENDOR"])), None)
+
+        if C_PROVE and C_ESTATUS in df.columns:
+            df_p = df.copy()
+            df_p['_ent'] = df_p[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD', na=False)
+            df_p['_can'] = df_p[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD', na=False)
+            df_p['_dev'] = df_p[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI', na=False)
+
+            grp_p = df_p.groupby(C_PROVE).agg(
+                Pedidos=('_ent','count'),
+                Entregados=('_ent','sum'),
+                Cancelados=('_can','sum'),
+                Devoluciones=('_dev','sum'),
+            ).reset_index()
+            grp_p['Tasa Entrega'] = (grp_p['Entregados']/grp_p['Pedidos']*100).round(1)
+            grp_p['Tasa Cancel']  = (grp_p['Cancelados']/grp_p['Pedidos']*100).round(1)
+            grp_p['Tasa Dev']     = (grp_p['Devoluciones']/grp_p['Pedidos']*100).round(1)
+
+            if C_TOTAL in df_p.columns:
+                ventas_p = df_p[df_p['_ent']].groupby(C_PROVE)[C_TOTAL].sum()
+                grp_p['Ventas']       = grp_p[C_PROVE].map(ventas_p).fillna(0)
+            if C_GANANCIA in df_p.columns:
+                gan_p = df_p[df_p['_ent']].groupby(C_PROVE)[C_GANANCIA].sum()
+                grp_p['Ganancia']     = grp_p[C_PROVE].map(gan_p).fillna(0)
+
+            grp_p = grp_p.sort_values('Pedidos', ascending=False).head(20)
+
+            # KPIs
+            k1,k2,k3 = st.columns(3)
+            with k1: st.markdown(kpi("blue","👥 Proveedores",f"{len(grp_p)}"), unsafe_allow_html=True)
+            with k2:
+                mejor_p = grp_p.loc[grp_p['Tasa Entrega'].idxmax()] if len(grp_p) else None
+                st.markdown(kpi("green","⭐ Mejor Proveedor",f"{str(mejor_p[C_PROVE])[:18] if mejor_p is not None else '—'}",f"{mejor_p['Tasa Entrega']}%" if mejor_p is not None else ""), unsafe_allow_html=True)
+            with k3:
+                peor_p = grp_p.loc[grp_p['Tasa Cancel'].idxmax()] if len(grp_p) else None
+                st.markdown(kpi("red","⚠️ Más Cancelaciones",f"{str(peor_p[C_PROVE])[:18] if peor_p is not None else '—'}",f"{peor_p['Tasa Cancel']}%" if peor_p is not None else ""), unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            fig_p = px.bar(grp_p.head(10), x=C_PROVE, y=['Tasa Entrega','Tasa Cancel','Tasa Dev'],
+                           barmode='group', color_discrete_sequence=['#10b981','#ef4444','#f59e0b'],
+                           title='Top 10 Proveedores — Tasas de Entrega, Cancelación y Devolución')
+            fig_p.update_layout(**PLOT_LAYOUT, height=380, xaxis=AXIS_STYLE, yaxis=dict(ticksuffix='%', **AXIS_STYLE))
+            st.plotly_chart(fig_p, use_container_width=True)
+
+            # Tabla
+            disp_cols = [c for c in [C_PROVE,'Pedidos','Entregados','Cancelados','Devoluciones','Tasa Entrega','Tasa Cancel','Tasa Dev','Ventas','Ganancia'] if c in grp_p.columns]
+            disp_p = grp_p[disp_cols].copy()
+            for col in ['Ventas','Ganancia']:
+                if col in disp_p.columns:
+                    disp_p[col] = disp_p[col].apply(fmt_money)
+            for col in ['Tasa Entrega','Tasa Cancel','Tasa Dev']:
+                if col in disp_p.columns:
+                    disp_p[col] = disp_p[col].astype(str) + '%'
+            st.dataframe(disp_p, use_container_width=True, hide_index=True)
+        else:
+            col_prov_hint = [c for c in df.columns if 'PROV' in c.upper() or 'SUPPL' in c.upper()]
+            st.info(f"No se encontró columna de Proveedor. Columnas similares encontradas: {col_prov_hint[:5] if col_prov_hint else 'Ninguna'}")
+
+    # ══════════════════════════════════════════════════════════════════
+    # 📦 INVENTARIO
+    # ══════════════════════════════════════════════════════════════════
+    elif "Inventario" in op_nav:
+        st.markdown('<div class="seccion-titulo">📦 Estado del Inventario por Producto</div>', unsafe_allow_html=True)
+        C_PROD = next((c for c in df.columns if any(x in c.upper() for x in ["PRODUCTO","PRODUCT","ARTICU","ITEM","SKU"])), None)
+
+        if C_PROD and C_ESTATUS in df.columns:
+            df_inv = df.copy()
+            df_inv['_ent'] = df_inv[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD', na=False)
+            df_inv['_dev'] = df_inv[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI', na=False)
+            df_inv['_can'] = df_inv[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD', na=False)
+            df_inv['_und'] = df_inv[C_CANTIDAD].fillna(1) if C_CANTIDAD in df_inv.columns else 1
+
+            grp_inv = df_inv.groupby(C_PROD).agg(
+                Pedidos=('_ent','count'),
+                Unids_Vendidas=('_und','sum'),
+                Entregados=('_ent','sum'),
+                Devoluciones=('_dev','sum'),
+                Cancelados=('_can','sum'),
+            ).reset_index()
+
+            if C_TOTAL in df_inv.columns:
+                v_p = df_inv.groupby(C_PROD)[C_TOTAL].sum()
+                grp_inv['Ventas'] = grp_inv[C_PROD].map(v_p).fillna(0)
+            if C_GANANCIA in df_inv.columns:
+                g_p = df_inv.groupby(C_PROD)[C_GANANCIA].sum()
+                grp_inv['Ganancia'] = grp_inv[C_PROD].map(g_p).fillna(0)
+
+            grp_inv['Tasa Dev %'] = (grp_inv['Devoluciones']/grp_inv['Pedidos'].replace(0,1)*100).round(1)
+            grp_inv['Tasa Ent %'] = (grp_inv['Entregados']/grp_inv['Pedidos'].replace(0,1)*100).round(1)
+            grp_inv = grp_inv.sort_values('Pedidos', ascending=False)
+
+            k1,k2,k3,k4 = st.columns(4)
+            with k1: st.markdown(kpi("blue","📦 Productos",f"{len(grp_inv)}"), unsafe_allow_html=True)
+            with k2: st.markdown(kpi("cyan","📊 Total Unidades",f"{int(grp_inv['Unids_Vendidas'].sum()):,}"), unsafe_allow_html=True)
+            with k3:
+                top_prod = grp_inv.iloc[0] if len(grp_inv) else None
+                st.markdown(kpi("green","🏆 Más Vendido",f"{str(top_prod[C_PROD])[:18] if top_prod is not None else '—'}",f"{int(top_prod['Pedidos']):,} pedidos" if top_prod is not None else ""), unsafe_allow_html=True)
+            with k4:
+                alto_dev = grp_inv.loc[grp_inv['Tasa Dev %'].idxmax()] if len(grp_inv) else None
+                st.markdown(kpi("red","⚠️ Más Devoluciones",f"{str(alto_dev[C_PROD])[:18] if alto_dev is not None else '—'}",f"{alto_dev['Tasa Dev %']}%" if alto_dev is not None else ""), unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            g1, g2 = st.columns(2)
+
+            with g1:
+                top10 = grp_inv.head(10)
+                fig_inv = go.Figure()
+                fig_inv.add_trace(go.Bar(x=top10[C_PROD], y=top10['Entregados'], name='Entregados', marker_color='#10b981'))
+                fig_inv.add_trace(go.Bar(x=top10[C_PROD], y=top10['Devoluciones'], name='Devoluciones', marker_color='#f59e0b'))
+                fig_inv.add_trace(go.Bar(x=top10[C_PROD], y=top10['Cancelados'], name='Cancelados', marker_color='#ef4444'))
+                fig_inv.update_layout(**PLOT_LAYOUT, barmode='stack', height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
+                                      title='Top 10 Productos — Entregados vs Devoluciones vs Cancelados')
+                st.plotly_chart(fig_inv, use_container_width=True)
+
+            with g2:
+                if 'Ganancia' in grp_inv.columns:
+                    fig_gan = px.bar(grp_inv.head(10).sort_values('Ganancia', ascending=True),
+                                     x='Ganancia', y=C_PROD, orientation='h',
+                                     color='Ganancia', color_continuous_scale=['#ef4444','#f59e0b','#10b981'],
+                                     title='Ganancia por Producto (Top 10)')
+                    fig_gan.update_layout(**PLOT_LAYOUT, height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                    st.plotly_chart(fig_gan, use_container_width=True)
+
+            # Tabla
+            disp_cols = [c for c in [C_PROD,'Pedidos','Unids_Vendidas','Entregados','Devoluciones','Cancelados','Tasa Ent %','Tasa Dev %','Ventas','Ganancia'] if c in grp_inv.columns]
+            disp_inv = grp_inv[disp_cols].copy()
+            for col in ['Ventas','Ganancia']:
+                if col in disp_inv.columns:
+                    disp_inv[col] = disp_inv[col].apply(fmt_money)
+            for col in ['Tasa Ent %','Tasa Dev %']:
+                if col in disp_inv.columns:
+                    disp_inv[col] = disp_inv[col].astype(str) + '%'
+            st.dataframe(disp_inv, use_container_width=True, hide_index=True)
+        else:
+            st.info("No se encontró columna de Producto. Verifica que exista una columna con nombre 'Producto', 'Artículo', 'SKU' o similar.")
+
+    # ══════════════════════════════════════════════════════════════════
+    # 🔁 DEVOLUCIONES
+    # ══════════════════════════════════════════════════════════════════
+    elif "Devoluciones" in op_nav:
+        st.markdown('<div class="seccion-titulo">🔁 Análisis de Devoluciones</div>', unsafe_allow_html=True)
+
+        mask_dev = df[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI', na=False) if C_ESTATUS in df.columns else pd.Series([False]*len(df))
+        df_dev = df[mask_dev].copy()
+
+        if len(df_dev) == 0:
+            st.info("No hay devoluciones registradas en el período.")
+        else:
+            total_dev = len(df_dev)
+            pct_dev   = round(total_dev/total*100,1) if total else 0
+            val_dev   = df_dev[C_TOTAL].sum() if C_TOTAL in df_dev.columns else 0
+            flete_dev = df_dev[C_FLETE].sum() if C_FLETE in df_dev.columns else 0
+
+            k1,k2,k3,k4 = st.columns(4)
+            with k1: st.markdown(kpi("red","🔁 Total Devoluciones",f"{total_dev:,}",f"{pct_dev}% del total"), unsafe_allow_html=True)
+            with k2: st.markdown(kpi("gold","💰 Valor Devuelto",fmt_money(val_dev)), unsafe_allow_html=True)
+            with k3: st.markdown(kpi("purple","🚚 Flete Devoluciones",fmt_money(flete_dev)), unsafe_allow_html=True)
+            with k4:
+                costo_dev = val_dev + flete_dev
+                st.markdown(kpi("red","⚠️ Costo Total Dev.",fmt_money(costo_dev)), unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            g1, g2 = st.columns(2)
+
+            with g1:
+                # Devoluciones por ciudad
+                C_CIUDAD = next((c for c in df.columns if any(x in c.upper() for x in ["CIUDAD","CITY","MUNICIPIO","DEPTO","DEPARTAMENTO"])), None)
+                if C_CIUDAD:
+                    dev_ciudad = df_dev[C_CIUDAD].value_counts().head(12).reset_index()
+                    dev_ciudad.columns = ['Ciudad','Devoluciones']
+                    fig_dc = px.bar(dev_ciudad.sort_values('Devoluciones'), x='Devoluciones', y='Ciudad',
+                                    orientation='h', color='Devoluciones',
+                                    color_continuous_scale=['#fbbf24','#f59e0b','#ef4444'],
+                                    title='Top Ciudades con Más Devoluciones')
+                    fig_dc.update_layout(**PLOT_LAYOUT, height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                    st.plotly_chart(fig_dc, use_container_width=True)
+                else:
+                    st.info("Columna Ciudad no encontrada.")
+
+            with g2:
+                # Tendencia devoluciones por semana
+                if C_FECHA in df_dev.columns:
+                    df_dev2 = df_dev.copy()
+                    df_dev2['_semana'] = df_dev2[C_FECHA].dt.isocalendar().week.astype(str)
+                    tend = df_dev2.groupby('_semana').size().reset_index(name='Devoluciones')
+                    fig_tend = px.line(tend, x='_semana', y='Devoluciones',
+                                       title='Tendencia Semanal de Devoluciones',
+                                       markers=True, color_discrete_sequence=['#f59e0b'])
+                    fig_tend.update_layout(**PLOT_LAYOUT, height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                    fig_tend.update_traces(line=dict(width=3), marker=dict(size=9))
+                    st.plotly_chart(fig_tend, use_container_width=True)
+
+            # Productos con más devoluciones
+            C_PROD2 = next((c for c in df.columns if any(x in c.upper() for x in ["PRODUCTO","PRODUCT","ARTICU","ITEM","SKU"])), None)
+            if C_PROD2:
+                dev_prod = df_dev[C_PROD2].value_counts().head(10).reset_index()
+                dev_prod.columns = ['Producto','Devoluciones']
+                fig_dp = px.bar(dev_prod.sort_values('Devoluciones'), x='Devoluciones', y='Producto',
+                                orientation='h', color='Devoluciones',
+                                color_continuous_scale=['#fbbf24','#ef4444'],
+                                title='Top 10 Productos con Más Devoluciones')
+                fig_dp.update_layout(**PLOT_LAYOUT, height=360, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                st.plotly_chart(fig_dp, use_container_width=True)
+
+    # ══════════════════════════════════════════════════════════════════
+    # 📋 NOVEDADES CON HISTORIAL
+    # ══════════════════════════════════════════════════════════════════
+    elif "Novedades" in op_nav:
+        st.markdown('<div class="seccion-titulo">📋 Historial de Novedades</div>', unsafe_allow_html=True)
+
+        mask_nov = df[C_ESTATUS].astype(str).str.upper().str.contains('NOVEDAD', na=False) if C_ESTATUS in df.columns else pd.Series([True]*len(df))
+        df_nov = df[mask_nov].copy() if C_NOVEDAD in df.columns else df.copy()
+
+        if len(df_nov) > 0:
+            total_nov = len(df_nov)
+            resueltas = df_nov[df_nov[C_NOV_SOL].astype(str).str.upper().str.contains('SI|SÍ', na=False)].shape[0] if C_NOV_SOL in df_nov.columns else 0
+            pendientes = total_nov - resueltas
+            pct_res = round(resueltas/total_nov*100,1) if total_nov else 0
+
+            k1,k2,k3,k4 = st.columns(4)
+            with k1: st.markdown(kpi("purple","⚠️ Total Novedades",f"{total_nov:,}"), unsafe_allow_html=True)
+            with k2: st.markdown(kpi("green","✅ Resueltas",f"{resueltas:,}",f"{pct_res}%"), unsafe_allow_html=True)
+            with k3: st.markdown(kpi("red","🔴 Pendientes",f"{pendientes:,}",f"{100-pct_res}%"), unsafe_allow_html=True)
+            with k4:
+                dias_prom = round(df_nov['_d_mov'].mean(),1) if '_d_mov' in df_nov.columns else 0
+                st.markdown(kpi("gold","⏱️ Días Prom. Pendiente",f"{dias_prom}d"), unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            if C_NOVEDAD in df_nov.columns:
+                g1, g2 = st.columns(2)
+                with g1:
+                    tipo_nov = df_nov[C_NOVEDAD].value_counts().head(10).reset_index()
+                    tipo_nov.columns = ['Tipo Novedad','Cantidad']
+                    fig_tn = px.pie(tipo_nov, values='Cantidad', names='Tipo Novedad', hole=0.4,
+                                    color_discrete_sequence=COLORES_ELEGANTES, title='Tipos de Novedad')
+                    fig_tn.update_layout(**PLOT_LAYOUT, height=360)
+                    fig_tn.update_traces(textposition='inside', textinfo='percent+label')
+                    st.plotly_chart(fig_tn, use_container_width=True)
+                with g2:
+                    if '_mes' in df_nov.columns:
+                        nov_mes = df_nov.groupby('_mes').size().reset_index(name='Novedades')
+                        fig_nm = px.bar(nov_mes, x='_mes', y='Novedades',
+                                        color_discrete_sequence=['#8b5cf6'], title='Novedades por Mes')
+                        fig_nm.update_layout(**PLOT_LAYOUT, height=360, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                        st.plotly_chart(fig_nm, use_container_width=True)
+
+            # Tabla historial
+            cols_nov = [c for c in [C_ID, C_CLIENTE, C_NOVEDAD, C_NOV_SOL, '_d_mov', C_GUIA] if c in df_nov.columns]
+            if cols_nov:
+                st.markdown('<div style="font-size:0.8rem;color:#8b8aaa;margin-bottom:8px">Mostrando las 100 más recientes</div>', unsafe_allow_html=True)
+                st.dataframe(df_nov[cols_nov].head(100), use_container_width=True, hide_index=True)
+
 
     elif "Estados" in op_nav and C_ESTATUS in df.columns:
         g1,g2 = st.columns(2)
