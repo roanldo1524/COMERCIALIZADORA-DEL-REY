@@ -490,29 +490,30 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
     op_pais   = op_info["pais"]
     op_moneda = op_info["moneda"]
 
-    st.markdown(f"""
-    <div style="margin-bottom:28px;background:linear-gradient(135deg,#1a1829,#1f1d35);
-                border:1px solid #2d2b45;border-radius:16px;padding:24px 28px">
-        <div style="display:flex;align-items:center;gap:16px">
-            <div style="width:4px;height:48px;background:{op_color};border-radius:4px"></div>
-            <div>
-                <div style="font-size:0.7rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;
-                            text-transform:uppercase;margin-bottom:4px">{op_pais} · {op_moneda}</div>
-                <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;
-                            color:#f0ede8;line-height:1">{op_nombre}</div>
-                <div style="color:#8b8aaa;font-size:0.85rem;margin-top:6px">
-                    {vista_activa.split('  ')[1]} · {total:,} pedidos analizados
-                    {"&nbsp;&nbsp;·&nbsp;&nbsp;<span style='color:#f97316;font-size:0.78rem'>💱 CLP→COP @ " + str(trm_clp_cop) + "</span>" if es_clp else ""}
-                </div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    modulo_nombre = vista_activa.split("  ")[1] if "  " in vista_activa else vista_activa.strip()
+    clp_badge = (f"&nbsp;&nbsp;&middot;&nbsp;&nbsp;<span style='color:#f97316;font-size:0.78rem'>"
+                 f"&#x1F4B1; CLP&#8594;COP @ {trm_clp_cop}</span>") if es_clp else ""
+
+    st.markdown(
+        f'<div style="margin-bottom:28px;background:linear-gradient(135deg,#1a1829,#1f1d35);'
+        f'border:1px solid #2d2b45;border-radius:16px;padding:24px 28px">'
+        f'<div style="display:flex;align-items:center;gap:16px">'
+        f'<div style="width:4px;height:54px;background:{op_color};border-radius:4px"></div>'
+        f'<div>'
+        f'<div style="font-size:0.68rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;'
+        f'text-transform:uppercase;margin-bottom:5px">{op_pais} &nbsp;·&nbsp; {op_moneda}</div>'
+        f'<div style="font-family:Syne,sans-serif;font-size:1.9rem;font-weight:800;'
+        f'color:#f0ede8;line-height:1;margin-bottom:6px">{op_nombre}</div>'
+        f'<div style="color:#8b8aaa;font-size:0.83rem">'
+        f'{modulo_nombre} &nbsp;·&nbsp; {total:,} pedidos analizados{clp_badge}'
+        f'</div></div></div></div>',
+        unsafe_allow_html=True
+    )
 
     # ── KPIs ──
     c1,c2,c3,c4,c5,c6 = st.columns(6)
     with c1: st.markdown(kpi("blue","Total Pedidos",f"{total:,}"), unsafe_allow_html=True)
-    with c2: st.markdown(kpi("green","Entregados",f"{entregados:,}",f"✓ {pct_ent}%"), unsafe_allow_html=True)
+    with c2: st.markdown(kpi("green","Entregados",f"{entregados:,}",f"&#10003; {pct_ent}%"), unsafe_allow_html=True)
     with c3: st.markdown(kpi("red","Cancelados",f"{cancelados:,}"), unsafe_allow_html=True)
     with c4: st.markdown(kpi("gold","En Proceso",f"{en_proceso:,}"), unsafe_allow_html=True)
     with c5: st.markdown(kpi("cyan","Ventas",fmt_money(tot_venta)), unsafe_allow_html=True)
@@ -1142,25 +1143,24 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
     op_color  = op_info["color"]
     op_pais   = op_info["pais"]
     op_moneda = op_info["moneda"]
+    clp_badge2 = (f"&nbsp;&nbsp;&middot;&nbsp;&nbsp;<span style='color:#f97316;font-size:0.78rem'>"
+                  f"&#x1F4B1; CLP&#8594;COP @ {trm_clp_cop}</span>") if es_clp else ""
 
-    st.markdown(f"""
-    <div style="margin-bottom:28px;background:linear-gradient(135deg,#1a1829,#1f1d35);
-                border:1px solid #2d2b45;border-radius:16px;padding:24px 28px">
-        <div style="display:flex;align-items:center;gap:16px">
-            <div style="width:4px;height:48px;background:{op_color};border-radius:4px"></div>
-            <div>
-                <div style="font-size:0.7rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;
-                            text-transform:uppercase;margin-bottom:4px">{op_pais} · {op_moneda}</div>
-                <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;
-                            color:#f0ede8;line-height:1">{op_nombre}</div>
-                <div style="color:#8b8aaa;font-size:0.85rem;margin-top:6px">
-                    Operaciones · Centro de control · {total:,} pedidos activos
-                    {"&nbsp;&nbsp;·&nbsp;&nbsp;<span style='color:#f97316;font-size:0.78rem'>💱 CLP→COP @ " + str(trm_clp_cop) + "</span>" if es_clp else ""}
-                </div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        f'<div style="margin-bottom:28px;background:linear-gradient(135deg,#1a1829,#1f1d35);'
+        f'border:1px solid #2d2b45;border-radius:16px;padding:24px 28px">'
+        f'<div style="display:flex;align-items:center;gap:16px">'
+        f'<div style="width:4px;height:54px;background:{op_color};border-radius:4px"></div>'
+        f'<div>'
+        f'<div style="font-size:0.68rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;'
+        f'text-transform:uppercase;margin-bottom:5px">{op_pais} &nbsp;·&nbsp; {op_moneda}</div>'
+        f'<div style="font-family:Syne,sans-serif;font-size:1.9rem;font-weight:800;'
+        f'color:#f0ede8;line-height:1;margin-bottom:6px">{op_nombre}</div>'
+        f'<div style="color:#8b8aaa;font-size:0.83rem">'
+        f'Operaciones &nbsp;·&nbsp; Centro de control &nbsp;·&nbsp; {total:,} pedidos{clp_badge2}'
+        f'</div></div></div></div>',
+        unsafe_allow_html=True
+    )
 
     # KPIs operativos
     c1,c2,c3,c4,c5,c6 = st.columns(6)
