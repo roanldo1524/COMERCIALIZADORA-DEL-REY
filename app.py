@@ -961,7 +961,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     title='Distribución Geográfica de Pedidos'
                 )
                 fig_map.update_layout(**PLOT_LAYOUT, height=550,
-                                      mapbox=dict(center=dict(lat=4.5, lon=-74.3, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)))
+                                      mapbox=dict(center=dict(lat=4.5, lon=-74.3)))
                 st.plotly_chart(fig_map, use_container_width=True)
 
             # Tabla top departamentos
