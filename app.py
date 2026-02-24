@@ -510,14 +510,17 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         unsafe_allow_html=True
     )
 
-    # ── KPIs ──
+    # ── KPIs financieros (análisis) ──
+    ticket_prom = round(tot_venta / total, 0) if total else 0
+    pct_cancel  = round(cancelados/total*100,1) if total else 0
+    pct_dev_g   = round(devolucion/total*100,1) if total else 0
     c1,c2,c3,c4,c5,c6 = st.columns(6)
-    with c1: st.markdown(kpi("blue","Total Pedidos",f"{total:,}"), unsafe_allow_html=True)
-    with c2: st.markdown(kpi("green","Entregados",f"{entregados:,}",f"&#10003; {pct_ent}%"), unsafe_allow_html=True)
-    with c3: st.markdown(kpi("red","Cancelados",f"{cancelados:,}"), unsafe_allow_html=True)
-    with c4: st.markdown(kpi("gold","En Proceso",f"{en_proceso:,}"), unsafe_allow_html=True)
-    with c5: st.markdown(kpi("cyan","Ventas",fmt_money(tot_venta)), unsafe_allow_html=True)
-    with c6: st.markdown(kpi("purple","Ganancia",fmt_money(tot_gan),f"{pct_gan}% margen"), unsafe_allow_html=True)
+    with c1: st.markdown(kpi("cyan","💰 Ventas Totales",fmt_money(tot_venta)), unsafe_allow_html=True)
+    with c2: st.markdown(kpi("green","✅ Ganancia Neta",fmt_money(tot_gan),f"{pct_gan}% margen"), unsafe_allow_html=True)
+    with c3: st.markdown(kpi("blue","📦 Pedidos",f"{total:,}",f"{entregados:,} entregados"), unsafe_allow_html=True)
+    with c4: st.markdown(kpi("gold","🎫 Ticket Promedio",fmt_money(ticket_prom)), unsafe_allow_html=True)
+    with c5: st.markdown(kpi("red","❌ Cancelación",f"{pct_cancel}%",f"{cancelados:,} pedidos"), unsafe_allow_html=True)
+    with c6: st.markdown(kpi("purple","🔁 Devolución",f"{pct_dev_g}%",f"{devolucion:,} pedidos"), unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -532,7 +535,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
     elif "Finanzas" in vista_activa:
         nav = "📅 Evolución Mensual"
     else:
-        nav = st.radio("", ["📅 Evolución Mensual","🗺️ Mapa Colombia","🏆 Productos Estrella","🚚 Transportadoras","💡 Insights"],
+        nav = st.radio("", ["📅 Evolución Mensual","🗺️ Mapa Colombia","🏆 Productos Estrella","💡 Insights"],
                        horizontal=True, label_visibility="collapsed")
 
 
@@ -1022,45 +1025,11 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                                        textfont=dict(color='#b0aec8', size=10))
                 st.plotly_chart(fig_prod, use_container_width=True)
 
-    # ── TRANSPORTADORAS ──
-    elif "Transportadora" in nav and C_TRANSP in df.columns:
 
-        tr_count = df[C_TRANSP].astype(str).value_counts().reset_index()
-        tr_count.columns = ['Transportadora','Pedidos']
-
-        t1, t2 = st.columns(2)
-        with t1:
-            fig_tr = px.pie(tr_count, values='Pedidos', names='Transportadora',
-                           color_discrete_sequence=COLORES_ELEGANTES,
-                           title='Pedidos por Transportadora', hole=0.45)
-            fig_tr.update_layout(**PLOT_LAYOUT, height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
-            fig_tr.update_traces(textposition='inside', textinfo='percent+label')
-            st.plotly_chart(fig_tr, use_container_width=True)
-
-        with t2:
-            if C_GANANCIA in df.columns:
-                tr_g = df.groupby(C_TRANSP)[C_GANANCIA].sum().sort_values(ascending=False).reset_index()
-                tr_g.columns = ['Transportadora','Ganancia']
-                fig_trg = px.bar(tr_g, x='Ganancia', y='Transportadora', orientation='h',
-                                color='Ganancia', color_continuous_scale=['#1a1829','#10b981'],
-                                title='Ganancia por Transportadora')
-                fig_trg.update_layout(**PLOT_LAYOUT, height=380, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
-                st.plotly_chart(fig_trg, use_container_width=True)
-
-        if C_FLETE in df.columns and C_CIUDAD in df.columns:
-            st.markdown("#### 💸 Ciudades con Flete Elevado")
-            fl = df.groupby(C_CIUDAD)[C_FLETE].mean().sort_values(ascending=False).head(15).reset_index()
-            fl.columns = ['Ciudad','Flete Promedio']
-            fig_fl = px.bar(fl, x='Flete Promedio', y='Ciudad', orientation='h',
-                           color='Flete Promedio', color_continuous_scale=['#1a1829','#f59e0b','#ef4444'],
-                           title='Flete Promedio por Ciudad')
-            fig_fl.update_layout(**PLOT_LAYOUT, height=420, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
-            st.plotly_chart(fig_fl, use_container_width=True)
-            st.caption("⚠️ Considera excluir ciudades de flete alto de tu pauta publicitaria")
 
     # ── INSIGHTS ──
     elif "Insights" in nav:
-        st.markdown("#### 💡 Insights Estratégicos Automáticos")
+        st.markdown('<div class="seccion-titulo">💡 Insights Estratégicos Automáticos</div>', unsafe_allow_html=True)
 
         insights = []
 
@@ -1181,7 +1150,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
             "🚦 Monitor de Estatus",
             "🚚 Transportadoras",
             "👥 Proveedores",
-            "📦 Inventario",
+            "📦 Stock & Devoluciones",
             "🔁 Devoluciones",
             "📋 Novedades",
             "🏷️ Tags",
@@ -1497,8 +1466,8 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
     # ══════════════════════════════════════════════════════════════════
     # 📦 INVENTARIO
     # ══════════════════════════════════════════════════════════════════
-    elif "Inventario" in op_nav:
-        st.markdown('<div class="seccion-titulo">📦 Estado del Inventario por Producto</div>', unsafe_allow_html=True)
+    elif "Stock" in op_nav or "Inventario" in op_nav:
+        st.markdown('<div class="seccion-titulo">📦 Stock & Análisis de Devoluciones por Producto</div>', unsafe_allow_html=True)
         C_PROD = next((c for c in df.columns if any(x in c.upper() for x in ["PRODUCTO","PRODUCT","ARTICU","ITEM","SKU"])), None)
 
         if C_PROD and C_ESTATUS in df.columns:
