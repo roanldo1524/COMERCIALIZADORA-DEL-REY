@@ -939,8 +939,9 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             title={'text':f"<b>SALUD DEL NEGOCIO</b><br><span style='font-size:13px;color:{score_color}'>{score_emoji} {score_label}</span>",
                    'font':{'color':'#f0ede8','size':14,'family':'Syne'}}
         ))
+        _gauge_layout = {k:v for k,v in PLOT_LAYOUT.items() if k != 'margin'}
         fig_gauge.update_layout(
-            **PLOT_LAYOUT, height=280,
+            **_gauge_layout, height=280,
             margin=dict(t=60,b=10,l=30,r=30)
         )
 
