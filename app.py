@@ -536,8 +536,10 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         nav = "💹 Finanzas"
     elif "Catálogo" in vista_activa:
         nav = "🛍️ Catálogo"
+    elif "Marketing" in vista_activa:
+        nav = "📣 Marketing"
     else:
-        nav = st.radio("", ["🫀 Pulso del Negocio","🗺️ Mapa Colombia","🏆 Productos Estrella","💡 Insights"],
+        nav = st.radio("", ["🫀 Pulso del Negocio","🎯 El Marcador","🌊 Río del Dinero","🚨 Centro de Mando"],
                        horizontal=True, label_visibility="collapsed")
 
 
@@ -978,6 +980,27 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
 
         # ══════════════════════════════════════════
+
+    elif "El Marcador" in nav:
+        from datetime import date, timedelta
+        hoy = date.today()
+        mes_actual = hoy.strftime("%Y-%m")
+        mes_ant = (hoy.replace(day=1) - timedelta(days=1)).strftime("%Y-%m")
+        df_act = df[df['_mes'] == mes_actual].copy() if '_mes' in df.columns else df.copy()
+        df_ant = df[df['_mes'] == mes_ant].copy() if '_mes' in df.columns else pd.DataFrame()
+        def pct_est2(col, val):
+            return df_act[C_ESTATUS].astype(str).str.upper().str.contains(val, na=False).sum() if C_ESTATUS in df_act.columns else 0
+        n_tot = len(df_act); n_ent = pct_est2(C_ESTATUS,'ENTREGAD'); n_dev = pct_est2(C_ESTATUS,'DEVOLUCI'); n_can = pct_est2(C_ESTATUS,'CANCELAD')
+        ventas_act = df_act[C_TOTAL].sum() if C_TOTAL in df_act.columns else 0
+        gan_act = df_act[C_GANANCIA].sum() if C_GANANCIA in df_act.columns else 0
+        ventas_ant = df_ant[C_TOTAL].sum() if C_TOTAL in df_ant.columns and len(df_ant) else 0
+        gan_ant = df_ant[C_GANANCIA].sum() if C_GANANCIA in df_ant.columns and len(df_ant) else 0
+        n_ent_ant = df_ant[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD',na=False).sum() if C_ESTATUS in df_ant.columns and len(df_ant) else 0
+        tasa_dev = n_dev/n_tot*100 if n_tot else 0; tasa_can = n_can/n_tot*100 if n_tot else 0
+        tasa_dev_ant = df_ant[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI',na=False).sum()/len(df_ant)*100 if len(df_ant) else 0
+        tasa_can_ant = df_ant[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD',na=False).sum()/len(df_ant)*100 if len(df_ant) else 0
+        st.markdown('<div class="seccion-titulo">🎯 El Marcador — Este Mes vs Mes Anterior</div>', unsafe_allow_html=True)
+        # ══════════════════════════════════════════
         # 🎯 COMPONENTE 3 — EL MARCADOR
         # ══════════════════════════════════════════
         st.markdown('<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:1rem;margin-bottom:14px">🎯 El Marcador — Este Mes vs Mes Anterior</div>', unsafe_allow_html=True)
@@ -1014,6 +1037,15 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
 
         st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
 
+        # FIN EL MARCADOR
+
+    elif "Río" in nav or "Rio" in nav:
+        from datetime import date, timedelta
+        hoy = date.today()
+        mes_actual = hoy.strftime('%Y-%m')
+        df_act = df[df['_mes'] == mes_actual].copy() if '_mes' in df.columns else df.copy()
+        gan_act = df_act[C_GANANCIA].sum() if C_GANANCIA in df_act.columns else 0
+        st.markdown('<div class="seccion-titulo">🌊 El Río del Dinero — ¿Dónde está tu plata?</div>', unsafe_allow_html=True)
         # ══════════════════════════════════════════
         # 🌊 COMPONENTE 2 — RÍO DEL DINERO
         # ══════════════════════════════════════════
@@ -1066,6 +1098,28 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
 
         st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
 
+        # FIN RÍO DEL DINERO
+
+    elif "Centro" in nav or "Mando" in nav:
+        from datetime import date, timedelta
+        hoy = date.today()
+        mes_actual = hoy.strftime('%Y-%m')
+        mes_ant = (hoy.replace(day=1) - timedelta(days=1)).strftime('%Y-%m')
+        df_act = df[df['_mes'] == mes_actual].copy() if '_mes' in df.columns else df.copy()
+        df_ant = df[df['_mes'] == mes_ant].copy() if '_mes' in df.columns else pd.DataFrame()
+        def _pct(val): return df_act[C_ESTATUS].astype(str).str.upper().str.contains(val,na=False).sum() if C_ESTATUS in df_act.columns else 0
+        n_tot=len(df_act); n_ent=_pct('ENTREGAD'); n_dev=_pct('DEVOLUCI'); n_can=_pct('CANCELAD'); n_proc=n_tot-n_ent-n_can-n_dev
+        ventas_act=df_act[C_TOTAL].sum() if C_TOTAL in df_act.columns else 0
+        gan_act=df_act[C_GANANCIA].sum() if C_GANANCIA in df_act.columns else 0
+        ventas_ant=df_ant[C_TOTAL].sum() if C_TOTAL in df_ant.columns and len(df_ant) else 0
+        tasa_ent=n_ent/n_tot*100 if n_tot else 0; tasa_dev=n_dev/n_tot*100 if n_tot else 0; tasa_can=n_can/n_tot*100 if n_tot else 0
+        margen=gan_act/ventas_act*100 if ventas_act else 0
+        score_ent=min(tasa_ent/80*35,35); score_mrgn=min(margen/30*25,25)
+        score_dev=max(0,20-tasa_dev*1.5); score_can=max(0,20-tasa_can*1.0)
+        score_total=int(score_ent+score_mrgn+score_dev+score_can)
+        score_color='#10b981' if score_total>=75 else '#f59e0b' if score_total>=50 else '#ef4444'
+        score_label='EXCELENTE' if score_total>=75 else 'ATENCIÓN' if score_total>=50 else 'CRÍTICO'
+        st.markdown('<div class="seccion-titulo">🚨 Centro de Mando — Alertas Prioritarias</div>', unsafe_allow_html=True)
         # ══════════════════════════════════════════
         # 🚨 COMPONENTE 5 — CENTRO DE MANDO
         # ══════════════════════════════════════════
@@ -1224,205 +1278,213 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             fig_d.update_layout(**PLOT_LAYOUT, height=280, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
             st.plotly_chart(fig_d, use_container_width=True)
 
-    # ── MAPA COLOMBIA ──
-    elif "Mapa" in nav:
-        if C_DEPTO in df.columns:
-            dep_data = df.groupby(C_DEPTO).agg(
-                Pedidos=(C_TOTAL,'count'),
-                Ventas=(C_TOTAL,'sum') if C_TOTAL in df.columns else (C_DEPTO,'count'),
-                Ganancia=(C_GANANCIA,'sum') if C_GANANCIA in df.columns else (C_DEPTO,'count')
-            ).reset_index().sort_values('Pedidos', ascending=False)
-            dep_data.columns = ['Departamento','Pedidos','Ventas','Ganancia']
+    # ══════════════════════════════════════════════════════════════════
+    # 📣 MARKETING — MAPA, PRODUCTO ESTRELLA, INSIGHTS
+    # ══════════════════════════════════════════════════════════════════
+    elif nav == "📣 Marketing":
+        mkt_nav = st.radio("", ["🗺️ Mapa de Calor", "⭐ Producto Estrella", "💡 Insights"],
+                           horizontal=True, label_visibility="collapsed", key="mkt_nav")
+        st.markdown("<br>", unsafe_allow_html=True)
 
-            # Coordenadas aproximadas departamentos Colombia
-            coords = {
-                'CUNDINAMARCA':[4.60,-74.08],'BOGOTA':[4.60,-74.08],'BOGOTÁ':[4.60,-74.08],
-                'ANTIOQUIA':[6.25,-75.56],'MEDELLÍN':[6.25,-75.56],'MEDELLIN':[6.25,-75.56],
-                'VALLE DEL CAUCA':[3.43,-76.52],'CALI':[3.43,-76.52],
-                'ATLANTICO':[10.99,-74.81],'ATLÁNTICO':[10.99,-74.81],'BARRANQUILLA':[10.99,-74.81],
-                'BOLIVAR':[10.39,-75.51],'BOLÍVAR':[10.39,-75.51],'CARTAGENA':[10.39,-75.51],
-                'SANTANDER':[7.13,-73.12],'BUCARAMANGA':[7.13,-73.12],
-                'NORTE DE SANTANDER':[7.89,-72.51],'CUCUTA':[7.89,-72.51],'CÚCUTA':[7.89,-72.51],
-                'BOYACA':[5.53,-73.36],'BOYACÁ':[5.53,-73.36],
-                'TOLIMA':[4.09,-75.15],'IBAGUE':[4.09,-75.15],'IBAGUÉ':[4.09,-75.15],
-                'CALDAS':[5.07,-75.51],'MANIZALES':[5.07,-75.51],
-                'RISARALDA':[4.81,-75.69],'PEREIRA':[4.81,-75.69],
-                'QUINDIO':[4.53,-75.68],'QUINDÍO':[4.53,-75.68],'ARMENIA':[4.53,-75.68],
-                'HUILA':[2.53,-75.52],'NEIVA':[2.53,-75.52],
-                'NARIÑO':[1.21,-77.28],'NARINO':[1.21,-77.28],'PASTO':[1.21,-77.28],
-                'CAUCA':[2.44,-76.61],'POPAYAN':[2.44,-76.61],'POPAYÁN':[2.44,-76.61],
-                'CORDOBA':[8.74,-75.88],'CÓRDOBA':[8.74,-75.88],'MONTERIA':[8.74,-75.88],'MONTERÍA':[8.74,-75.88],
-                'SUCRE':[9.30,-75.39],'SINCELEJO':[9.30,-75.39],
-                'MAGDALENA':[11.24,-74.20],'SANTA MARTA':[11.24,-74.20],
-                'CESAR':[9.33,-73.36],'VALLEDUPAR':[9.33,-73.36],
-                'GUAJIRA':[11.54,-72.91],'LA GUAJIRA':[11.54,-72.91],'RIOHACHA':[11.54,-72.91],
-                'META':[4.14,-73.63],'VILLAVICENCIO':[4.14,-73.63],
-                'CASANARE':[5.33,-71.33],'YOPAL':[5.33,-71.33],
-                'ARAUCA':[7.08,-70.76],
-                'VICHADA':[4.42,-69.28],
-                'GUAVIARE':[2.57,-72.65],
-                'VAUPES':[1.25,-70.23],'VAUPÉS':[1.25,-70.23],
-                'AMAZONAS':[-1.44,-71.57],
-                'PUTUMAYO':[0.43,-76.64],'MOCOA':[0.43,-76.64],
-                'CAQUETA':[-1.61,-75.61],'CAQUETÁ':[-1.61,-75.61],'FLORENCIA':[-1.61,-75.61],
-                'CHOCO':[5.69,-76.65],'CHOCÓ':[5.69,-76.65],'QUIBDO':[5.69,-76.65],'QUIBDÓ':[5.69,-76.65],
-                'SAN ANDRES':[12.53,-81.72],'SAN ANDRÉS':[12.53,-81.72],
-            }
+        # ── MAPA COLOMBIA ──
+        if "Mapa" in mkt_nav:
+            if C_DEPTO in df.columns:
+                dep_data = df.groupby(C_DEPTO).agg(
+                    Pedidos=(C_TOTAL,'count'),
+                    Ventas=(C_TOTAL,'sum') if C_TOTAL in df.columns else (C_DEPTO,'count'),
+                    Ganancia=(C_GANANCIA,'sum') if C_GANANCIA in df.columns else (C_DEPTO,'count')
+                ).reset_index().sort_values('Pedidos', ascending=False)
+                dep_data.columns = ['Departamento','Pedidos','Ventas','Ganancia']
 
-            dep_data['lat'] = dep_data['Departamento'].str.upper().map(lambda d: next((v[0] for k,v in coords.items() if k in d or d in k), None))
-            dep_data['lon'] = dep_data['Departamento'].str.upper().map(lambda d: next((v[1] for k,v in coords.items() if k in d or d in k), None))
-            dep_geo = dep_data.dropna(subset=['lat','lon'])
+                # Coordenadas aproximadas departamentos Colombia
+                coords = {
+                    'CUNDINAMARCA':[4.60,-74.08],'BOGOTA':[4.60,-74.08],'BOGOTÁ':[4.60,-74.08],
+                    'ANTIOQUIA':[6.25,-75.56],'MEDELLÍN':[6.25,-75.56],'MEDELLIN':[6.25,-75.56],
+                    'VALLE DEL CAUCA':[3.43,-76.52],'CALI':[3.43,-76.52],
+                    'ATLANTICO':[10.99,-74.81],'ATLÁNTICO':[10.99,-74.81],'BARRANQUILLA':[10.99,-74.81],
+                    'BOLIVAR':[10.39,-75.51],'BOLÍVAR':[10.39,-75.51],'CARTAGENA':[10.39,-75.51],
+                    'SANTANDER':[7.13,-73.12],'BUCARAMANGA':[7.13,-73.12],
+                    'NORTE DE SANTANDER':[7.89,-72.51],'CUCUTA':[7.89,-72.51],'CÚCUTA':[7.89,-72.51],
+                    'BOYACA':[5.53,-73.36],'BOYACÁ':[5.53,-73.36],
+                    'TOLIMA':[4.09,-75.15],'IBAGUE':[4.09,-75.15],'IBAGUÉ':[4.09,-75.15],
+                    'CALDAS':[5.07,-75.51],'MANIZALES':[5.07,-75.51],
+                    'RISARALDA':[4.81,-75.69],'PEREIRA':[4.81,-75.69],
+                    'QUINDIO':[4.53,-75.68],'QUINDÍO':[4.53,-75.68],'ARMENIA':[4.53,-75.68],
+                    'HUILA':[2.53,-75.52],'NEIVA':[2.53,-75.52],
+                    'NARIÑO':[1.21,-77.28],'NARINO':[1.21,-77.28],'PASTO':[1.21,-77.28],
+                    'CAUCA':[2.44,-76.61],'POPAYAN':[2.44,-76.61],'POPAYÁN':[2.44,-76.61],
+                    'CORDOBA':[8.74,-75.88],'CÓRDOBA':[8.74,-75.88],'MONTERIA':[8.74,-75.88],'MONTERÍA':[8.74,-75.88],
+                    'SUCRE':[9.30,-75.39],'SINCELEJO':[9.30,-75.39],
+                    'MAGDALENA':[11.24,-74.20],'SANTA MARTA':[11.24,-74.20],
+                    'CESAR':[9.33,-73.36],'VALLEDUPAR':[9.33,-73.36],
+                    'GUAJIRA':[11.54,-72.91],'LA GUAJIRA':[11.54,-72.91],'RIOHACHA':[11.54,-72.91],
+                    'META':[4.14,-73.63],'VILLAVICENCIO':[4.14,-73.63],
+                    'CASANARE':[5.33,-71.33],'YOPAL':[5.33,-71.33],
+                    'ARAUCA':[7.08,-70.76],
+                    'VICHADA':[4.42,-69.28],
+                    'GUAVIARE':[2.57,-72.65],
+                    'VAUPES':[1.25,-70.23],'VAUPÉS':[1.25,-70.23],
+                    'AMAZONAS':[-1.44,-71.57],
+                    'PUTUMAYO':[0.43,-76.64],'MOCOA':[0.43,-76.64],
+                    'CAQUETA':[-1.61,-75.61],'CAQUETÁ':[-1.61,-75.61],'FLORENCIA':[-1.61,-75.61],
+                    'CHOCO':[5.69,-76.65],'CHOCÓ':[5.69,-76.65],'QUIBDO':[5.69,-76.65],'QUIBDÓ':[5.69,-76.65],
+                    'SAN ANDRES':[12.53,-81.72],'SAN ANDRÉS':[12.53,-81.72],
+                }
 
-            if len(dep_geo) > 0:
-                fig_map = px.scatter_mapbox(
-                    dep_geo, lat='lat', lon='lon',
-                    size='Pedidos', color='Ventas',
-                    hover_name='Departamento',
-                    hover_data={'Pedidos':True,'Ventas':':,.0f','Ganancia':':,.0f','lat':False,'lon':False},
-                    color_continuous_scale=['#1a1829','#6366f1','#c9a84c'],
-                    size_max=50, zoom=4.5,
-                    mapbox_style='carto-darkmatter',
-                    title='Distribución Geográfica de Pedidos'
-                )
-                fig_map.update_layout(**PLOT_LAYOUT, height=550,
-                                      mapbox=dict(center=dict(lat=4.5, lon=-74.3)))
-                st.plotly_chart(fig_map, use_container_width=True)
+                dep_data['lat'] = dep_data['Departamento'].str.upper().map(lambda d: next((v[0] for k,v in coords.items() if k in d or d in k), None))
+                dep_data['lon'] = dep_data['Departamento'].str.upper().map(lambda d: next((v[1] for k,v in coords.items() if k in d or d in k), None))
+                dep_geo = dep_data.dropna(subset=['lat','lon'])
 
-            # Tabla top departamentos
-            st.markdown("#### Top Departamentos")
-            cols_dep = st.columns(5)
-            for i, row in dep_data.head(5).iterrows():
-                with cols_dep[min(list(dep_data.index).index(i), 4)]:
-                    pct = round(row['Pedidos']/total*100,1)
-                    st.markdown(kpi("gold" if i==0 else "blue", row['Departamento'][:15].upper(), f"{row['Pedidos']:,}", f"{pct}% del total"), unsafe_allow_html=True)
+                if len(dep_geo) > 0:
+                    fig_map = px.scatter_mapbox(
+                        dep_geo, lat='lat', lon='lon',
+                        size='Pedidos', color='Ventas',
+                        hover_name='Departamento',
+                        hover_data={'Pedidos':True,'Ventas':':,.0f','Ganancia':':,.0f','lat':False,'lon':False},
+                        color_continuous_scale=['#1a1829','#6366f1','#c9a84c'],
+                        size_max=50, zoom=4.5,
+                        mapbox_style='carto-darkmatter',
+                        title='Distribución Geográfica de Pedidos'
+                    )
+                    fig_map.update_layout(**PLOT_LAYOUT, height=550,
+                                          mapbox=dict(center=dict(lat=4.5, lon=-74.3)))
+                    st.plotly_chart(fig_map, use_container_width=True)
 
-    # ── PRODUCTOS ESTRELLA ──
-    elif "Productos" in nav and C_PRODUCTO in df.columns:
+                # Tabla top departamentos
+                st.markdown("#### Top Departamentos")
+                cols_dep = st.columns(5)
+                for i, row in dep_data.head(5).iterrows():
+                    with cols_dep[min(list(dep_data.index).index(i), 4)]:
+                        pct = round(row['Pedidos']/total*100,1)
+                        st.markdown(kpi("gold" if i==0 else "blue", row['Departamento'][:15].upper(), f"{row['Pedidos']:,}", f"{pct}% del total"), unsafe_allow_html=True)
 
-        sub_prod = st.radio("", ["🥇 Por Unidades","💰 Por Ventas","📈 Por Ganancia"],
-                           horizontal=True, label_visibility="collapsed")
+            # ── PRODUCTOS ESTRELLA ──
+        elif "Estrella" in mkt_nav and C_PRODUCTO in df.columns:
 
-        if "Unidades" in sub_prod:
-            top = df[C_PRODUCTO].astype(str).value_counts().head(10).reset_index()
-            top.columns = ['Producto','Valor']
-            titulo = "Unidades vendidas"
-        elif "Ventas" in sub_prod and C_TOTAL in df.columns:
-            top = df.groupby(C_PRODUCTO)[C_TOTAL].sum().sort_values(ascending=False).head(10).reset_index()
-            top.columns = ['Producto','Valor']
-            titulo = "Ventas COP"
-        else:
-            top = df.groupby(C_PRODUCTO)[C_GANANCIA].sum().sort_values(ascending=False).head(10).reset_index() if C_GANANCIA in df.columns else pd.DataFrame()
-            top.columns = ['Producto','Valor'] if len(top) else []
-            titulo = "Ganancia COP"
+            sub_prod = st.radio("", ["🥇 Por Unidades","💰 Por Ventas","📈 Por Ganancia"],
+                               horizontal=True, label_visibility="collapsed")
 
-        if len(top):
-            med_col, right_col = st.columns([1, 1])
-            with med_col:
-                emojis = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
-                for idx, row in top.iterrows():
-                    rank = list(top.index).index(idx)
-                    val_str = fmt_money(row['Valor']) if titulo != "Unidades vendidas" else f"{int(row['Valor']):,} uds"
-                    pct_v = round(row['Valor']/top['Valor'].sum()*100,1)
-                    st.markdown(f"""
-                    <div class="prod-card">
-                        <div class="prod-rank">{emojis[rank]}</div>
-                        <div style="flex:1">
-                            <div class="prod-name">{str(row['Producto'])[:45]}</div>
-                            <div class="prod-val">{val_str} · {pct_v}% del total</div>
-                        </div>
-                    </div>""", unsafe_allow_html=True)
+            if "Unidades" in sub_prod:
+                top = df[C_PRODUCTO].astype(str).value_counts().head(10).reset_index()
+                top.columns = ['Producto','Valor']
+                titulo = "Unidades vendidas"
+            elif "Ventas" in sub_prod and C_TOTAL in df.columns:
+                top = df.groupby(C_PRODUCTO)[C_TOTAL].sum().sort_values(ascending=False).head(10).reset_index()
+                top.columns = ['Producto','Valor']
+                titulo = "Ventas COP"
+            else:
+                top = df.groupby(C_PRODUCTO)[C_GANANCIA].sum().sort_values(ascending=False).head(10).reset_index() if C_GANANCIA in df.columns else pd.DataFrame()
+                top.columns = ['Producto','Valor'] if len(top) else []
+                titulo = "Ganancia COP"
 
-            with right_col:
-                fig_prod = px.bar(
-                    top.sort_values('Valor'),
-                    x='Valor', y='Producto',
-                    orientation='h',
-                    color='Valor',
-                    color_continuous_scale=['#1a1829','#6366f1','#c9a84c'],
-                    title=f'Top 10 — {titulo}'
-                )
-                fig_prod.update_layout(**PLOT_LAYOUT, height=480, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
-                fig_prod.update_traces(texttemplate='%{x:,.0f}', textposition='outside',
-                                       textfont=dict(color='#b0aec8', size=10))
-                st.plotly_chart(fig_prod, use_container_width=True)
+            if len(top):
+                med_col, right_col = st.columns([1, 1])
+                with med_col:
+                    emojis = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
+                    for idx, row in top.iterrows():
+                        rank = list(top.index).index(idx)
+                        val_str = fmt_money(row['Valor']) if titulo != "Unidades vendidas" else f"{int(row['Valor']):,} uds"
+                        pct_v = round(row['Valor']/top['Valor'].sum()*100,1)
+                        st.markdown(f"""
+                        <div class="prod-card">
+                            <div class="prod-rank">{emojis[rank]}</div>
+                            <div style="flex:1">
+                                <div class="prod-name">{str(row['Producto'])[:45]}</div>
+                                <div class="prod-val">{val_str} · {pct_v}% del total</div>
+                            </div>
+                        </div>""", unsafe_allow_html=True)
+
+                with right_col:
+                    fig_prod = px.bar(
+                        top.sort_values('Valor'),
+                        x='Valor', y='Producto',
+                        orientation='h',
+                        color='Valor',
+                        color_continuous_scale=['#1a1829','#6366f1','#c9a84c'],
+                        title=f'Top 10 — {titulo}'
+                    )
+                    fig_prod.update_layout(**PLOT_LAYOUT, height=480, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                    fig_prod.update_traces(texttemplate='%{x:,.0f}', textposition='outside',
+                                           textfont=dict(color='#b0aec8', size=10))
+                    st.plotly_chart(fig_prod, use_container_width=True)
 
 
 
-    # ── INSIGHTS ──
-    elif "Insights" in nav:
-        st.markdown('<div class="seccion-titulo">💡 Insights Estratégicos Automáticos</div>', unsafe_allow_html=True)
+            # ── INSIGHTS ──
+        elif "Insights" in mkt_nav:
+            st.markdown('<div class="seccion-titulo">💡 Insights Estratégicos Automáticos</div>', unsafe_allow_html=True)
 
-        insights = []
+            insights = []
 
-        if tot_venta > 0:
-            insights.append({
-                'ico':'💰','titulo':'Margen de Ganancia',
-                'texto': f"Tu margen actual es del {pct_gan}%. " +
-                         ("✅ Excelente rentabilidad." if pct_gan > 30 else
-                          "⚠️ Margen ajustado, revisa costos." if pct_gan > 15 else
-                          "🔴 Margen crítico, acción urgente requerida.")
-            })
-
-        if total > 0:
-            insights.append({
-                'ico':'📦','titulo':'Tasa de Entrega',
-                'texto': f"El {pct_ent}% de los pedidos están entregados. " +
-                         ("✅ Excelente tasa de entrega." if pct_ent > 85 else
-                          "⚠️ Hay oportunidad de mejora en entrega." if pct_ent > 70 else
-                          "🔴 Tasa de entrega baja, revisa operación logística.")
-            })
-
-        if cancelados > 0 and total > 0:
-            pct_can = round(cancelados/total*100,1)
-            insights.append({
-                'ico':'❌','titulo':'Tasa de Cancelación',
-                'texto': f"{pct_can}% de cancelación ({cancelados:,} pedidos). " +
-                         ("✅ Tasa controlada." if pct_can < 10 else
-                          "⚠️ Tasa de cancelación alta, analiza las causas por tags." if pct_can < 20 else
-                          "🔴 Cancelación crítica. Revisa la calidad del tráfico y los proveedores.")
-            })
-
-        if C_DEPTO in df.columns:
-            top2_dep = df[C_DEPTO].value_counts().head(2)
-            if len(top2_dep) >= 2:
-                conc = round(top2_dep.sum()/total*100,1)
+            if tot_venta > 0:
                 insights.append({
-                    'ico':'🗺️','titulo':'Concentración Geográfica',
-                    'texto': f"{top2_dep.index[0]} y {top2_dep.index[1]} representan el {conc}% de tus pedidos. " +
-                             ("✅ Buena diversificación geográfica." if conc < 50 else
-                              "⚠️ Alta concentración — considera expandir pauta a más departamentos.")
+                    'ico':'💰','titulo':'Margen de Ganancia',
+                    'texto': f"Tu margen actual es del {pct_gan}%. " +
+                             ("✅ Excelente rentabilidad." if pct_gan > 30 else
+                              "⚠️ Margen ajustado, revisa costos." if pct_gan > 15 else
+                              "🔴 Margen crítico, acción urgente requerida.")
                 })
 
-        if C_PRODUCTO in df.columns:
-            top1 = df[C_PRODUCTO].value_counts().iloc[0]
-            top1_name = df[C_PRODUCTO].value_counts().index[0]
-            pct_top1 = round(top1/total*100,1)
-            insights.append({
-                'ico':'🏆','titulo':'Producto Estrella',
-                'texto': f'"{top1_name}" lidera con {top1:,} unidades ({pct_top1}% del total). ' +
-                         ("✅ Buen balance del portafolio." if pct_top1 < 40 else
-                          "⚠️ Alta dependencia de un solo producto — diversifica el catálogo.")
-            })
-
-        if '_mes' in df.columns and C_TOTAL in df.columns:
-            v_mes = df.groupby('_mes')[C_TOTAL].sum().sort_values(ascending=False)
-            if len(v_mes) >= 2:
-                mejor_mes = v_mes.index[0]
+            if total > 0:
                 insights.append({
-                    'ico':'📅','titulo':'Mejor Mes',
-                    'texto': f"El mes con más ventas fue {mejor_mes} con {fmt_money(v_mes.iloc[0])}. "
-                             f"Analiza qué campaña o factor impulsó ese resultado para replicarlo."
+                    'ico':'📦','titulo':'Tasa de Entrega',
+                    'texto': f"El {pct_ent}% de los pedidos están entregados. " +
+                             ("✅ Excelente tasa de entrega." if pct_ent > 85 else
+                              "⚠️ Hay oportunidad de mejora en entrega." if pct_ent > 70 else
+                              "🔴 Tasa de entrega baja, revisa operación logística.")
                 })
 
-        for ins in insights:
-            st.markdown(f"""
-            <div class="insight">
-                <div class="insight-titulo">{ins['ico']} {ins['titulo']}</div>
-                <div class="insight-texto">{ins['texto']}</div>
-            </div>""", unsafe_allow_html=True)
+            if cancelados > 0 and total > 0:
+                pct_can = round(cancelados/total*100,1)
+                insights.append({
+                    'ico':'❌','titulo':'Tasa de Cancelación',
+                    'texto': f"{pct_can}% de cancelación ({cancelados:,} pedidos). " +
+                             ("✅ Tasa controlada." if pct_can < 10 else
+                              "⚠️ Tasa de cancelación alta, analiza las causas por tags." if pct_can < 20 else
+                              "🔴 Cancelación crítica. Revisa la calidad del tráfico y los proveedores.")
+                })
 
-        if not insights:
-            st.info("Sube más datos para generar insights automáticos.")
+            if C_DEPTO in df.columns:
+                top2_dep = df[C_DEPTO].value_counts().head(2)
+                if len(top2_dep) >= 2:
+                    conc = round(top2_dep.sum()/total*100,1)
+                    insights.append({
+                        'ico':'🗺️','titulo':'Concentración Geográfica',
+                        'texto': f"{top2_dep.index[0]} y {top2_dep.index[1]} representan el {conc}% de tus pedidos. " +
+                                 ("✅ Buena diversificación geográfica." if conc < 50 else
+                                  "⚠️ Alta concentración — considera expandir pauta a más departamentos.")
+                    })
+
+            if C_PRODUCTO in df.columns:
+                top1 = df[C_PRODUCTO].value_counts().iloc[0]
+                top1_name = df[C_PRODUCTO].value_counts().index[0]
+                pct_top1 = round(top1/total*100,1)
+                insights.append({
+                    'ico':'🏆','titulo':'Producto Estrella',
+                    'texto': f'"{top1_name}" lidera con {top1:,} unidades ({pct_top1}% del total). ' +
+                             ("✅ Buen balance del portafolio." if pct_top1 < 40 else
+                              "⚠️ Alta dependencia de un solo producto — diversifica el catálogo.")
+                })
+
+            if '_mes' in df.columns and C_TOTAL in df.columns:
+                v_mes = df.groupby('_mes')[C_TOTAL].sum().sort_values(ascending=False)
+                if len(v_mes) >= 2:
+                    mejor_mes = v_mes.index[0]
+                    insights.append({
+                        'ico':'📅','titulo':'Mejor Mes',
+                        'texto': f"El mes con más ventas fue {mejor_mes} con {fmt_money(v_mes.iloc[0])}. "
+                                 f"Analiza qué campaña o factor impulsó ese resultado para replicarlo."
+                    })
+
+            for ins in insights:
+                st.markdown(f"""
+                <div class="insight">
+                    <div class="insight-titulo">{ins['ico']} {ins['titulo']}</div>
+                    <div class="insight-texto">{ins['texto']}</div>
+                </div>""", unsafe_allow_html=True)
+
+            if not insights:
+                st.info("Sube más datos para generar insights automáticos.")
 
 
     # ══════════════════════════════════════════════════════════════════
