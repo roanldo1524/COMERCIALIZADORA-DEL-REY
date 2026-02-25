@@ -534,6 +534,8 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         nav = "🔮 Proyecciones"
     elif "Finanzas" in vista_activa:
         nav = "📅 Evolución Mensual"
+    elif "Catálogo" in vista_activa:
+        nav = "🛍️ Catálogo"
     else:
         nav = st.radio("", ["📅 Evolución Mensual","🗺️ Mapa Colombia","🏆 Productos Estrella","💡 Insights"],
                        horizontal=True, label_visibility="collapsed")
@@ -1102,6 +1104,361 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
 
         if not insights:
             st.info("Sube más datos para generar insights automáticos.")
+
+
+    # ══════════════════════════════════════════════════════════════════
+    # 🛍️ CATÁLOGO — ANÁLISIS DE PRODUCTOS POR PAUTA PUBLICITARIA
+    # ══════════════════════════════════════════════════════════════════
+    elif nav == "🛍️ Catálogo":
+        st.markdown('<div class="seccion-titulo">🛍️ Análisis de Productos por Pauta Publicitaria</div>', unsafe_allow_html=True)
+
+        C_CST_PROD = "PRECIO PROVEEDOR X CANTIDAD"
+
+        # ── Filtrar solo pedidos cerrados (Entregado, Cancelado, Devolución) ──
+        def es_cerrado(est):
+            e = str(est).upper()
+            return any(x in e for x in ['ENTREGAD','CANCELAD','DEVOLUCI'])
+
+        if C_ESTATUS in df.columns:
+            df_cat = df[df[C_ESTATUS].apply(es_cerrado)].copy()
+        else:
+            df_cat = df.copy()
+
+        # ════════════════════════════════
+        # SECCIÓN 1 — CARGAR PAUTA
+        # ════════════════════════════════
+        st.markdown('<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:14px;padding:18px;margin-bottom:20px">', unsafe_allow_html=True)
+        st.markdown('<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.95rem;margin-bottom:12px">💾 Inversión Publicitaria por Producto (Pauta)</div>', unsafe_allow_html=True)
+
+        col_pa, col_pb = st.columns([1,1])
+        with col_pa:
+            st.markdown('<div style="color:#8b8aaa;font-size:0.78rem;margin-bottom:8px">📁 Opción A — Subir Excel/CSV con columnas: <b>Producto, Pauta</b></div>', unsafe_allow_html=True)
+            f_pauta = st.file_uploader("Cargar archivo de pauta", type=["xlsx","csv"], key="f_pauta",
+                                        label_visibility="collapsed")
+            if f_pauta:
+                try:
+                    if f_pauta.name.endswith(".csv"):
+                        df_pauta = pd.read_csv(f_pauta)
+                    else:
+                        df_pauta = pd.read_excel(f_pauta, engine="openpyxl")
+                    # Normalizar nombres de columnas
+                    df_pauta.columns = [c.strip().upper() for c in df_pauta.columns]
+                    col_prod_p = next((c for c in df_pauta.columns if 'PROD' in c or 'ITEM' in c or 'SKU' in c), df_pauta.columns[0])
+                    col_paut_p = next((c for c in df_pauta.columns if 'PAUT' in c or 'INVER' in c or 'ADS' in c or 'PAUTA' in c), df_pauta.columns[1] if len(df_pauta.columns)>1 else None)
+                    if col_paut_p:
+                        pauta_dict = dict(zip(df_pauta[col_prod_p].astype(str).str.strip(),
+                                               pd.to_numeric(df_pauta[col_paut_p], errors='coerce').fillna(0)))
+                        st.session_state['pauta_dict'] = pauta_dict
+                        st.success(f"✅ Pauta cargada: {len(pauta_dict)} productos")
+                except Exception as ex:
+                    st.error(f"Error leyendo archivo: {ex}")
+
+        with col_pb:
+            st.markdown('<div style="color:#8b8aaa;font-size:0.78rem;margin-bottom:8px">✏️ Opción B — Ingresar pauta manualmente por producto</div>', unsafe_allow_html=True)
+            if C_PRODUCTO in df_cat.columns:
+                prods_uniq = sorted(df_cat[C_PRODUCTO].dropna().astype(str).unique().tolist())
+                pauta_manual = st.session_state.get('pauta_dict', {})
+                with st.expander(f"Editar pauta ({len(prods_uniq)} productos)", expanded=False):
+                    cols_inp = st.columns(2)
+                    for i, prod in enumerate(prods_uniq):
+                        with cols_inp[i % 2]:
+                            val = pauta_manual.get(prod, 0)
+                            nuevo = st.number_input(f"{prod[:30]}", min_value=0, value=int(val), step=1000, key=f"pauta_{i}")
+                            pauta_manual[prod] = nuevo
+                    if st.button("💾 Guardar pauta", key="btn_save_pauta"):
+                        st.session_state['pauta_dict'] = pauta_manual
+                        st.success("✅ Pauta guardada en sesión")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        pauta_dict = st.session_state.get('pauta_dict', {})
+        pauta_total = sum(pauta_dict.values())
+
+        # ════════════════════════════════
+        # SECCIÓN 2 — CONTROLES
+        # ════════════════════════════════
+        ctrl1, ctrl2, ctrl3 = st.columns([2,2,2])
+        with ctrl1:
+            meses_cat = sorted(df_cat['_mes'].dropna().unique().tolist(), reverse=True) if '_mes' in df_cat.columns else []
+            mes_cat = st.selectbox("📅 Mes", meses_cat if meses_cat else ["Sin datos"], key="mes_cat")
+        with ctrl2:
+            orden_cat = st.selectbox("📊 Ordenar por", ["% VNT","UT. BRT","% UT. PAUTA","MRGN BRT"], key="ord_cat")
+        with ctrl3:
+            sem_cat = st.selectbox("🗓️ Semana", ["Todas","Sem 1 (1-8)","Sem 2 (9-16)","Sem 3 (17-24)","Sem 4 (25-31)"], key="sem_cat")
+
+        if '_mes' in df_cat.columns and mes_cat != "Sin datos":
+            df_m = df_cat[df_cat['_mes'] == mes_cat].copy()
+        else:
+            df_m = df_cat.copy()
+
+        # Filtrar por semana
+        sem_rangos = {"Sem 1 (1-8)":(1,8),"Sem 2 (9-16)":(9,16),"Sem 3 (17-24)":(17,24),"Sem 4 (25-31)":(25,31)}
+        if sem_cat != "Todas" and sem_cat in sem_rangos and C_FECHA in df_m.columns:
+            ini_s, fin_s = sem_rangos[sem_cat]
+            df_m = df_m[df_m[C_FECHA].dt.day.between(ini_s, fin_s)]
+
+        if C_PRODUCTO not in df_m.columns or len(df_m) == 0:
+            st.info("Sin datos de productos para este período.")
+        else:
+            # ════════════════════════════════
+            # SECCIÓN 3 — CALCULAR MÉTRICAS
+            # ════════════════════════════════
+            total_peds = len(df_m)
+
+            def calc_estatus(grp):
+                total = len(grp)
+                ent = grp[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD', na=False).sum()
+                cnc = grp[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD', na=False).sum()
+                dvl = grp[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI', na=False).sum()
+                cerrados = ent + cnc + dvl
+                return {
+                    'pedidos': total,
+                    'p_entr': ent/total*100 if total else 0,
+                    'p_cnc':  cnc/total*100  if total else 0,
+                    'p_dvl':  dvl/total*100  if total else 0,
+                    'p_cierre': cerrados/total*100 if total else 0,
+                }
+
+            filas_prod = []
+            for prod, grp in df_m.groupby(C_PRODUCTO):
+                est_calc = calc_estatus(grp)
+                mrgn_brt = grp[C_GANANCIA].sum() if C_GANANCIA in grp.columns else 0
+                ventas_prod = grp[C_TOTAL].sum() if C_TOTAL in grp.columns else 0
+                pct_vnt = len(grp) / total_peds * 100 if total_peds else 0
+                pauta_prod = pauta_dict.get(str(prod).strip(), 0)
+                ut_brt = mrgn_brt - pauta_prod
+                pct_ut_pauta = (ut_brt / pauta_prod * 100) if pauta_prod else None
+                delta_inv = (pauta_prod / pauta_total * 100) if pauta_total else 0
+                delta_vnt = pct_vnt - delta_inv
+                filas_prod.append({
+                    'PRODUCTO':    str(prod),
+                    '% ENTR':      est_calc['p_entr'],
+                    '% CNC':       est_calc['p_cnc'],
+                    '% DVL':       est_calc['p_dvl'],
+                    'CIERRE':      est_calc['p_cierre'],
+                    '% VNT':       pct_vnt,
+                    'MRGN BRT':    mrgn_brt,
+                    'PAUTA':       pauta_prod,
+                    'UT. BRT':     ut_brt,
+                    '% UT. PAUTA': pct_ut_pauta,
+                    'DELTA INV':   delta_inv,
+                    'DELTA VNT':   delta_vnt,
+                    'ventas_raw':  ventas_prod,
+                    'tiene_pauta': pauta_prod > 0,
+                })
+
+            df_prod = pd.DataFrame(filas_prod)
+
+            # Delta UT. BRT (necesita total de UT. BRT)
+            ut_brt_total = df_prod['UT. BRT'].sum()
+            df_prod['DELTA UT. BRT'] = df_prod['UT. BRT'] / ut_brt_total * 100 if ut_brt_total else 0
+
+            # Ordenar
+            orden_map = {"% VNT":"% VNT","UT. BRT":"UT. BRT","% UT. PAUTA":"% UT. PAUTA","MRGN BRT":"MRGN BRT"}
+            sort_col = orden_map.get(orden_cat, "% VNT")
+            df_prod = df_prod.sort_values(sort_col, ascending=False, na_position='last')
+
+            # PARETO = con pauta | NO PARETO = sin pauta
+            df_pareto    = df_prod[df_prod['tiene_pauta']]
+            df_no_pareto = df_prod[~df_prod['tiene_pauta']]
+
+            # ════════════════════════════════
+            # SECCIÓN 4 — KPIs RÁPIDOS
+            # ════════════════════════════════
+            k1,k2,k3,k4,k5 = st.columns(5)
+            pct_entr_g = df_m[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD',na=False).sum()/total_peds*100 if total_peds else 0
+            pct_cnc_g  = df_m[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD',na=False).sum()/total_peds*100 if total_peds else 0
+            pct_dvl_g  = df_m[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI',na=False).sum()/total_peds*100 if total_peds else 0
+            with k1: st.markdown(kpi("blue","📦 Productos",f"{len(df_prod)}"), unsafe_allow_html=True)
+            with k2: st.markdown(kpi("green","✅ % Entrega Global",f"{pct_entr_g:.1f}%"), unsafe_allow_html=True)
+            with k3: st.markdown(kpi("red","❌ % Cancelación",f"{pct_cnc_g:.1f}%"), unsafe_allow_html=True)
+            with k4: st.markdown(kpi("gold","🔁 % Devolución",f"{pct_dvl_g:.1f}%"), unsafe_allow_html=True)
+            with k5: st.markdown(kpi("purple","📣 Pauta Total",fmt_money(pauta_total)), unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # ════════════════════════════════
+            # SECCIÓN 5 — TABLA PRINCIPAL
+            # ════════════════════════════════
+            def render_tabla_pauta(df_rows, titulo, color_titulo, es_pareto=True):
+                if len(df_rows) == 0: return
+
+                # HEADER
+                hdr_base = "background:#161525;border-bottom:2px solid #2d2b45;font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;padding:9px 10px"
+                tabla_html = (
+                    f'<div style="margin-bottom:4px;font-family:Syne,sans-serif;font-size:0.75rem;'
+                    f'font-weight:700;color:{color_titulo};padding:6px 0">▶ {titulo}</div>'
+                    f'<div style="overflow-x:auto;border-radius:12px;border:1px solid #2d2b45;margin-bottom:16px">'
+                    f'<table style="width:100%;border-collapse:collapse;background:#1a1829;font-family:Space Grotesk,sans-serif">'
+                    f'<thead><tr>'
+                    f'<th style="{hdr_base};text-align:left;color:#8b8aaa;min-width:160px">Producto</th>'
+                    f'<th style="{hdr_base};text-align:center;color:#10b981">% ENTR</th>'
+                    f'<th style="{hdr_base};text-align:center;color:#ef4444">% CNC</th>'
+                    f'<th style="{hdr_base};text-align:center;color:#f59e0b">% DVL</th>'
+                    f'<th style="{hdr_base};text-align:center;color:#f0ede8;background:#2d2b35">CIERRE</th>'
+                    f'<th style="{hdr_base};text-align:right;color:#10b981">% VNT</th>'
+                    f'<th style="{hdr_base};text-align:right;color:#f0ede8">MRGN BRT</th>'
+                    f'<th style="{hdr_base};text-align:right;color:#06b6d4;background:#06b6d415">PAUTA</th>'
+                    f'<th style="{hdr_base};text-align:right;color:#f0ede8">UT. BRT</th>'
+                    f'<th style="{hdr_base};text-align:right;color:#c9a84c">% UT. PAUTA</th>'
+                    f'<th style="{hdr_base};text-align:right;color:#8b5cf6">&#916; INV</th>'
+                    f'<th style="{hdr_base};text-align:right;color:#8b5cf6">&#916; VNT</th>'
+                    f'<th style="{hdr_base};text-align:right;color:#8b5cf6">&#916; UT. BRT</th>'
+                    f'</tr></thead><tbody>'
+                )
+
+                for _, r in df_rows.iterrows():
+                    prod_nom = str(r['PRODUCTO'])[:35]
+
+                    # Colores semáforo
+                    c_entr = "#10b981" if r['% ENTR'] >= 60 else "#f59e0b" if r['% ENTR'] >= 40 else "#ef4444"
+                    c_cnc  = "#ef4444" if r['% CNC']  > 20  else "#f59e0b" if r['% CNC'] > 10  else "#10b981"
+                    c_dvl  = "#ef4444" if r['% DVL']  > 20  else "#f59e0b" if r['% DVL'] > 10  else "#10b981"
+                    c_vnt  = "#10b981" if r['% VNT']  > 20  else "#f0ede8"
+                    c_ut   = "#10b981" if (r['% UT. PAUTA'] or 0) > 50 else "#f59e0b" if (r['% UT. PAUTA'] or 0) > 0 else "#ef4444"
+                    c_dvnt = "#10b981" if r['DELTA VNT'] > 0 else "#ef4444"
+                    c_dut  = "#10b981" if r['DELTA UT. BRT'] > 10 else "#f0ede8"
+
+                    # Flecha cierre
+                    flecha = "&#x25B2;" if r['CIERRE'] >= 90 else "&#x25BC;"
+                    f_color = "#10b981" if r['CIERRE'] >= 90 else "#ef4444"
+
+                    pct_ut_txt = f"{r['% UT. PAUTA']:.1f}%" if r['% UT. PAUTA'] is not None else "—"
+                    pauta_txt  = fmt_money(r['PAUTA']) if r['PAUTA'] > 0 else "—"
+
+                    td = "padding:9px 10px;font-size:0.8rem;border-bottom:1px solid #1f1d35"
+                    tabla_html += (
+                        f'<tr style="background:rgba(255,255,255,0.01)" '
+                        f'onmouseover="this.style.background=\'rgba(99,102,241,0.07)\'" '
+                        f'onmouseout="this.style.background=\'rgba(255,255,255,0.01)\'">'
+                        f'<td style="{td};color:#d4d0ea;font-weight:600;text-align:left">{prod_nom}</td>'
+                        f'<td style="{td};text-align:center;color:{c_entr};font-weight:700">{r["% ENTR"]:.1f}%</td>'
+                        f'<td style="{td};text-align:center;color:{c_cnc};font-weight:700">{r["% CNC"]:.1f}%</td>'
+                        f'<td style="{td};text-align:center;color:{c_dvl};font-weight:700">{r["% DVL"]:.1f}%</td>'
+                        f'<td style="{td};text-align:center;background:#2d2b3520">'
+                        f'<span style="color:{f_color}">{flecha}</span> '
+                        f'<span style="color:#f0ede8;font-weight:700">{r["CIERRE"]:.1f}%</span></td>'
+                        f'<td style="{td};text-align:right;color:{c_vnt};font-weight:700">{r["% VNT"]:.2f}%</td>'
+                        f'<td style="{td};text-align:right;color:#f0ede8">{fmt_money(r["MRGN BRT"])}</td>'
+                        f'<td style="{td};text-align:right;color:#06b6d4;font-weight:700;background:#06b6d40a">{pauta_txt}</td>'
+                        f'<td style="{td};text-align:right;color:#f0ede8">{fmt_money(r["UT. BRT"])}</td>'
+                        f'<td style="{td};text-align:right;color:{c_ut};font-weight:700">{pct_ut_txt}</td>'
+                        f'<td style="{td};text-align:right;color:#8b5cf6">{r["DELTA INV"]:.1f}%</td>'
+                        f'<td style="{td};text-align:right;color:{c_dvnt};font-weight:700">'
+                        f'{"+" if r["DELTA VNT"]>0 else ""}{r["DELTA VNT"]:.1f}%</td>'
+                        f'<td style="{td};text-align:right;color:{c_dut};font-weight:700">{r["DELTA UT. BRT"]:.1f}%</td>'
+                        f'</tr>'
+                    )
+
+                # Fila SUBTOTAL (PARETO o NO PARETO)
+                label_sub = "PARETO" if es_pareto else "NO PARETO"
+                color_sub  = "#c9a84c" if es_pareto else "#6366f1"
+                bg_sub     = "rgba(201,168,76,0.08)" if es_pareto else "rgba(99,102,241,0.08)"
+                td_sub = f"padding:10px 10px;font-size:0.8rem;font-weight:800;border-top:2px solid {color_sub};background:{bg_sub}"
+                sum_entr = df_rows['% ENTR'].mean()
+                sum_cnc  = df_rows['% CNC'].mean()
+                sum_dvl  = df_rows['% DVL'].mean()
+                sum_cier = df_rows['CIERRE'].mean()
+                sum_vnt  = df_rows['% VNT'].sum()
+                sum_mrgn = df_rows['MRGN BRT'].sum()
+                sum_paut = df_rows['PAUTA'].sum()
+                sum_ut   = df_rows['UT. BRT'].sum()
+                sum_dut  = df_rows['DELTA UT. BRT'].sum()
+                pct_ut_sub = (sum_ut / sum_paut * 100) if sum_paut else None
+                pct_ut_sub_txt = f"{pct_ut_sub:.1f}%" if pct_ut_sub is not None else "—"
+                pauta_sub_txt = fmt_money(sum_paut) if sum_paut > 0 else "—"
+
+                tabla_html += (
+                    f'<tr>'
+                    f'<td style="{td_sub};text-align:left;color:{color_sub}">{label_sub}</td>'
+                    f'<td style="{td_sub};text-align:center;color:#10b981">{sum_entr:.1f}%</td>'
+                    f'<td style="{td_sub};text-align:center;color:#ef4444">{sum_cnc:.1f}%</td>'
+                    f'<td style="{td_sub};text-align:center;color:#f59e0b">{sum_dvl:.1f}%</td>'
+                    f'<td style="{td_sub};text-align:center;color:#f0ede8">{sum_cier:.1f}%</td>'
+                    f'<td style="{td_sub};text-align:right;color:#10b981">{sum_vnt:.1f}%</td>'
+                    f'<td style="{td_sub};text-align:right;color:#f0ede8">{fmt_money(sum_mrgn)}</td>'
+                    f'<td style="{td_sub};text-align:right;color:#06b6d4;background:#06b6d40a">{pauta_sub_txt}</td>'
+                    f'<td style="{td_sub};text-align:right;color:#f0ede8">{fmt_money(sum_ut)}</td>'
+                    f'<td style="{td_sub};text-align:right;color:#c9a84c">{pct_ut_sub_txt}</td>'
+                    f'<td style="{td_sub};text-align:right;color:#8b5cf6">—</td>'
+                    f'<td style="{td_sub};text-align:right;color:#8b5cf6">—</td>'
+                    f'<td style="{td_sub};text-align:right;color:#8b5cf6">{sum_dut:.1f}%</td>'
+                    f'</tr>'
+                )
+
+                tabla_html += '</tbody></table></div>'
+                st.markdown(tabla_html, unsafe_allow_html=True)
+
+            # Renderizar PARETO y NO PARETO
+            render_tabla_pauta(df_pareto,    "CON PAUTA (PARETO)",    "#c9a84c", es_pareto=True)
+            render_tabla_pauta(df_no_pareto, "SIN PAUTA (NO PARETO)", "#6366f1", es_pareto=False)
+
+            # ── Fila KPI's Generales al final ──
+            td_g = "padding:8px 10px;font-size:0.78rem;font-weight:700;color:#8b8aaa"
+            ut_brt_tot_txt  = fmt_money(ut_brt_total)
+            pauta_tot_txt   = fmt_money(pauta_total) if pauta_total else "—"
+            pct_ut_tot_txt  = f"{ut_brt_total/pauta_total*100:.1f}%" if pauta_total else "—"
+            kpig_html = (
+                f'<div style="background:#161525;border:1px solid #2d2b45;border-radius:10px;padding:2px 0;margin-top:4px">'
+                f'<table style="width:100%;border-collapse:collapse;font-family:Space Grotesk,sans-serif"><tr>'
+                f'<td style="{td_g};text-align:left;min-width:160px">KPI\'s Generales</td>'
+                f'<td style="{td_g};text-align:center;color:#10b981">{pct_entr_g:.1f}%</td>'
+                f'<td style="{td_g};text-align:center;color:#ef4444">{pct_cnc_g:.1f}%</td>'
+                f'<td style="{td_g};text-align:center;color:#f59e0b">{pct_dvl_g:.1f}%</td>'
+                f'<td style="{td_g};text-align:center"></td>'
+                f'<td style="{td_g};text-align:right"></td>'
+                f'<td style="{td_g};text-align:right;color:#f0ede8">{fmt_money(df_prod["MRGN BRT"].sum())}</td>'
+                f'<td style="{td_g};text-align:right;color:#06b6d4">{pauta_tot_txt}</td>'
+                f'<td style="{td_g};text-align:right;color:#f0ede8">{ut_brt_tot_txt}</td>'
+                f'<td style="{td_g};text-align:right;color:#c9a84c">{pct_ut_tot_txt}</td>'
+                f'<td style="{td_g}" colspan="3"></td>'
+                f'</tr></table></div>'
+            )
+            st.markdown(kpig_html, unsafe_allow_html=True)
+
+            # ════════════════════════════════
+            # SECCIÓN 6 — GRÁFICA COMPARATIVA
+            # ════════════════════════════════
+            st.markdown("<br>", unsafe_allow_html=True)
+            g1, g2 = st.columns(2)
+
+            with g1:
+                top_p = df_prod.sort_values('UT. BRT', ascending=True).tail(12)
+                fig_ut = go.Figure()
+                fig_ut.add_trace(go.Bar(x=top_p['UT. BRT'], y=top_p['PRODUCTO'].str[:25],
+                                        orientation='h', name='UT. BRT',
+                                        marker_color=['#10b981' if v >= 0 else '#ef4444' for v in top_p['UT. BRT']]))
+                fig_ut.update_layout(**PLOT_LAYOUT, height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
+                                     title='Utilidad Bruta por Producto (UT. BRT)')
+                st.plotly_chart(fig_ut, use_container_width=True)
+
+            with g2:
+                top_d = df_prod[df_prod['PAUTA'] > 0].sort_values('DELTA VNT')
+                colors_d = ['#10b981' if v >= 0 else '#ef4444' for v in top_d['DELTA VNT']]
+                fig_dv = go.Figure(go.Bar(
+                    x=top_d['DELTA VNT'], y=top_d['PRODUCTO'].str[:25],
+                    orientation='h', marker_color=colors_d,
+                    text=[f"{'+'if v>=0 else ''}{v:.1f}%" for v in top_d['DELTA VNT']],
+                    textposition='outside'
+                ))
+                fig_dv.add_vline(x=0, line_color='#5a5878', line_width=1)
+                fig_dv.update_layout(**PLOT_LAYOUT, height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
+                                     title='Delta Venta — Eficiencia de Pauta por Producto',
+                                     xaxis_ticksuffix='%')
+                st.plotly_chart(fig_dv, use_container_width=True)
+
+            # ════════════════════════════════
+            # SECCIÓN 7 — EXPORTAR
+            # ════════════════════════════════
+            import io
+            buf_cat = io.BytesIO()
+            df_export_cat = df_prod[['PRODUCTO','% ENTR','% CNC','% DVL','CIERRE','% VNT',
+                                      'MRGN BRT','PAUTA','UT. BRT','% UT. PAUTA',
+                                      'DELTA INV','DELTA VNT','DELTA UT. BRT']].copy()
+            df_export_cat.to_excel(buf_cat, index=False, engine='openpyxl')
+            st.download_button("⬇️ Exportar tabla a Excel", buf_cat.getvalue(),
+                               file_name=f"catalogo_pauta_{mes_cat}.xlsx",
+                               mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
 # ═══════════════════════════════════════════════════════════
