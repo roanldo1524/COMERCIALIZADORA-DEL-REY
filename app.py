@@ -1165,73 +1165,114 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
         st.markdown('<div class="seccion-titulo">🚦 Monitor de Alertas de Pedidos</div>', unsafe_allow_html=True)
 
         # ══ CALCULAR TODAS LAS ALERTAS ══
-        UMBRALES = {
-            "reparto_critico":   48,   # horas en reparto → crítico
-            "reparto_medio":     24,   # horas en reparto → medio
-            "bdg_transp_critico": 72,  # horas BDG transp → crítico
-            "bdg_transp_medio":  24,
-            "bdg_prov_critico":  72,
-            "reclamo_critico":    8,   # días en oficina → crítico
-            "novedad_critico":    5,   # días novedad sin resolver → crítico
-            "novedad_medio":      2,
-        }
+        # ── Configuración de umbrales por días desde despacho ──
+        from datetime import date, timedelta
+        hoy = date.today()
+
+        col_umb1, col_umb2 = st.columns([3,1])
+        with col_umb1:
+            st.markdown(
+                f'<div style="background:rgba(99,102,241,0.07);border:1px solid #2d2b45;border-radius:10px;'
+                f'padding:10px 16px;font-size:0.8rem;color:#8b8aaa">'
+                f'<b style="color:#a5b4fc">⚙️ Umbrales activos:</b> &nbsp; '
+                f'🔴 Crítico = pedidos despachados hace más de <b style="color:#ef4444">8 días</b> &nbsp;·&nbsp; '
+                f'🟡 Medio = más de <b style="color:#f59e0b">5 días</b> &nbsp;·&nbsp; '
+                f'🟢 Leve = más de <b style="color:#34d399">2 días</b>'
+                f'</div>', unsafe_allow_html=True
+            )
+        with col_umb2:
+            dias_critico = st.number_input("🔴 Días crítico", 1, 30, 8, key="umb_crit")
+            dias_medio   = st.number_input("🟡 Días medio",   1, 20, 5, key="umb_med")
+            dias_leve    = st.number_input("🟢 Días leve",    1, 10, 2, key="umb_leve")
+
+        fecha_critico = hoy - timedelta(days=dias_critico)
+        fecha_medio   = hoy - timedelta(days=dias_medio)
+        fecha_leve    = hoy - timedelta(days=dias_leve)
 
         alertas = []
 
         for _, row in df.iterrows():
-            est   = str(row.get(C_ESTATUS, '')).upper()
-            h_m   = row.get('_h_mov')
-            d_m   = row.get('_d_mov')
-            h_p   = row.get('_h_ped')
-            d_p   = row.get('_d_ped')
-            num   = str(row.get(C_ID,  '—'))
-            cli   = str(row.get(C_CLIENTE, ''))[:28] if C_CLIENTE in df.columns else ''
-            guia  = str(row.get(C_GUIA, ''))         if C_GUIA    in df.columns else ''
-            ciudad= str(row.get(C_CIUDAD, ''))        if C_CIUDAD  in df.columns else ''
-            valor = row.get(C_TOTAL, 0) if C_TOTAL in df.columns else 0
-            transp= str(row.get(C_TRANSP, ''))        if C_TRANSP  in df.columns else ''
+            est    = str(row.get(C_ESTATUS, '')).upper()
+            d_m    = row.get('_d_mov')    # días desde último movimiento
+            d_p    = row.get('_d_ped')    # días desde pedido
+            h_m    = row.get('_h_mov')    # horas desde último movimiento
+            num    = str(row.get(C_ID,  '—'))
+            cli    = str(row.get(C_CLIENTE, ''))[:28] if C_CLIENTE in df.columns else ''
+            guia   = str(row.get(C_GUIA, ''))         if C_GUIA    in df.columns else ''
+            ciudad = str(row.get(C_CIUDAD, ''))        if C_CIUDAD  in df.columns else ''
+            valor  = row.get(C_TOTAL, 0)               if C_TOTAL   in df.columns else 0
+            transp = str(row.get(C_TRANSP, ''))        if C_TRANSP  in df.columns else ''
 
-            def add(nivel, tipo, icono, tiempo_txt):
+            # Fecha real de despacho/movimiento
+            f_mov_raw = row.get(C_FECHA_MOV) if C_FECHA_MOV in df.columns else None
+            f_ped_raw = row.get(C_FECHA)     if C_FECHA     in df.columns else None
+            try:
+                f_mov = pd.to_datetime(f_mov_raw).date() if f_mov_raw and not pd.isna(f_mov_raw) else None
+            except: f_mov = None
+            try:
+                f_ped = pd.to_datetime(f_ped_raw).date() if f_ped_raw and not pd.isna(f_ped_raw) else None
+            except: f_ped = None
+
+            # Referencia de fecha: primero movimiento, si no pedido
+            f_ref = f_mov or f_ped
+
+            def nivel_por_fecha(f):
+                if f is None: return None
+                if f <= fecha_critico: return 1
+                if f <= fecha_medio:   return 2
+                if f <= fecha_leve:    return 3
+                return None  # muy reciente, sin alerta
+
+            def dias_txt(f):
+                if f is None: return ''
+                dias = (hoy - f).days
+                return f"Despachado hace {dias} días ({f.strftime('%d/%m')})"
+
+            def add(nivel, tipo, icono, detalle):
                 alertas.append({
                     'nivel': nivel, 'tipo': tipo, 'icono': icono,
                     'id': num, 'cliente': cli, 'guia': guia,
                     'ciudad': ciudad, 'valor': valor, 'transp': transp,
-                    'tiempo': tiempo_txt, 'estatus': est
+                    'tiempo': detalle, 'estatus': est,
+                    'fecha_ref': str(f_ref) if f_ref else ''
                 })
 
-            if ('RECLAM' in est or 'OFICINA' in est) and d_p:
-                if d_p > UMBRALES["reclamo_critico"]:
-                    add(1, 'Reclamo en Oficina', '🔴', f"{d_p:.0f} días esperando retiro")
+            # ── REGLAS POR TIPO DE ESTATUS ──
 
-            if 'REPARTO' in est and h_m:
-                if h_m > UMBRALES["reparto_critico"]:
-                    add(1, 'En Reparto — Sin cambio', '🔴', f"{h_m:.0f}h sin actualización")
-                elif h_m > UMBRALES["reparto_medio"]:
-                    add(2, 'En Reparto — Demorado', '🟡', f"{h_m:.0f}h sin actualización")
+            # Pedidos en Reparto sin cambio
+            if 'REPARTO' in est:
+                niv = nivel_por_fecha(f_ref)
+                if niv:
+                    tipo_txt = 'En Reparto — CRÍTICO' if niv==1 else 'En Reparto — Demorado' if niv==2 else 'En Reparto — Revisar'
+                    add(niv, tipo_txt, '🔴' if niv==1 else '🟡' if niv==2 else '🟢', dias_txt(f_ref))
 
-            if 'NOVEDAD' in est:
+            # Novedades sin resolver
+            elif 'NOVEDAD' in est:
                 sol = str(row.get(C_NOV_SOL, '')).upper() if C_NOV_SOL in df.columns else ''
                 if 'SI' not in sol and 'SÍ' not in sol:
-                    nov_txt = str(row.get(C_NOVEDAD, ''))[:30] if C_NOVEDAD in df.columns else ''
-                    dias_nov = d_m or 0
-                    if dias_nov >= UMBRALES["novedad_critico"]:
-                        add(1, f'Novedad sin resolver', '🔴', f"{dias_nov:.0f}d — {nov_txt or 'Sin tipo'}")
-                    elif dias_nov >= UMBRALES["novedad_medio"]:
-                        add(2, f'Novedad sin resolver', '🟡', f"{dias_nov:.0f}d — {nov_txt or 'Sin tipo'}")
-                    else:
-                        add(3, f'Novedad reciente', '🟢', f"{dias_nov:.0f}d — {nov_txt or 'Sin tipo'}")
+                    nov_txt = str(row.get(C_NOVEDAD, ''))[:35] if C_NOVEDAD in df.columns else ''
+                    niv = nivel_por_fecha(f_ref)
+                    if niv:
+                        tipo_txt = f'Novedad — {nov_txt or "Sin tipo"}'
+                        add(niv, tipo_txt, '🔴' if niv==1 else '🟡' if niv==2 else '🟢', dias_txt(f_ref))
 
-            if 'BDG TRANSP' in est or 'BODEGA TRANS' in est:
-                if h_m and h_m > UMBRALES["bdg_transp_critico"]:
-                    add(1, 'BDG Transportadora', '🔴', f"{h_m:.0f}h sin movimiento")
-                elif h_m and h_m > UMBRALES["bdg_transp_medio"]:
-                    add(2, 'BDG Transportadora', '🟡', f"{h_m:.0f}h sin movimiento")
+            # Reclamos en oficina — usar días desde pedido
+            elif 'RECLAM' in est or 'OFICINA' in est:
+                niv = nivel_por_fecha(f_ped)
+                if niv:
+                    add(niv, 'Reclamo en Oficina', '🔴' if niv==1 else '🟡', dias_txt(f_ped))
 
-            if ('BDG PROV' in est or 'BODEGA PROV' in est) and h_m:
-                if h_m > UMBRALES["bdg_prov_critico"]:
-                    add(1, 'BDG Proveedor', '🔴', f"{h_m:.0f}h sin despacho")
-                else:
-                    add(2, 'BDG Proveedor', '🟡', f"{h_m:.0f}h sin despacho")
+            # BDG Transportadora
+            elif 'BDG TRANSP' in est or 'BODEGA TRANS' in est:
+                niv = nivel_por_fecha(f_ref)
+                if niv:
+                    add(niv, 'BDG Transportadora', '🔴' if niv==1 else '🟡' if niv==2 else '🟢', dias_txt(f_ref))
+
+            # BDG Proveedor
+            elif 'BDG PROV' in est or 'BODEGA PROV' in est:
+                niv = nivel_por_fecha(f_ref)
+                if niv:
+                    add(niv, 'BDG Proveedor', '🔴' if niv==1 else '🟡', dias_txt(f_ref))
 
         df_al = pd.DataFrame(alertas) if alertas else pd.DataFrame(
             columns=['nivel','tipo','icono','id','cliente','guia','ciudad','valor','transp','tiempo','estatus'])
@@ -1285,8 +1326,9 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
 
         # ══ EXPORTAR ══
         if len(df_fil):
-            df_export = df_fil[['nivel','icono','tipo','id','cliente','guia','ciudad','transp','valor','tiempo','estatus']].copy()
-            df_export.columns = ['Prioridad','Nivel','Tipo Alerta','# Pedido','Cliente','Guía','Ciudad','Transportadora','Valor Orden','Tiempo','Estatus']
+            df_export = df_fil[[c for c in ['nivel','icono','tipo','id','cliente','guia','ciudad','transp','valor','tiempo','fecha_ref','estatus'] if c in df_fil.columns]].copy()
+            rename_map = {'nivel':'Prioridad','icono':'Nivel','tipo':'Tipo Alerta','id':'# Pedido','cliente':'Cliente','guia':'Guía','ciudad':'Ciudad','transp':'Transportadora','valor':'Valor Orden','tiempo':'Tiempo transcurrido','fecha_ref':'Fecha despacho','estatus':'Estatus'}
+            df_export = df_export.rename(columns=rename_map)
             df_export['Prioridad'] = df_export['Prioridad'].map({1:'CRÍTICO',2:'MEDIO',3:'LEVE'})
             import io
             buf = io.BytesIO()
@@ -1324,30 +1366,49 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
 
                 detalles = ' · '.join(filter(None, [guia_txt, transp_txt, ciudad_txt, valor_txt]))
 
-                st.markdown(
-                    f'<div style="background:{s["bg"]};border-left:3px solid {s["border"]};'
-                    f'border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:8px;'
-                    f'display:flex;align-items:center;gap:14px">'
-                    f'<div style="min-width:70px;text-align:center">'
-                    f'<div style="font-size:1.3rem">{row["icono"]}</div>'
-                    f'<div style="font-size:0.6rem;color:{s["badge"]};font-weight:800;'
-                    f'letter-spacing:0.08em;margin-top:2px">{s["label"]}</div>'
+                valor_fmt = f"${int(row['valor']):,}" if row['valor'] else ''
+                html_card = (
+                    f'<div style="background:{s["bg"]};border:1px solid {s["border"]}33;'
+                    f'border-left:4px solid {s["border"]};border-radius:0 12px 12px 0;'
+                    f'padding:13px 18px;margin-bottom:6px;display:flex;align-items:stretch;gap:16px">'
+
+                    # Columna izquierda — nivel badge
+                    f'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;'
+                    f'min-width:62px;background:{s["badge"]}18;border-radius:8px;padding:6px 4px">'
+                    f'<div style="font-size:1.4rem;line-height:1">{row["icono"]}</div>'
+                    f'<div style="font-size:0.58rem;color:{s["badge"]};font-weight:900;'
+                    f'letter-spacing:0.1em;margin-top:4px;text-transform:uppercase">{s["label"]}</div>'
                     f'</div>'
+
+                    # Columna centro — info principal
                     f'<div style="flex:1;min-width:0">'
-                    f'<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.88rem">'
-                    f'{row["tipo"]} &nbsp;·&nbsp; <span style="color:{s["border"]}">#{row["id"]}</span>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;'
+                    f'font-size:0.87rem;margin-bottom:4px">'
+                    f'{row["tipo"]}'
                     f'</div>'
-                    f'<div style="color:#c9a84c;font-size:0.82rem;font-weight:600;margin:3px 0">'
-                    f'{row["cliente"]}'
+                    f'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:5px">'
+                    f'<span style="background:rgba(201,168,76,0.15);color:#c9a84c;font-weight:700;'
+                    f'font-size:0.78rem;padding:2px 8px;border-radius:6px">#{row["id"]}</span>'
+                    f'<span style="color:#d4d0ea;font-size:0.82rem">{row["cliente"]}</span>'
                     f'</div>'
-                    f'<div style="color:#5a5878;font-size:0.75rem">'
-                    f'⏱ {row["tiempo"]}'
-                    f'{(" &nbsp;·&nbsp; " + detalles) if detalles else ""}'
+                    f'<div style="color:#5a5878;font-size:0.75rem;display:flex;gap:12px;flex-wrap:wrap">'
+                    f'<span>&#x23F1; {row["tiempo"]}</span>'
+                    f'{("<span>&#x1F6A9; " + detalles + "</span>") if detalles else ""}'
                     f'</div>'
                     f'</div>'
-                    f'</div>',
-                    unsafe_allow_html=True
+
+                    # Columna derecha — valor
+                    f'<div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:center;'
+                    f'min-width:80px;text-align:right">'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:700;color:#10b981;font-size:0.88rem">'
+                    f'{valor_fmt}'
+                    f'</div>'
+                    f'{"<div style=\"font-size:0.7rem;color:#3d3b55\">" + row["transp"][:14] + "</div>" if row["transp"] and row["transp"] != "nan" else ""}'
+                    f'</div>'
+
+                    f'</div>'
                 )
+                st.markdown(html_card, unsafe_allow_html=True)
 
         # ══ TABLA DE MONITOREO POR SEMANAS (abajo del Monitor) ══
         st.markdown("<br>", unsafe_allow_html=True)
