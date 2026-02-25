@@ -181,6 +181,7 @@ C_VARIACION = "VARIACION"
 C_CANTIDAD  = "CANTIDAD"
 C_TAGS      = "TAGS"
 C_NOVEDAD   = "NOVEDAD"
+C_ESTATUS_FIN = "ESTATUS FINANCIERO"
 C_NOV_SOL   = "FUE SOLUCIONADA LA NOVEDAD"
 C_TIENDA    = "TIENDA"
 C_VENDEDOR  = "VENDEDOR"
@@ -2754,25 +2755,27 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
 
     # ── Tabs de navegación operacional ──
     if "Monitor" in vista_activa:
-        op_nav = "🚦 Monitor"
+        op_nav = "📊 Monitor de Estatus"
     else:
         op_nav = st.radio("", [
-            "🚦 Monitor de Estatus",
+            "🚨 Alertas de Pedidos",
+            "📦 Monitor de Pedidos",
+            "📊 Monitor de Estatus",
+            "📋 Monitor Financiero",
             "🚚 Transportadoras",
             "👥 Proveedores",
-            "📦 Stock & Devoluciones",
+            "📦 Stock & Inventario",
             "🔁 Devoluciones",
             "📋 Novedades",
             "🏷️ Tags",
-            "🔍 Pedidos",
         ], horizontal=True, label_visibility="collapsed")
 
     # ══════════════════════════════════════════════════════
     # MONITOR DE ESTATUS — Tabla dinámica por semanas
     # ══════════════════════════════════════════════════════
-    if "Monitor" in op_nav and C_ESTATUS in df.columns:
+    if "Alertas" in op_nav and C_ESTATUS in df.columns:
 
-        st.markdown('<div class="seccion-titulo">🚦 Monitor de Alertas de Pedidos</div>', unsafe_allow_html=True)
+        st.markdown('<div class="seccion-titulo">🚨 Monitor de Alertas de Pedidos</div>', unsafe_allow_html=True)
 
         # ══ CALCULAR TODAS LAS ALERTAS ══
         # ── Configuración de umbrales por días desde despacho ──
@@ -3020,9 +3023,11 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 )
                 st.markdown(html_card, unsafe_allow_html=True)
 
-        # ══ TABLA DE MONITOREO POR SEMANAS (abajo del Monitor) ══
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown('<div class="seccion-titulo" style="font-size:1rem">📊 Resumen por Estatus y Semana</div>', unsafe_allow_html=True)
+    # ══════════════════════════════════════════════════════════════════
+    # 📊 MONITOR DE ESTATUS — Tabla por semanas
+    # ══════════════════════════════════════════════════════════════════
+    elif "Estatus" in op_nav and C_ESTATUS in df.columns:
+        st.markdown('<div class="seccion-titulo">📊 Monitor de Estatus — Resumen Semanal</div>', unsafe_allow_html=True)
 
         # Columnas necesarias
         C_UND  = C_CANTIDAD
@@ -3166,6 +3171,117 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 st.caption(f"{n_peds:,} pedidos en este período")
                 tabla = construir_tabla(df_sem)
                 renderizar_tabla(tabla)
+
+    # ══════════════════════════════════════════════════════════════════
+    # 📋 MONITOR FINANCIERO
+    # ══════════════════════════════════════════════════════════════════
+    elif "Financiero" in op_nav:
+        st.markdown('<div class="seccion-titulo">📋 Monitor de Pedidos Financiero</div>', unsafe_allow_html=True)
+        col_ef = next((c for c in df.columns if "FINANCIERO" in c.upper()), None)
+        if col_ef is None:
+            st.markdown('<div style="background:rgba(245,158,11,0.08);border:1px solid #f59e0b44;border-radius:12px;padding:24px;text-align:center"><div style="font-size:1.4rem;margin-bottom:8px">📋</div><div style="color:#f59e0b;font-weight:700;margin-bottom:6px">Columna "Estatus Financiero" no encontrada en el Excel</div><div style="color:#8b8aaa;font-size:0.8rem">Asegúrate de que tu reporte incluya la columna <b>ESTATUS FINANCIERO</b>.<br>Permite cruzar estado financiero con utilidades, márgenes y pauta.</div></div>', unsafe_allow_html=True)
+        else:
+            df_fin_mon = df.copy()
+            ff1,ff2,ff3,ff4 = st.columns(4)
+            with ff1:
+                opts_ef=['Todos']+sorted(df_fin_mon[col_ef].dropna().astype(str).unique().tolist())
+                fef=st.selectbox("📋 Estatus Financiero",opts_ef,key="mf_ef")
+                if fef!='Todos': df_fin_mon=df_fin_mon[df_fin_mon[col_ef].astype(str)==fef]
+            with ff2:
+                if C_CIUDAD in df.columns:
+                    opts_mfc=['Todas']+sorted(df_fin_mon[C_CIUDAD].astype(str).unique().tolist())
+                    fmfc=st.selectbox("🏙️ Ciudad",opts_mfc,key="mf_ciu")
+                    if fmfc!='Todas': df_fin_mon=df_fin_mon[df_fin_mon[C_CIUDAD].astype(str)==fmfc]
+            with ff3:
+                if C_PRODUCTO in df.columns:
+                    opts_mfp=['Todos']+sorted(df_fin_mon[C_PRODUCTO].astype(str).unique().tolist())
+                    fmfp=st.selectbox("📦 Producto",opts_mfp,key="mf_prod")
+                    if fmfp!='Todos': df_fin_mon=df_fin_mon[df_fin_mon[C_PRODUCTO].astype(str)==fmfp]
+            with ff4:
+                if '_mes' in df.columns:
+                    opts_mfm=['Todos']+sorted(df['_mes'].dropna().unique().tolist(),reverse=True)
+                    fmfm=st.selectbox("📅 Mes",opts_mfm,key="mf_mes")
+                    if fmfm!='Todos': df_fin_mon=df_fin_mon[df_fin_mon['_mes']==fmfm]
+            n_mf=len(df_fin_mon)
+            ing_mf=df_fin_mon[C_TOTAL].sum() if C_TOTAL in df_fin_mon.columns else 0
+            gan_mf=df_fin_mon[C_GANANCIA].sum() if C_GANANCIA in df_fin_mon.columns else 0
+            flt_mf=df_fin_mon[C_FLETE].sum() if C_FLETE in df_fin_mon.columns else 0
+            cst_mf=df_fin_mon["PRECIO PROVEEDOR X CANTIDAD"].sum() if "PRECIO PROVEEDOR X CANTIDAD" in df_fin_mon.columns else 0
+            margen_mf=gan_mf/ing_mf*100 if ing_mf else 0
+            k1,k2,k3,k4,k5=st.columns(5)
+            with k1: st.markdown(kpi("blue","📋 Pedidos",f"{n_mf:,}","Filtro activo"),unsafe_allow_html=True)
+            with k2: st.markdown(kpi("cyan","💰 Ingresos",fmt_money(ing_mf),"Total facturado"),unsafe_allow_html=True)
+            with k3: st.markdown(kpi("green","📈 Ganancia",fmt_money(gan_mf),f"{margen_mf:.1f}% margen"),unsafe_allow_html=True)
+            with k4: st.markdown(kpi("red","🏭 Costo Producto",fmt_money(cst_mf),"Proveedor"),unsafe_allow_html=True)
+            with k5: st.markdown(kpi("gold","🚚 Fletes",fmt_money(flt_mf),"Ent+Dev"),unsafe_allow_html=True)
+            st.markdown("<br>",unsafe_allow_html=True)
+            st.markdown('<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.85rem;margin-bottom:10px">📊 Distribución por Estatus Financiero</div>',unsafe_allow_html=True)
+            resumen_ef=df_fin_mon.groupby(col_ef).agg(
+                Pedidos=(C_ID,'count') if C_ID in df_fin_mon.columns else (col_ef,'count'),
+                Ingresos=(C_TOTAL,'sum') if C_TOTAL in df_fin_mon.columns else (col_ef,'count'),
+                Ganancia=(C_GANANCIA,'sum') if C_GANANCIA in df_fin_mon.columns else (col_ef,'count'),
+                Fletes=(C_FLETE,'sum') if C_FLETE in df_fin_mon.columns else (col_ef,'count'),
+            ).reset_index().sort_values('Pedidos',ascending=False)
+            resumen_ef.columns=['Estatus Financiero','Pedidos','Ingresos','Ganancia','Fletes']
+            total_ef=resumen_ef['Pedidos'].sum()
+            hdr_ef="background:#161525;padding:10px 14px;font-size:0.67rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#8b8aaa;border-bottom:2px solid #2d2b45"
+            td_ef="padding:10px 14px;font-size:0.82rem;border-bottom:1px solid #1f1d35"
+            tabla_ef=(
+                f'<div style="overflow-x:auto;border-radius:12px;border:1px solid #2d2b45;margin-bottom:16px">'
+                f'<table style="width:100%;border-collapse:collapse;background:#1a1829;font-family:Space Grotesk,sans-serif">'
+                f'<thead><tr>'
+                f'<th style="{hdr_ef};text-align:left">Estatus Financiero</th>'
+                f'<th style="{hdr_ef};text-align:right">Pedidos</th>'
+                f'<th style="{hdr_ef};text-align:right">% Total</th>'
+                f'<th style="{hdr_ef};text-align:right">Ingresos</th>'
+                f'<th style="{hdr_ef};text-align:right">Ganancia</th>'
+                f'<th style="{hdr_ef};text-align:right">Margen</th>'
+                f'<th style="{hdr_ef};text-align:right">Fletes</th>'
+                f'</tr></thead><tbody>'
+            )
+            _ef_cols=['#10b981','#06b6d4','#6366f1','#f59e0b','#ef4444','#8b5cf6','#ec4899','#c9a84c']
+            for _i,_r in resumen_ef.iterrows():
+                _pct=_r['Pedidos']/total_ef*100 if total_ef else 0
+                _mrg=_r['Ganancia']/_r['Ingresos']*100 if _r['Ingresos'] else 0
+                _col=_ef_cols[int(_i)%len(_ef_cols)]
+                _mc="#10b981" if _mrg>=20 else "#f59e0b" if _mrg>=10 else "#ef4444"
+                tabla_ef+=(
+                    f'<tr style="background:rgba(255,255,255,0.01)">'
+                    f'<td style="{td_ef}"><span style="background:{_col}22;color:{_col};padding:3px 10px;border-radius:20px;font-weight:700;font-size:0.78rem">{_r["Estatus Financiero"]}</span></td>'
+                    f'<td style="{td_ef};text-align:right;color:#f0ede8;font-weight:700">{_r["Pedidos"]:,}</td>'
+                    f'<td style="{td_ef};text-align:right"><div style="display:flex;align-items:center;gap:6px;justify-content:flex-end"><div style="background:#2d2b45;border-radius:100px;height:5px;width:60px;overflow:hidden"><div style="background:{_col};width:{min(_pct,100):.0f}%;height:100%"></div></div><span style="color:{_col};font-weight:700">{_pct:.1f}%</span></div></td>'
+                    f'<td style="{td_ef};text-align:right;color:#06b6d4">{fmt_money(_r["Ingresos"])}</td>'
+                    f'<td style="{td_ef};text-align:right;color:#10b981;font-weight:700">{fmt_money(_r["Ganancia"])}</td>'
+                    f'<td style="{td_ef};text-align:right;color:{_mc};font-weight:700">{_mrg:.1f}%</td>'
+                    f'<td style="{td_ef};text-align:right;color:#f59e0b">{fmt_money(_r["Fletes"])}</td>'
+                    f'</tr>'
+                )
+            tabla_ef+=(
+                f'<tr style="background:rgba(201,168,76,0.07);border-top:2px solid #c9a84c">'
+                f'<td style="{td_ef};color:#c9a84c;font-weight:800">TOTAL</td>'
+                f'<td style="{td_ef};text-align:right;color:#c9a84c;font-weight:800">{total_ef:,}</td>'
+                f'<td style="{td_ef};text-align:right;color:#c9a84c;font-weight:800">100%</td>'
+                f'<td style="{td_ef};text-align:right;color:#c9a84c;font-weight:800">{fmt_money(ing_mf)}</td>'
+                f'<td style="{td_ef};text-align:right;color:#c9a84c;font-weight:800">{fmt_money(gan_mf)}</td>'
+                f'<td style="{td_ef};text-align:right;color:#c9a84c;font-weight:800">{gan_mf/ing_mf*100:.1f}% if ing_mf else "—"</td>'
+                f'<td style="{td_ef};text-align:right;color:#c9a84c;font-weight:800">{fmt_money(flt_mf)}</td>'
+                f'</tr></tbody></table></div>'
+            )
+            st.markdown(tabla_ef,unsafe_allow_html=True)
+            st.markdown('<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.85rem;margin-bottom:10px;margin-top:16px">📋 Detalle de Pedidos</div>',unsafe_allow_html=True)
+            cols_fin=[c for c in [C_ID,C_FECHA,col_ef,C_ESTATUS,C_CLIENTE,C_PRODUCTO,C_CIUDAD,C_TRANSP,C_TOTAL,C_GANANCIA,C_FLETE,"PRECIO PROVEEDOR X CANTIDAD"] if c in df_fin_mon.columns]
+            st.dataframe(df_fin_mon[cols_fin].head(500).reset_index(drop=True),use_container_width=True,height=400,
+                column_config={C_TOTAL:st.column_config.NumberColumn("Valor",format="$%,.0f"),
+                               C_GANANCIA:st.column_config.NumberColumn("Ganancia",format="$%,.0f"),
+                               C_FLETE:st.column_config.NumberColumn("Flete",format="$%,.0f")})
+            ce1,ce2=st.columns([3,1])
+            with ce2: st.caption(f"📋 {min(n_mf,500):,} de {n_mf:,} pedidos")
+            with ce1:
+                if st.button("📥 Exportar Excel",key="exp_mf"):
+                    import io; buf=io.BytesIO()
+                    df_fin_mon[cols_fin].to_excel(buf,index=False)
+                    st.download_button("⬇️ Descargar",buf.getvalue(),"monitor_financiero.xlsx","application/vnd.ms-excel",key="dl_mf")
+
 
     # ══════════════════════════════════════════════════════════════════
     # 🚚 TRANSPORTADORAS
@@ -3610,28 +3726,179 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 fig.update_layout(**PLOT_LAYOUT,height=900,coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
                 st.plotly_chart(fig,use_container_width=True)
 
-    elif "Pedidos" in op_nav:
-        f1,f2,f3 = st.columns(3)
-        df_fil = df.copy()
-        with f1:
-            if C_ESTATUS in df.columns:
-                opts=['Todos']+sorted(df[C_ESTATUS].astype(str).unique().tolist())
-                fe=st.selectbox("Estatus",opts)
-                if fe!='Todos': df_fil=df_fil[df_fil[C_ESTATUS].astype(str)==fe]
-        with f2:
-            if C_TRANSP in df.columns:
-                opts_t=['Todas']+sorted(df[C_TRANSP].astype(str).unique().tolist())
-                ft=st.selectbox("Transportadora",opts_t)
-                if ft!='Todas': df_fil=df_fil[df_fil[C_TRANSP].astype(str)==ft]
-        with f3:
-            only_alert=st.checkbox("🔴 Solo con alerta crítica")
-            if only_alert and alertas_r:
-                ids_a=set(str(a['id']) for a in alertas_r)
-                df_fil=df_fil[df_fil[C_ID].astype(str).isin(ids_a)]
+    elif "Monitor de Pedidos" in op_nav:
+        st.markdown('<div class="seccion-titulo">📦 Monitor de Pedidos — Estatus Abiertos</div>', unsafe_allow_html=True)
 
-        cols_v=[c for c in [C_ID,C_FECHA,C_ESTATUS,C_CLIENTE,C_PRODUCTO,C_DEPTO,C_CIUDAD,C_TRANSP,C_TOTAL,C_GANANCIA,C_TAGS,C_NOVEDAD,C_NOV_SOL] if c in df.columns]
-        st.dataframe(df_fil[cols_v].head(500), use_container_width=True, height=420)
-        st.caption(f"Mostrando {min(len(df_fil),500):,} de {len(df_fil):,} pedidos")
+        from datetime import date, timedelta
+
+        # ── Definir paleta de colores por estatus ──
+        COLORES_ESTATUS = {
+            'EN CAMINO':            '#06b6d4',
+            'EN PROCESO':           '#6366f1',
+            'PENDIENTE':            '#f59e0b',
+            'NOVEDAD':              '#ef4444',
+            'DEVOLUCION EN CAMINO': '#f97316',
+            'EN BODEGA':            '#8b5cf6',
+            'POR RECOGER':          '#ec4899',
+            'REPROGRAMADO':         '#84cc16',
+        }
+        KEYWORDS_ABIERTOS = 'CAMINO|PROCESO|PENDIENTE|NOVEDAD|BODEGA|RECOGER|REPROG|GESTI'
+
+        df_fil = df.copy()
+        if C_ESTATUS in df_fil.columns:
+            mask_ab = df_fil[C_ESTATUS].astype(str).str.upper().str.contains(KEYWORDS_ABIERTOS, na=False)
+        else:
+            mask_ab = pd.Series([True]*len(df_fil))
+
+        # ═══════════════════════════════════════
+        # FILTROS — fila 1
+        # ═══════════════════════════════════════
+        st.markdown('<div style="background:#161525;border:1px solid #2d2b45;border-radius:12px;padding:14px 18px;margin-bottom:14px">', unsafe_allow_html=True)
+        fc1,fc2,fc3,fc4,fc5,fc6 = st.columns([1,1.3,1.3,1.3,1.3,1])
+
+        with fc1:
+            mostrar_todos = st.checkbox("📋 Ver todos", value=False, key="mon_todos")
+            if not mostrar_todos:
+                df_fil = df_fil[mask_ab]
+
+        with fc2:
+            if C_ESTATUS in df.columns:
+                opts_e = ['Todos'] + sorted(df_fil[C_ESTATUS].astype(str).unique().tolist())
+                fe = st.selectbox("Estatus", opts_e, key="mon_est")
+                if fe != 'Todos': df_fil = df_fil[df_fil[C_ESTATUS].astype(str) == fe]
+
+        with fc3:
+            if C_CIUDAD in df.columns:
+                opts_c = ['Todas'] + sorted(df_fil[C_CIUDAD].astype(str).unique().tolist())
+                fc_c = st.selectbox("🏙️ Ciudad", opts_c, key="mon_ciu")
+                if fc_c != 'Todas': df_fil = df_fil[df_fil[C_CIUDAD].astype(str) == fc_c]
+
+        with fc4:
+            if C_TRANSP in df.columns:
+                opts_t = ['Todas'] + sorted(df_fil[C_TRANSP].astype(str).unique().tolist())
+                ft = st.selectbox("🚚 Transportadora", opts_t, key="mon_trn")
+                if ft != 'Todas': df_fil = df_fil[df_fil[C_TRANSP].astype(str) == ft]
+
+        with fc5:
+            if C_TAGS in df.columns:
+                opts_tg = ['Todos'] + sorted(df_fil[C_TAGS].dropna().astype(str).str.strip().unique().tolist())
+                ftg = st.selectbox("🏷️ Tag", opts_tg, key="mon_tag")
+                if ftg != 'Todos': df_fil = df_fil[df_fil[C_TAGS].astype(str).str.strip() == ftg]
+
+        with fc6:
+            if C_FECHA in df_fil.columns:
+                try:
+                    f_min = pd.to_datetime(df_fil[C_FECHA], errors='coerce').min()
+                    f_max = pd.to_datetime(df_fil[C_FECHA], errors='coerce').max()
+                    if pd.notna(f_min) and pd.notna(f_max):
+                        rango = st.date_input("📅 Fechas", value=(f_min.date(), f_max.date()), key="mon_rango")
+                        if len(rango) == 2:
+                            f_desde, f_hasta = rango
+                            mask_f = (pd.to_datetime(df_fil[C_FECHA], errors='coerce').dt.date >= f_desde) & \
+                                     (pd.to_datetime(df_fil[C_FECHA], errors='coerce').dt.date <= f_hasta)
+                            df_fil = df_fil[mask_f]
+                except: pass
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        # ═══════════════════════════════════════
+        # KPIs RÁPIDOS
+        # ═══════════════════════════════════════
+        n_fil    = len(df_fil)
+        ven_fil  = df_fil[C_TOTAL].sum()    if C_TOTAL    in df_fil.columns else 0
+        gan_fil  = df_fil[C_GANANCIA].sum() if C_GANANCIA in df_fil.columns else 0
+        nok_fil  = df_fil[C_NOVEDAD].dropna().astype(str).str.strip().ne('').sum() if C_NOVEDAD in df_fil.columns else 0
+        flete_fil= df_fil[C_FLETE].sum()    if C_FLETE    in df_fil.columns else 0
+
+        k1,k2,k3,k4,k5 = st.columns(5)
+        with k1: st.markdown(kpi("blue",  "📦 Pedidos Abiertos", f"{n_fil:,}",       "Filtro actual"),            unsafe_allow_html=True)
+        with k2: st.markdown(kpi("cyan",  "💰 Valor en Ruta",    fmt_money(ven_fil),  "Capital en tránsito"),      unsafe_allow_html=True)
+        with k3: st.markdown(kpi("green", "📈 Ganancia Potencial",fmt_money(gan_fil), "Si todos se entregan"),     unsafe_allow_html=True)
+        with k4: st.markdown(kpi("gold",  "🚚 Fletes Expuestos",  fmt_money(flete_fil),"Costo si hay problemas"),  unsafe_allow_html=True)
+        with k5: st.markdown(kpi("red",   "⚠️ Con Novedad",       f"{nok_fil:,}",      "Requieren gestión urgente"),unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ═══════════════════════════════════════
+        # MINI-CARDS POR TIPO DE ESTATUS
+        # ═══════════════════════════════════════
+        if C_ESTATUS in df_fil.columns and n_fil > 0:
+            conteo_est = df_fil[C_ESTATUS].astype(str).str.upper().str.strip().value_counts()
+            if len(conteo_est):
+                mini_html = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">'
+                for est_n, cnt_e in conteo_est.head(8).items():
+                    # Buscar color
+                    color_e = '#8b8aaa'
+                    for k_e, v_e in COLORES_ESTATUS.items():
+                        if k_e in est_n:
+                            color_e = v_e; break
+                    pct_e = cnt_e / n_fil * 100
+                    mini_html += (
+                        f'<div style="background:{color_e}14;border:1px solid {color_e}44;'
+                        f'border-radius:10px;padding:8px 14px;display:flex;flex-direction:column;align-items:center;'
+                        f'min-width:110px">'
+                        f'<div style="font-size:0.68rem;color:{color_e};font-weight:700;text-transform:uppercase;'
+                        f'letter-spacing:0.04em;text-align:center;margin-bottom:4px">{est_n[:18]}</div>'
+                        f'<div style="font-family:Syne,sans-serif;font-weight:800;color:{color_e};font-size:1.1rem">{cnt_e:,}</div>'
+                        f'<div style="font-size:0.68rem;color:#5a5878">{pct_e:.0f}% del total</div>'
+                        f'</div>'
+                    )
+                mini_html += '</div>'
+                st.markdown(mini_html, unsafe_allow_html=True)
+
+        # ═══════════════════════════════════════
+        # TABLA PRINCIPAL
+        # ═══════════════════════════════════════
+        cols_v = [c for c in [C_ID, C_FECHA, C_FECHA_MOV, C_ESTATUS, C_CLIENTE, C_PRODUCTO,
+                               C_CIUDAD, C_DEPTO, C_TRANSP, C_GUIA, C_TOTAL, C_GANANCIA,
+                               C_TAGS, C_NOVEDAD, C_NOV_SOL] if c in df_fil.columns]
+
+        # Ordenar: más antiguo primero (más urgente)
+        if C_FECHA_MOV in df_fil.columns:
+            df_fil = df_fil.sort_values(C_FECHA_MOV, ascending=True, na_position='last')
+        elif C_FECHA in df_fil.columns:
+            df_fil = df_fil.sort_values(C_FECHA, ascending=True, na_position='last')
+
+        # Paginación
+        PAGE_SIZE = 100
+        total_pags = max(1, (n_fil - 1) // PAGE_SIZE + 1)
+        cp1, cp2 = st.columns([4,1])
+        with cp2:
+            pag_act = st.number_input("Página", min_value=1, max_value=total_pags, value=1, key="mon_pag")
+        idx_ini = (pag_act - 1) * PAGE_SIZE
+        idx_fin = min(idx_ini + PAGE_SIZE, n_fil)
+
+        st.dataframe(
+            df_fil[cols_v].iloc[idx_ini:idx_fin].reset_index(drop=True),
+            use_container_width=True,
+            height=480,
+            column_config={
+                C_TOTAL:    st.column_config.NumberColumn("💰 Valor",    format="$%,.0f"),
+                C_GANANCIA: st.column_config.NumberColumn("📈 Ganancia", format="$%,.0f"),
+                C_FLETE:    st.column_config.NumberColumn("🚚 Flete",    format="$%,.0f") if C_FLETE in df_fil.columns else None,
+            }
+        )
+
+        cex1, cex2, cex3 = st.columns([2,2,1])
+        with cex3:
+            st.caption(f"📋 {idx_ini+1}–{idx_fin} de {n_fil:,} pedidos | Pág {pag_act}/{total_pags}")
+        with cex1:
+            if st.button("📥 Exportar filtro actual a Excel", key="exp_mon_ped"):
+                import io
+                buf = io.BytesIO()
+                df_fil[cols_v].to_excel(buf, index=False)
+                st.download_button("⬇️ Descargar Excel", buf.getvalue(),
+                                   f"monitor_pedidos_{date.today()}.xlsx",
+                                   "application/vnd.ms-excel", key="dl_mon_ped")
+        with cex2:
+            if st.button("📋 Exportar TODOS (sin filtro) a Excel", key="exp_mon_ped_all"):
+                import io
+                buf2 = io.BytesIO()
+                df[cols_v].to_excel(buf2, index=False)
+                st.download_button("⬇️ Descargar Completo", buf2.getvalue(),
+                                   f"todos_pedidos_{date.today()}.xlsx",
+                                   "application/vnd.ms-excel", key="dl_mon_ped_all")
+
 
     # Claude
     st.divider()
