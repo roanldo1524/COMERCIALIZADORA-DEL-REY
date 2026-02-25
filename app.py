@@ -1175,13 +1175,13 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 f'<div style="background:rgba(99,102,241,0.07);border:1px solid #2d2b45;border-radius:10px;'
                 f'padding:10px 16px;font-size:0.8rem;color:#8b8aaa">'
                 f'<b style="color:#a5b4fc">⚙️ Umbrales activos:</b> &nbsp; '
-                f'🔴 Crítico = pedidos despachados hace más de <b style="color:#ef4444">8 días</b> &nbsp;·&nbsp; '
+                f'🔴 Crítico = pedidos despachados hace más de <b style="color:#ef4444">15 días</b> &nbsp;·&nbsp; '
                 f'🟡 Medio = más de <b style="color:#f59e0b">5 días</b> &nbsp;·&nbsp; '
                 f'🟢 Leve = más de <b style="color:#34d399">2 días</b>'
                 f'</div>', unsafe_allow_html=True
             )
         with col_umb2:
-            dias_critico = st.number_input("🔴 Días crítico", 1, 30, 8, key="umb_crit")
+            dias_critico = st.number_input("🔴 Días crítico", 1, 30, 15, key="umb_crit")
             dias_medio   = st.number_input("🟡 Días medio",   1, 20, 5, key="umb_med")
             dias_leve    = st.number_input("🟢 Días leve",    1, 10, 2, key="umb_leve")
 
