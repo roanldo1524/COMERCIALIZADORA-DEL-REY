@@ -533,7 +533,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
     elif "Proyecciones" in vista_activa:
         nav = "🔮 Proyecciones"
     elif "Finanzas" in vista_activa:
-        nav = "📅 Evolución Mensual"
+        nav = "💹 Finanzas"
     elif "Catálogo" in vista_activa:
         nav = "🛍️ Catálogo"
     else:
@@ -1104,6 +1104,557 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
 
         if not insights:
             st.info("Sube más datos para generar insights automáticos.")
+
+
+    # ══════════════════════════════════════════════════════════════════
+    # 💹 FINANZAS — MÓDULO COMPLETO
+    # ══════════════════════════════════════════════════════════════════
+    elif nav == "💹 Finanzas":
+
+        # Sub-navegación interna
+        fin_nav = st.radio("", [
+            "📊 Estado de Resultados",
+            "👥 Nómina",
+            "⚖️ Punto de Equilibrio",
+            "📈 Rentabilidad",
+            "💧 Flujo de Caja",
+            "📉 Análisis de Costos",
+            "🎯 KPIs Financieros",
+        ], horizontal=True, label_visibility="collapsed", key="fin_nav")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── Datos base del período ──
+        meses_fin = sorted(df['_mes'].dropna().unique().tolist(), reverse=True) if '_mes' in df.columns else []
+        col_mf, _ = st.columns([2,4])
+        with col_mf:
+            mes_fin = st.selectbox("📅 Período", meses_fin if meses_fin else ["Sin datos"], key="mes_fin")
+        if '_mes' in df.columns and mes_fin != "Sin datos":
+            df_fin = df[df['_mes'] == mes_fin].copy()
+        else:
+            df_fin = df.copy()
+
+        # Calcular métricas base
+        C_CST_PROD = "PRECIO PROVEEDOR X CANTIDAD"
+        mask_ent = df_fin[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD', na=False) if C_ESTATUS in df_fin.columns else pd.Series([True]*len(df_fin))
+        mask_can = df_fin[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD', na=False) if C_ESTATUS in df_fin.columns else pd.Series([False]*len(df_fin))
+        mask_dev = df_fin[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI', na=False) if C_ESTATUS in df_fin.columns else pd.Series([False]*len(df_fin))
+
+        df_ent = df_fin[mask_ent]
+        n_total   = len(df_fin)
+        n_ent     = int(mask_ent.sum())
+        n_can     = int(mask_can.sum())
+        n_dev     = int(mask_dev.sum())
+
+        ingresos      = df_ent[C_TOTAL].sum()    if C_TOTAL    in df_ent.columns else 0
+        costo_prod    = df_ent[C_CST_PROD].sum() if C_CST_PROD in df_ent.columns else 0
+        flete_ent     = df_ent[C_FLETE].sum()    if C_FLETE    in df_ent.columns else 0
+        flete_dev     = df_fin[mask_dev][C_FLETE].sum() if C_FLETE in df_fin.columns else 0
+        ganancia_dropi= df_ent[C_GANANCIA].sum() if C_GANANCIA in df_ent.columns else 0
+        utilidad_bruta= ingresos - costo_prod
+        ticket_prom   = ingresos / n_ent if n_ent else 0
+        margen_bruto_pct = utilidad_bruta / ingresos * 100 if ingresos else 0
+
+        # Recuperar nómina y pauta de session_state
+        nomina_total  = st.session_state.get('nomina_total', 0)
+        pauta_total_fin = st.session_state.get('pauta_dict', {})
+        pauta_fin     = sum(pauta_total_fin.values()) if pauta_total_fin else 0
+        costos_fijos  = st.session_state.get('costos_fijos', {})
+        cf_total      = sum(costos_fijos.values()) + nomina_total
+
+        gastos_op     = flete_ent + flete_dev + pauta_fin + cf_total
+        utilidad_op   = utilidad_bruta - gastos_op
+        impuesto_est  = ingresos * 0.08
+        utilidad_neta = utilidad_op - impuesto_est
+        margen_neto_pct = utilidad_neta / ingresos * 100 if ingresos else 0
+
+        # ══════════════════════════════════════════════════════
+        # 👥 NÓMINA
+        # ══════════════════════════════════════════════════════
+        if "Nómina" in fin_nav:
+            st.markdown('<div class="seccion-titulo">👥 Gestión de Nómina</div>', unsafe_allow_html=True)
+
+            # ── Cargar empleados guardados ──
+            empleados = st.session_state.get('empleados', [
+                {"nombre": "Leidy (Coordinadora)",   "cargo": "Coordinadora",        "sueldo": 0, "bonificacion": 0},
+                {"nombre": "Samanta (Logística)",    "cargo": "Logística",           "sueldo": 0, "bonificacion": 0},
+                {"nombre": "Sandra (Confirmación)",  "cargo": "Confirmación",        "sueldo": 0, "bonificacion": 0},
+                {"nombre": "Contador",               "cargo": "Contabilidad",        "sueldo": 0, "bonificacion": 0},
+                {"nombre": "C.E.O. - Ronaldo",       "cargo": "CEO",                 "sueldo": 0, "bonificacion": 0},
+            ])
+
+            st.markdown('<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:14px;padding:20px;margin-bottom:20px">', unsafe_allow_html=True)
+            st.markdown('<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.95rem;margin-bottom:16px">📝 Equipo de Trabajo</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            # ── Encabezado columnas ──
+            hc1,hc2,hc3,hc4,hc5,hc6 = st.columns([3,2,1.5,2,1.5,1])
+            for lbl, col in zip(["Nombre / Cargo","Sueldo Base $","Tipo Bono","Bono / Comisión","% sobre ventas","Total Mes"],
+                                 [hc1,hc2,hc3,hc4,hc5,hc6]):
+                col.markdown(f'<div style="font-size:0.68rem;font-weight:800;color:#8b8aaa;text-transform:uppercase;'
+                             f'letter-spacing:0.06em;padding-bottom:4px">{lbl}</div>', unsafe_allow_html=True)
+
+            # Editor de nómina
+            total_sueldos = 0
+            total_bonos   = 0
+            empleados_editados = []
+
+            for i, emp in enumerate(empleados):
+                with st.container():
+                    c1, c2, c3, c4, c5, c6 = st.columns([3, 2, 1.5, 2, 1.5, 1])
+                    with c1:
+                        nom = st.text_input("Nombre", value=emp['nombre'], key=f"nom_{i}", label_visibility="collapsed")
+                    with c2:
+                        sueldo = st.number_input("Sueldo", value=int(emp['sueldo']), step=50000, min_value=0, key=f"sld_{i}", label_visibility="collapsed")
+                    with c3:
+                        tipo_bono = st.selectbox("Tipo", ["Fijo $","Comisión %","Sin bono"], key=f"tipo_{i}",
+                                                 index=["Fijo $","Comisión %","Sin bono"].index(emp.get('tipo_bono','Fijo $')),
+                                                 label_visibility="collapsed")
+                    with c4:
+                        bono_base = int(emp.get('bonificacion', 0))
+                        if tipo_bono == "Sin bono":
+                            bono = 0
+                            st.markdown('<div style="padding-top:8px;color:#5a5878;font-size:0.8rem">—</div>', unsafe_allow_html=True)
+                        elif tipo_bono == "Comisión %":
+                            pct_com = st.number_input("% Comisión", value=float(emp.get('pct_comision', 0.0)),
+                                                      step=0.1, min_value=0.0, max_value=100.0, key=f"pct_{i}",
+                                                      label_visibility="collapsed", format="%.1f")
+                            bono = ingresos * (pct_com / 100)
+                        else:
+                            bono = st.number_input("Bono $", value=bono_base, step=10000, min_value=0, key=f"bon_{i}", label_visibility="collapsed")
+                            pct_com = 0.0
+                    with c5:
+                        pct_sobre_vnt = bono / ingresos * 100 if ingresos and bono else 0
+                        st.markdown(f'<div style="padding-top:8px;color:#8b5cf6;font-size:0.82rem;font-weight:600">'
+                                    f'{"" if tipo_bono=="Sin bono" else f"{pct_sobre_vnt:.2f}%"}</div>', unsafe_allow_html=True)
+                    with c6:
+                        total_emp = sueldo + bono
+                        st.markdown(f'<div style="padding-top:8px;color:#c9a84c;font-weight:800;font-size:0.85rem">'
+                                    f'{fmt_money(total_emp)}</div>', unsafe_allow_html=True)
+
+                    total_sueldos += sueldo
+                    total_bonos   += bono
+                    pct_com_val = pct_com if tipo_bono == "Comisión %" else 0.0
+                    empleados_editados.append({
+                        "nombre": nom, "cargo": emp.get('cargo',''), "sueldo": sueldo,
+                        "bonificacion": int(bono), "tipo_bono": tipo_bono, "pct_comision": pct_com_val
+                    })
+
+            # Separador total rápido
+            st.markdown(
+                f'<div style="background:rgba(201,168,76,0.07);border:1px solid #c9a84c44;border-radius:10px;'
+                f'padding:10px 16px;margin:8px 0;display:flex;justify-content:space-between;align-items:center">'
+                f'<span style="color:#8b8aaa;font-size:0.78rem;font-weight:700">SUBTOTALES</span>'
+                f'<span style="color:#f0ede8;font-size:0.82rem">Sueldos: <b style="color:#f0ede8">{fmt_money(total_sueldos)}</b>'
+                f' &nbsp;+&nbsp; Bonos/Comisiones: <b style="color:#10b981">{fmt_money(total_bonos)}</b>'
+                f' &nbsp;=&nbsp; <b style="color:#c9a84c;font-size:1rem">{fmt_money(total_sueldos+total_bonos)}</b></span>'
+                f'</div>', unsafe_allow_html=True
+            )
+
+            # Botones
+            col_add1, col_add2, col_add3 = st.columns([2, 2, 2])
+            with col_add1:
+                if st.button("➕ Agregar empleado", key="btn_add_emp"):
+                    empleados_editados.append({"nombre": "Nuevo empleado", "cargo": "", "sueldo": 0,
+                                               "bonificacion": 0, "tipo_bono": "Fijo $", "pct_comision": 0.0})
+                    st.session_state['empleados'] = empleados_editados
+                    st.rerun()
+            with col_add2:
+                pass
+            # Guardar nómina
+            with col_add3:
+                if st.button("💾 Guardar nómina", type="primary", key="btn_save_nom"):
+                    st.session_state['empleados']     = empleados_editados
+                    st.session_state['nomina_total']  = total_sueldos + total_bonos
+                    st.success(f"✅ Nómina guardada — Total: {fmt_money(total_sueldos + total_bonos)}")
+
+            nomina_mes = total_sueldos + total_bonos
+
+            # ── Tabla resumen nómina ──
+            st.markdown("<br>", unsafe_allow_html=True)
+            hdr_n = "background:#161525;padding:10px 14px;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#8b8aaa;border-bottom:2px solid #2d2b45"
+            td_n  = "padding:11px 14px;font-size:0.83rem;border-bottom:1px solid #1f1d35"
+            tabla_nom = (
+                f'<div style="overflow-x:auto;border-radius:12px;border:1px solid #2d2b45;margin-bottom:20px">'
+                f'<table style="width:100%;border-collapse:collapse;background:#1a1829;font-family:Space Grotesk,sans-serif">'
+                f'<thead><tr>'
+                f'<th style="{hdr_n};text-align:left">Colaborador</th>'
+                f'<th style="{hdr_n};text-align:right">Sueldo Base</th>'
+                f'<th style="{hdr_n};text-align:right">Bonificación</th>'
+                f'<th style="{hdr_n};text-align:right">Total Mes</th>'
+                f'<th style="{hdr_n};text-align:right">% de Nómina</th>'
+                f'</tr></thead><tbody>'
+            )
+            for emp in empleados_editados:
+                total_e = emp['sueldo'] + emp['bonificacion']
+                pct_e   = total_e / nomina_mes * 100 if nomina_mes else 0
+                tabla_nom += (
+                    f'<tr style="background:rgba(255,255,255,0.01)">'
+                    f'<td style="{td_n};color:#d4d0ea;font-weight:600">{emp["nombre"]}</td>'
+                    f'<td style="{td_n};text-align:right;color:#f0ede8">{fmt_money(emp["sueldo"])}</td>'
+                    f'<td style="{td_n};text-align:right;color:#10b981">{fmt_money(emp["bonificacion"])}</td>'
+                    f'<td style="{td_n};text-align:right;color:#c9a84c;font-weight:700">{fmt_money(total_e)}</td>'
+                    f'<td style="{td_n};text-align:right;color:#8b8aaa">{pct_e:.1f}%</td>'
+                    f'</tr>'
+                )
+            # Total
+            tabla_nom += (
+                f'<tr style="background:rgba(201,168,76,0.06);border-top:2px solid #c9a84c">'
+                f'<td style="{td_n};color:#c9a84c;font-weight:800">TOTAL NÓMINA</td>'
+                f'<td style="{td_n};text-align:right;color:#c9a84c;font-weight:800">{fmt_money(total_sueldos)}</td>'
+                f'<td style="{td_n};text-align:right;color:#10b981;font-weight:800">{fmt_money(total_bonos)}</td>'
+                f'<td style="{td_n};text-align:right;color:#c9a84c;font-weight:800">{fmt_money(nomina_mes)}</td>'
+                f'<td style="{td_n};text-align:right;color:#c9a84c;font-weight:800">100%</td>'
+                f'</tr>'
+                f'</tbody></table></div>'
+            )
+            st.markdown(tabla_nom, unsafe_allow_html=True)
+
+            # ══════════════════════════════════════════════════
+            # 🎯 PROYECCIÓN — ¿Cuánto debo vender para cubrir la nómina?
+            # ══════════════════════════════════════════════════
+            st.markdown('<div class="seccion-titulo" style="font-size:1rem;margin-top:8px">🎯 Proyección — ¿Cuánto debo vender para cubrir esta nómina?</div>', unsafe_allow_html=True)
+
+            if nomina_mes > 0:
+                margen_unit = ganancia_dropi / n_ent if n_ent else 0
+                pedidos_necesarios = int(nomina_mes / margen_unit) if margen_unit > 0 else 0
+                ventas_necesarias  = pedidos_necesarios * ticket_prom
+                pct_nom_vs_util    = nomina_mes / ganancia_dropi * 100 if ganancia_dropi else 0
+
+                # Ritmo actual del mes
+                from datetime import date
+                dias_mes_actual = 30
+                dias_transcurridos = min(date.today().day, dias_mes_actual)
+                ritmo_diario_ent = n_ent / dias_transcurridos if dias_transcurridos else 0
+                dias_para_cubrir = pedidos_necesarios / ritmo_diario_ent if ritmo_diario_ent else 0
+
+                # KPIs de proyección — los 4 que pidió
+                pk1, pk2, pk3, pk4 = st.columns(4)
+                with pk1:
+                    st.markdown(kpi("gold", "💰 Nómina del Mes", fmt_money(nomina_mes),
+                                    f"Sueldos: {fmt_money(total_sueldos)} + Bonos: {fmt_money(total_bonos)}"), unsafe_allow_html=True)
+                with pk2:
+                    color_ped = "green" if n_ent >= pedidos_necesarios else "red"
+                    faltantes = max(0, pedidos_necesarios - n_ent)
+                    st.markdown(kpi(color_ped, "📦 Pedidos Necesarios", f"{pedidos_necesarios:,}",
+                                    f"✅ {n_ent:,} entregados · Faltan {faltantes:,}"), unsafe_allow_html=True)
+                with pk3:
+                    color_vnt = "green" if ingresos >= ventas_necesarias else "red"
+                    st.markdown(kpi(color_vnt, "💵 Ventas Necesarias", fmt_money(ventas_necesarias),
+                                    f"Actuales: {fmt_money(ingresos)}"), unsafe_allow_html=True)
+                with pk4:
+                    color_nom = "green" if pct_nom_vs_util <= 30 else "gold" if pct_nom_vs_util <= 60 else "red"
+                    st.markdown(kpi(color_nom, "📊 Nómina vs Utilidad",
+                                    f"{pct_nom_vs_util:.1f}%", "% de la ganancia bruta"), unsafe_allow_html=True)
+
+                st.markdown("<br>", unsafe_allow_html=True)
+
+                # ── KPI Días del mes ──
+                dias_restantes_mes = max(0, dias_mes_actual - dias_transcurridos)
+                pedidos_restantes  = max(0, pedidos_necesarios - n_ent)
+                dias_necesarios    = round(pedidos_restantes / ritmo_diario_ent, 1) if ritmo_diario_ent else 0
+                va_a_cubrir        = dias_necesarios <= dias_restantes_mes
+
+                color_dias = "#10b981" if va_a_cubrir else "#ef4444"
+                icono_dias = "✅" if va_a_cubrir else "🔴"
+                msg_dias   = (f"Al ritmo actual ({ritmo_diario_ent:.1f} ped/día), "
+                              f"{'cubrirás la nómina en' if va_a_cubrir else 'necesitarás'} "
+                              f"{dias_necesarios} días — "
+                              f"{'quedan' if va_a_cubrir else 'pero solo quedan'} {dias_restantes_mes} días del mes")
+
+                st.markdown(
+                    f'<div style="background:rgba({("52,211,153" if va_a_cubrir else "239,68,68")},0.07);'
+                    f'border:1px solid {color_dias}44;border-radius:12px;padding:14px 20px;'
+                    f'display:flex;align-items:center;gap:16px;margin-bottom:16px">'
+                    f'<div style="font-size:1.8rem">{icono_dias}</div>'
+                    f'<div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:700;color:{color_dias};font-size:0.9rem">Proyección de días</div>'
+                    f'<div style="color:#b0aec8;font-size:0.8rem;margin-top:3px">{msg_dias}</div>'
+                    f'</div>'
+                    f'<div style="margin-left:auto;text-align:right">'
+                    f'<div style="font-size:1.6rem;font-weight:800;color:{color_dias};font-family:Syne,sans-serif">{dias_necesarios}d</div>'
+                    f'<div style="font-size:0.7rem;color:#5a5878">necesarios</div>'
+                    f'</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+                # Barra de progreso visual
+                pct_avance = min(n_ent / pedidos_necesarios * 100, 100) if pedidos_necesarios else 0
+                color_barra = "#10b981" if pct_avance >= 100 else "#f59e0b" if pct_avance >= 60 else "#ef4444"
+                icono_estado = "✅" if pct_avance >= 100 else "⚠️" if pct_avance >= 60 else "🔴"
+                estado_txt = "NÓMINA CUBIERTA" if pct_avance >= 100 else f"Faltan {pedidos_necesarios - n_ent:,} pedidos para cubrir nómina"
+
+                st.markdown(
+                    f'<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:14px;padding:20px;margin-bottom:16px">'
+                    f'<div style="display:flex;justify-content:space-between;margin-bottom:10px">'
+                    f'<span style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.9rem">'
+                    f'{icono_estado} {estado_txt}</span>'
+                    f'<span style="color:{color_barra};font-weight:800;font-size:1rem">{pct_avance:.1f}%</span>'
+                    f'</div>'
+                    f'<div style="background:#2d2b45;border-radius:100px;height:14px;overflow:hidden">'
+                    f'<div style="background:linear-gradient(90deg,{color_barra},{color_barra}cc);'
+                    f'width:{pct_avance:.1f}%;height:100%;border-radius:100px;'
+                    f'transition:width 0.5s ease"></div>'
+                    f'</div>'
+                    f'<div style="display:flex;justify-content:space-between;margin-top:8px;font-size:0.75rem;color:#5a5878">'
+                    f'<span>{n_ent:,} entregados</span>'
+                    f'<span>Meta: {pedidos_necesarios:,} pedidos</span>'
+                    f'</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+                # Desglose por empleado — cuántos pedidos cubre cada uno
+                if margen_unit > 0:
+                    st.markdown('<div style="font-family:Syne,sans-serif;font-weight:700;color:#8b8aaa;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Pedidos necesarios para cubrir el sueldo de cada colaborador</div>', unsafe_allow_html=True)
+                    for emp in empleados_editados:
+                        total_e   = emp['sueldo'] + emp['bonificacion']
+                        if total_e == 0: continue
+                        peds_e    = int(total_e / margen_unit) + 1
+                        pct_e_av  = min(n_ent / peds_e * 100, 100) if peds_e else 0
+                        c_e       = "#10b981" if pct_e_av >= 100 else "#f59e0b" if pct_e_av >= 60 else "#ef4444"
+                        check     = "✅" if pct_e_av >= 100 else "🔄"
+                        st.markdown(
+                            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;'
+                            f'background:#1a1829;border-radius:10px;padding:10px 14px;border:1px solid #2d2b45">'
+                            f'<div style="min-width:22px">{check}</div>'
+                            f'<div style="flex:1">'
+                            f'<div style="font-size:0.82rem;color:#d4d0ea;font-weight:600">{emp["nombre"]}</div>'
+                            f'<div style="background:#2d2b45;border-radius:100px;height:8px;margin-top:5px;overflow:hidden">'
+                            f'<div style="background:{c_e};width:{pct_e_av:.0f}%;height:100%;border-radius:100px"></div>'
+                            f'</div></div>'
+                            f'<div style="text-align:right;min-width:90px">'
+                            f'<div style="color:#c9a84c;font-weight:700;font-size:0.82rem">{fmt_money(total_e)}</div>'
+                            f'<div style="color:#5a5878;font-size:0.7rem">{peds_e:,} pedidos</div>'
+                            f'</div></div>',
+                            unsafe_allow_html=True
+                        )
+
+                # Costos fijos adicionales
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.markdown('<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.88rem;margin-bottom:10px">🏢 Costos Fijos Adicionales (mensual)</div>', unsafe_allow_html=True)
+                cf_items = st.session_state.get('costos_fijos', {
+                    "Arriendo/Oficina": 0, "Plataformas y Software": 0,
+                    "Servicios públicos": 0, "Otros": 0
+                })
+                cf_cols = st.columns(4)
+                cf_nuevo = {}
+                for idx, (k, v) in enumerate(cf_items.items()):
+                    with cf_cols[idx % 4]:
+                        cf_nuevo[k] = st.number_input(k, value=int(v), step=50000, min_value=0, key=f"cf_{k}")
+                if st.button("💾 Guardar costos fijos", key="btn_cf"):
+                    st.session_state['costos_fijos'] = cf_nuevo
+                    st.success("✅ Costos fijos guardados")
+
+            else:
+                st.info("⬆️ Ingresa los sueldos arriba y presiona **Guardar nómina** para ver la proyección.")
+
+        # ══════════════════════════════════════════════════════
+        # 📊 ESTADO DE RESULTADOS
+        # ══════════════════════════════════════════════════════
+        elif "Estado de Resultados" in fin_nav:
+            st.markdown('<div class="seccion-titulo">📊 Estado de Resultados (P&L)</div>', unsafe_allow_html=True)
+
+            def fila_pl(concepto, valor, nivel=0, destacada=False, es_gasto=False):
+                indent = "&nbsp;" * (nivel * 6)
+                color  = "#ef4444" if es_gasto and valor > 0 else "#10b981" if valor > 0 else "#ef4444"
+                bg     = "rgba(201,168,76,0.07)" if destacada else "transparent"
+                bold   = "font-weight:800;" if destacada else ""
+                signo  = "-" if es_gasto and valor > 0 else ""
+                return (
+                    f'<tr style="background:{bg}">'
+                    f'<td style="padding:9px 16px;color:#d4d0ea;font-size:0.83rem;{bold}">{indent}{concepto}</td>'
+                    f'<td style="padding:9px 16px;text-align:right;color:{color};font-size:0.83rem;{bold}">{signo}{fmt_money(valor)}</td>'
+                    f'<td style="padding:9px 16px;text-align:right;color:#5a5878;font-size:0.75rem">'
+                    f'{"" if ingresos == 0 else f"{valor/ingresos*100:.1f}%"}</td>'
+                    f'</tr>'
+                )
+
+            pl_html = (
+                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #2d2b45">'
+                f'<table style="width:100%;border-collapse:collapse;background:#1a1829;font-family:Space Grotesk,sans-serif">'
+                f'<thead><tr>'
+                f'<th style="padding:12px 16px;text-align:left;color:#8b8aaa;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid #2d2b45">Concepto</th>'
+                f'<th style="padding:12px 16px;text-align:right;color:#8b8aaa;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid #2d2b45">Valor</th>'
+                f'<th style="padding:12px 16px;text-align:right;color:#8b8aaa;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid #2d2b45">% Ingreso</th>'
+                f'</tr></thead><tbody>'
+                + fila_pl("(+) INGRESOS — Pedidos Entregados", ingresos, destacada=True)
+                + fila_pl("Costo de Productos Vendidos", costo_prod, nivel=1, es_gasto=True)
+                + fila_pl("UTILIDAD BRUTA", utilidad_bruta, destacada=True)
+                + '<tr><td colspan="3" style="padding:4px 16px;background:#161525"><span style="font-size:0.68rem;color:#5a5878;text-transform:uppercase;letter-spacing:0.06em">Gastos Operativos</span></td></tr>'
+                + fila_pl("Flete de Entrega", flete_ent, nivel=1, es_gasto=True)
+                + fila_pl("Flete de Devolución", flete_dev, nivel=1, es_gasto=True)
+                + fila_pl("Pauta Publicitaria", pauta_fin, nivel=1, es_gasto=True)
+                + fila_pl("Nómina", nomina_total, nivel=1, es_gasto=True)
+                + fila_pl("Costos Fijos Adicionales", sum(costos_fijos.values()), nivel=1, es_gasto=True)
+                + fila_pl("UTILIDAD OPERATIVA (EBITDA)", utilidad_op, destacada=True)
+                + fila_pl("Impuesto Estimado (8%)", impuesto_est, nivel=1, es_gasto=True)
+                + fila_pl("UTILIDAD NETA", utilidad_neta, destacada=True)
+                + '</tbody></table></div>'
+            )
+            st.markdown(pl_html, unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            r1,r2,r3,r4 = st.columns(4)
+            with r1: st.markdown(kpi("cyan","💰 Ingresos",fmt_money(ingresos)), unsafe_allow_html=True)
+            with r2: st.markdown(kpi("green","✅ Utilidad Bruta",fmt_money(utilidad_bruta),f"{margen_bruto_pct:.1f}% margen"), unsafe_allow_html=True)
+            with r3: st.markdown(kpi("gold","📊 EBITDA",fmt_money(utilidad_op)), unsafe_allow_html=True)
+            with r4:
+                col_n = "green" if utilidad_neta > 0 else "red"
+                st.markdown(kpi(col_n,"💵 Utilidad Neta",fmt_money(utilidad_neta),f"{margen_neto_pct:.1f}% margen"), unsafe_allow_html=True)
+
+        # ══════════════════════════════════════════════════════
+        # ⚖️ PUNTO DE EQUILIBRIO
+        # ══════════════════════════════════════════════════════
+        elif "Equilibrio" in fin_nav:
+            st.markdown('<div class="seccion-titulo">⚖️ Punto de Equilibrio</div>', unsafe_allow_html=True)
+
+            margen_contrib = ganancia_dropi / n_ent if n_ent else 0
+            pe_unidades    = int(cf_total / margen_contrib) if margen_contrib else 0
+            pe_pesos       = pe_unidades * ticket_prom
+            superavit      = n_ent - pe_unidades
+
+            k1,k2,k3,k4 = st.columns(4)
+            with k1: st.markdown(kpi("blue","🔧 Costos Fijos Total",fmt_money(cf_total)), unsafe_allow_html=True)
+            with k2: st.markdown(kpi("gold","💡 Margen Contrib./Pedido",fmt_money(margen_contrib)), unsafe_allow_html=True)
+            with k3: st.markdown(kpi("purple","⚖️ PE en Pedidos",f"{pe_unidades:,}",f"= {fmt_money(pe_pesos)}"), unsafe_allow_html=True)
+            with k4:
+                col_pe = "green" if superavit >= 0 else "red"
+                txt_pe = f"+{superavit:,} sobre PE" if superavit >= 0 else f"{superavit:,} bajo PE"
+                st.markdown(kpi(col_pe,"📦 Entregados vs PE",f"{n_ent:,}",txt_pe), unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            pct_pe = min(n_ent / pe_unidades * 100, 150) if pe_unidades else 0
+            color_pe = "#10b981" if pct_pe >= 100 else "#f59e0b" if pct_pe >= 70 else "#ef4444"
+            st.markdown(
+                f'<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:14px;padding:24px">'
+                f'<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;margin-bottom:14px;font-size:0.95rem">'
+                f'{"✅ Por encima del punto de equilibrio" if superavit>=0 else "🔴 Por debajo del punto de equilibrio"}</div>'
+                f'<div style="background:#2d2b45;border-radius:100px;height:20px;overflow:hidden">'
+                f'<div style="background:linear-gradient(90deg,{color_pe},{color_pe}bb);width:{min(pct_pe,100):.1f}%;height:100%;border-radius:100px"></div>'
+                f'</div>'
+                f'<div style="display:flex;justify-content:space-between;margin-top:10px;font-size:0.76rem;color:#5a5878">'
+                f'<span>0 pedidos</span>'
+                f'<span style="color:{color_pe};font-weight:700">PE: {pe_unidades:,} pedidos</span>'
+                f'<span>{n_ent:,} entregados ({pct_pe:.0f}%)</span>'
+                f'</div></div>',
+                unsafe_allow_html=True
+            )
+
+        # ══════════════════════════════════════════════════════
+        # 📈 RENTABILIDAD
+        # ══════════════════════════════════════════════════════
+        elif "Rentabilidad" in fin_nav:
+            st.markdown('<div class="seccion-titulo">📈 Rentabilidad</div>', unsafe_allow_html=True)
+            roi_pauta = (ganancia_dropi - pauta_fin) / pauta_fin * 100 if pauta_fin else 0
+            cac       = pauta_fin / n_ent if n_ent else 0
+
+            k1,k2,k3,k4 = st.columns(4)
+            with k1: st.markdown(kpi("green","📈 Margen Bruto",f"{margen_bruto_pct:.1f}%"), unsafe_allow_html=True)
+            with k2: st.markdown(kpi("gold" if margen_neto_pct>0 else "red","💵 Margen Neto",f"{margen_neto_pct:.1f}%"), unsafe_allow_html=True)
+            with k3: st.markdown(kpi("cyan","🎯 ROI Pauta",f"{roi_pauta:.1f}%","Por cada $ invertido"), unsafe_allow_html=True)
+            with k4: st.markdown(kpi("purple","👤 CAC",fmt_money(cac),"Costo adquisición cliente"), unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            g1, g2 = st.columns(2)
+
+            with g1:
+                if C_PRODUCTO in df_ent.columns and C_GANANCIA in df_ent.columns:
+                    rent_prod = df_ent.groupby(C_PRODUCTO)[C_GANANCIA].sum().sort_values(ascending=True).tail(12)
+                    fig_rp = go.Figure(go.Bar(
+                        x=rent_prod.values, y=rent_prod.index.str[:25], orientation='h',
+                        marker_color=['#10b981' if v>0 else '#ef4444' for v in rent_prod.values]
+                    ))
+                    fig_rp.update_layout(**PLOT_LAYOUT, height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
+                                         title='Rentabilidad por Producto (Ganancia)')
+                    st.plotly_chart(fig_rp, use_container_width=True)
+
+            with g2:
+                if C_CIUDAD in df_ent.columns and C_GANANCIA in df_ent.columns:
+                    rent_ciudad = df_ent.groupby(C_CIUDAD)[C_GANANCIA].sum().sort_values(ascending=True).tail(12)
+                    fig_rc = go.Figure(go.Bar(
+                        x=rent_ciudad.values, y=rent_ciudad.index.str[:20], orientation='h',
+                        marker_color=['#10b981' if v>0 else '#ef4444' for v in rent_ciudad.values]
+                    ))
+                    fig_rc.update_layout(**PLOT_LAYOUT, height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
+                                         title='Rentabilidad por Ciudad')
+                    st.plotly_chart(fig_rc, use_container_width=True)
+
+        # ══════════════════════════════════════════════════════
+        # 📉 ANÁLISIS DE COSTOS
+        # ══════════════════════════════════════════════════════
+        elif "Costos" in fin_nav:
+            st.markdown('<div class="seccion-titulo">📉 Análisis de Costos</div>', unsafe_allow_html=True)
+
+            costo_x_ped   = (costo_prod + flete_ent) / n_ent if n_ent else 0
+            costo_dev_u   = (flete_dev / n_dev) if n_dev else 0
+            pauta_x_ped   = pauta_fin / n_ent if n_ent else 0
+            costo_cancel  = df_fin[mask_can][C_FLETE].sum() if C_FLETE in df_fin.columns else 0
+
+            k1,k2,k3,k4 = st.columns(4)
+            with k1: st.markdown(kpi("blue","💸 Costo por Pedido Entregado",fmt_money(costo_x_ped)), unsafe_allow_html=True)
+            with k2: st.markdown(kpi("red","🔁 Costo por Devolución",fmt_money(costo_dev_u)), unsafe_allow_html=True)
+            with k3: st.markdown(kpi("gold","📣 Pauta por Pedido Entregado",fmt_money(pauta_x_ped)), unsafe_allow_html=True)
+            with k4: st.markdown(kpi("purple","❌ Costo Total Cancelaciones",fmt_money(costo_cancel)), unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            # Gráfica de torta costos
+            costos_labels = ["Productos","Flete Entrega","Flete Dev.","Pauta","Nómina","Fijos"]
+            costos_vals   = [costo_prod, flete_ent, flete_dev, pauta_fin, nomina_total, sum(costos_fijos.values())]
+            costos_vals   = [v for v in costos_vals if v > 0]
+            costos_labels = [l for l,v in zip(costos_labels,[costo_prod,flete_ent,flete_dev,pauta_fin,nomina_total,sum(costos_fijos.values())]) if v > 0]
+
+            if costos_vals:
+                fig_cos = px.pie(values=costos_vals, names=costos_labels, hole=0.45,
+                                 color_discrete_sequence=COLORES_ELEGANTES,
+                                 title='Distribución de Costos Totales')
+                fig_cos.update_layout(**PLOT_LAYOUT, height=380)
+                fig_cos.update_traces(textposition='inside', textinfo='percent+label')
+                st.plotly_chart(fig_cos, use_container_width=True)
+
+        # ══════════════════════════════════════════════════════
+        # 🎯 KPIs FINANCIEROS
+        # ══════════════════════════════════════════════════════
+        elif "KPIs" in fin_nav:
+            st.markdown('<div class="seccion-titulo">🎯 KPIs Financieros Clave</div>', unsafe_allow_html=True)
+
+            tasa_conv = n_ent / n_total * 100 if n_total else 0
+            ebitda    = utilidad_op
+            liquidez  = ingresos / cf_total if cf_total else 0
+
+            kpis_fin = [
+                ("🎫 Ticket Promedio",           fmt_money(ticket_prom),         "Valor promedio por pedido entregado"),
+                ("👤 CAC — Costo de Adquisición", fmt_money(pauta_fin/n_ent if n_ent else 0), "Pauta ÷ pedidos entregados"),
+                ("💱 Tasa Conv. Financiera",      f"{tasa_conv:.1f}%",            "% pedidos que generan dinero real"),
+                ("📊 EBITDA",                     fmt_money(ebitda),              "Utilidad antes de impuestos"),
+                ("💧 Índice de Liquidez",          f"{liquidez:.2f}x",             "Ingresos ÷ Costos Fijos"),
+                ("📈 ROI de Pauta",               f"{roi_pauta:.1f}%",            "Retorno sobre inversión publicitaria"),
+                ("💵 Margen Bruto",               f"{margen_bruto_pct:.1f}%",     "Utilidad bruta sobre ingresos"),
+                ("💵 Margen Neto",                f"{margen_neto_pct:.1f}%",      "Utilidad neta sobre ingresos"),
+            ]
+
+            hdr_k = "background:#161525;padding:12px 16px;font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#8b8aaa;border-bottom:2px solid #2d2b45"
+            td_k  = "padding:13px 16px;border-bottom:1px solid #1f1d35;font-size:0.83rem"
+            tabla_kpi = (
+                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #2d2b45">'
+                f'<table style="width:100%;border-collapse:collapse;background:#1a1829;font-family:Space Grotesk,sans-serif">'
+                f'<thead><tr>'
+                f'<th style="{hdr_k};text-align:left">Indicador</th>'
+                f'<th style="{hdr_k};text-align:right">Valor</th>'
+                f'<th style="{hdr_k};text-align:left">Qué mide</th>'
+                f'</tr></thead><tbody>'
+            )
+            for nom_k, val_k, desc_k in kpis_fin:
+                tabla_kpi += (
+                    f'<tr style="background:rgba(255,255,255,0.01)">'
+                    f'<td style="{td_k};color:#d4d0ea;font-weight:600">{nom_k}</td>'
+                    f'<td style="{td_k};text-align:right;color:#c9a84c;font-weight:800;font-size:0.95rem">{val_k}</td>'
+                    f'<td style="{td_k};color:#5a5878">{desc_k}</td>'
+                    f'</tr>'
+                )
+            tabla_kpi += '</tbody></table></div>'
+            st.markdown(tabla_kpi, unsafe_allow_html=True)
 
 
     # ══════════════════════════════════════════════════════════════════
