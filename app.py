@@ -1160,9 +1160,198 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
     # ══════════════════════════════════════════════════════
     # MONITOR DE ESTATUS — Tabla dinámica por semanas
     # ══════════════════════════════════════════════════════
-    if "Monitor" in op_nav and C_ESTATUS in df.columns and C_FECHA in df.columns:
+    if "Monitor" in op_nav and C_ESTATUS in df.columns:
 
-        st.markdown('<div class="seccion-titulo">🚦 Monitor de Estatus</div>', unsafe_allow_html=True)
+        st.markdown('<div class="seccion-titulo">🚦 Monitor de Alertas de Pedidos</div>', unsafe_allow_html=True)
+
+        # ══ CALCULAR TODAS LAS ALERTAS ══
+        UMBRALES = {
+            "reparto_critico":   48,   # horas en reparto → crítico
+            "reparto_medio":     24,   # horas en reparto → medio
+            "bdg_transp_critico": 72,  # horas BDG transp → crítico
+            "bdg_transp_medio":  24,
+            "bdg_prov_critico":  72,
+            "reclamo_critico":    8,   # días en oficina → crítico
+            "novedad_critico":    5,   # días novedad sin resolver → crítico
+            "novedad_medio":      2,
+        }
+
+        alertas = []
+
+        for _, row in df.iterrows():
+            est   = str(row.get(C_ESTATUS, '')).upper()
+            h_m   = row.get('_h_mov')
+            d_m   = row.get('_d_mov')
+            h_p   = row.get('_h_ped')
+            d_p   = row.get('_d_ped')
+            num   = str(row.get(C_ID,  '—'))
+            cli   = str(row.get(C_CLIENTE, ''))[:28] if C_CLIENTE in df.columns else ''
+            guia  = str(row.get(C_GUIA, ''))         if C_GUIA    in df.columns else ''
+            ciudad= str(row.get(C_CIUDAD, ''))        if C_CIUDAD  in df.columns else ''
+            valor = row.get(C_TOTAL, 0) if C_TOTAL in df.columns else 0
+            transp= str(row.get(C_TRANSP, ''))        if C_TRANSP  in df.columns else ''
+
+            def add(nivel, tipo, icono, tiempo_txt):
+                alertas.append({
+                    'nivel': nivel, 'tipo': tipo, 'icono': icono,
+                    'id': num, 'cliente': cli, 'guia': guia,
+                    'ciudad': ciudad, 'valor': valor, 'transp': transp,
+                    'tiempo': tiempo_txt, 'estatus': est
+                })
+
+            if ('RECLAM' in est or 'OFICINA' in est) and d_p:
+                if d_p > UMBRALES["reclamo_critico"]:
+                    add(1, 'Reclamo en Oficina', '🔴', f"{d_p:.0f} días esperando retiro")
+
+            if 'REPARTO' in est and h_m:
+                if h_m > UMBRALES["reparto_critico"]:
+                    add(1, 'En Reparto — Sin cambio', '🔴', f"{h_m:.0f}h sin actualización")
+                elif h_m > UMBRALES["reparto_medio"]:
+                    add(2, 'En Reparto — Demorado', '🟡', f"{h_m:.0f}h sin actualización")
+
+            if 'NOVEDAD' in est:
+                sol = str(row.get(C_NOV_SOL, '')).upper() if C_NOV_SOL in df.columns else ''
+                if 'SI' not in sol and 'SÍ' not in sol:
+                    nov_txt = str(row.get(C_NOVEDAD, ''))[:30] if C_NOVEDAD in df.columns else ''
+                    dias_nov = d_m or 0
+                    if dias_nov >= UMBRALES["novedad_critico"]:
+                        add(1, f'Novedad sin resolver', '🔴', f"{dias_nov:.0f}d — {nov_txt or 'Sin tipo'}")
+                    elif dias_nov >= UMBRALES["novedad_medio"]:
+                        add(2, f'Novedad sin resolver', '🟡', f"{dias_nov:.0f}d — {nov_txt or 'Sin tipo'}")
+                    else:
+                        add(3, f'Novedad reciente', '🟢', f"{dias_nov:.0f}d — {nov_txt or 'Sin tipo'}")
+
+            if 'BDG TRANSP' in est or 'BODEGA TRANS' in est:
+                if h_m and h_m > UMBRALES["bdg_transp_critico"]:
+                    add(1, 'BDG Transportadora', '🔴', f"{h_m:.0f}h sin movimiento")
+                elif h_m and h_m > UMBRALES["bdg_transp_medio"]:
+                    add(2, 'BDG Transportadora', '🟡', f"{h_m:.0f}h sin movimiento")
+
+            if ('BDG PROV' in est or 'BODEGA PROV' in est) and h_m:
+                if h_m > UMBRALES["bdg_prov_critico"]:
+                    add(1, 'BDG Proveedor', '🔴', f"{h_m:.0f}h sin despacho")
+                else:
+                    add(2, 'BDG Proveedor', '🟡', f"{h_m:.0f}h sin despacho")
+
+        df_al = pd.DataFrame(alertas) if alertas else pd.DataFrame(
+            columns=['nivel','tipo','icono','id','cliente','guia','ciudad','valor','transp','tiempo','estatus'])
+        df_al = df_al.sort_values('nivel') if len(df_al) else df_al
+
+        n_crit = len(df_al[df_al['nivel']==1]) if len(df_al) else 0
+        n_med  = len(df_al[df_al['nivel']==2]) if len(df_al) else 0
+        n_leve = len(df_al[df_al['nivel']==3]) if len(df_al) else 0
+
+        # ══ KPIs de alertas ══
+        ka1,ka2,ka3,ka4 = st.columns(4)
+        with ka1: st.markdown(kpi("blue","📋 Total Alertas",f"{len(df_al):,}"), unsafe_allow_html=True)
+        with ka2: st.markdown(kpi("red","🔴 Críticas",f"{n_crit:,}","Acción inmediata"), unsafe_allow_html=True)
+        with ka3: st.markdown(kpi("gold","🟡 Medias",f"{n_med:,}","Revisar hoy"), unsafe_allow_html=True)
+        with ka4: st.markdown(kpi("green","🟢 Leves",f"{n_leve:,}","Monitorear"), unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ══ FILTROS ══
+        fa1, fa2, fa3, fa4 = st.columns([2,2,2,2])
+        with fa1:
+            filtro_nivel = st.selectbox("🎯 Nivel", ["Todos","🔴 Crítico","🟡 Medio","🟢 Leve"], key="f_nivel")
+        with fa2:
+            tipos_disp = ["Todos"] + sorted(df_al['tipo'].unique().tolist()) if len(df_al) else ["Todos"]
+            filtro_tipo = st.selectbox("📂 Tipo", tipos_disp, key="f_tipo")
+        with fa3:
+            filtro_buscar = st.text_input("🔍 Buscar pedido / cliente / guía", key="f_buscar", placeholder="Ej: 66644268")
+        with fa4:
+            if len(df_al):
+                transp_disp = ["Todas"] + sorted(df_al['transp'].replace('','Sin info').unique().tolist())
+                filtro_transp = st.selectbox("🚚 Transportadora", transp_disp, key="f_transp")
+            else:
+                filtro_transp = "Todas"
+
+        # Aplicar filtros
+        df_fil = df_al.copy()
+        if filtro_nivel != "Todos":
+            nivel_map = {"🔴 Crítico":1,"🟡 Medio":2,"🟢 Leve":3}
+            df_fil = df_fil[df_fil['nivel']==nivel_map[filtro_nivel]]
+        if filtro_tipo != "Todos":
+            df_fil = df_fil[df_fil['tipo']==filtro_tipo]
+        if filtro_buscar:
+            mask = (df_fil['id'].str.contains(filtro_buscar, case=False, na=False) |
+                    df_fil['cliente'].str.contains(filtro_buscar, case=False, na=False) |
+                    df_fil['guia'].str.contains(filtro_buscar, case=False, na=False))
+            df_fil = df_fil[mask]
+        if filtro_transp != "Todas":
+            df_fil = df_fil[df_fil['transp'].replace('','Sin info')==filtro_transp]
+
+        st.caption(f"Mostrando **{len(df_fil):,}** de {len(df_al):,} alertas")
+
+        # ══ EXPORTAR ══
+        if len(df_fil):
+            df_export = df_fil[['nivel','icono','tipo','id','cliente','guia','ciudad','transp','valor','tiempo','estatus']].copy()
+            df_export.columns = ['Prioridad','Nivel','Tipo Alerta','# Pedido','Cliente','Guía','Ciudad','Transportadora','Valor Orden','Tiempo','Estatus']
+            df_export['Prioridad'] = df_export['Prioridad'].map({1:'CRÍTICO',2:'MEDIO',3:'LEVE'})
+            import io
+            buf = io.BytesIO()
+            df_export.to_excel(buf, index=False, engine='openpyxl')
+            st.download_button("⬇️ Exportar alertas a Excel", buf.getvalue(),
+                               file_name="alertas_pedidos.xlsx",
+                               mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ══ RENDERIZAR TARJETAS DE ALERTAS ══
+        NIVEL_STYLE = {
+            1: {"bg":"rgba(239,68,68,0.08)",  "border":"#ef4444", "badge":"#ef4444", "label":"CRÍTICO"},
+            2: {"bg":"rgba(245,158,11,0.08)", "border":"#f59e0b", "badge":"#f59e0b", "label":"MEDIO"},
+            3: {"bg":"rgba(52,211,153,0.08)", "border":"#34d399", "badge":"#34d399", "label":"LEVE"},
+        }
+
+        PAGE_SIZE = 50
+        total_pags = max(1, -(-len(df_fil) // PAGE_SIZE))
+        if total_pags > 1:
+            pag = st.slider("Página", 1, total_pags, 1, key="pag_alertas")
+        else:
+            pag = 1
+        df_pag = df_fil.iloc[(pag-1)*PAGE_SIZE : pag*PAGE_SIZE]
+
+        if len(df_pag) == 0:
+            st.markdown('<div style="text-align:center;padding:40px;color:#34d399;font-size:1.1rem">✅ Sin alertas con los filtros seleccionados</div>', unsafe_allow_html=True)
+        else:
+            for _, row in df_pag.iterrows():
+                s = NIVEL_STYLE.get(row['nivel'], NIVEL_STYLE[3])
+                valor_txt = f"$ {int(row['valor']):,}" if row['valor'] else ''
+                guia_txt  = f"Guía: {row['guia']}" if row['guia'] and row['guia'] != 'nan' else ''
+                transp_txt= row['transp'] if row['transp'] and row['transp'] != 'nan' else ''
+                ciudad_txt= row['ciudad'] if row['ciudad'] and row['ciudad'] != 'nan' else ''
+
+                detalles = ' · '.join(filter(None, [guia_txt, transp_txt, ciudad_txt, valor_txt]))
+
+                st.markdown(
+                    f'<div style="background:{s["bg"]};border-left:3px solid {s["border"]};'
+                    f'border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:8px;'
+                    f'display:flex;align-items:center;gap:14px">'
+                    f'<div style="min-width:70px;text-align:center">'
+                    f'<div style="font-size:1.3rem">{row["icono"]}</div>'
+                    f'<div style="font-size:0.6rem;color:{s["badge"]};font-weight:800;'
+                    f'letter-spacing:0.08em;margin-top:2px">{s["label"]}</div>'
+                    f'</div>'
+                    f'<div style="flex:1;min-width:0">'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.88rem">'
+                    f'{row["tipo"]} &nbsp;·&nbsp; <span style="color:{s["border"]}">#{row["id"]}</span>'
+                    f'</div>'
+                    f'<div style="color:#c9a84c;font-size:0.82rem;font-weight:600;margin:3px 0">'
+                    f'{row["cliente"]}'
+                    f'</div>'
+                    f'<div style="color:#5a5878;font-size:0.75rem">'
+                    f'⏱ {row["tiempo"]}'
+                    f'{(" &nbsp;·&nbsp; " + detalles) if detalles else ""}'
+                    f'</div>'
+                    f'</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+        # ══ TABLA DE MONITOREO POR SEMANAS (abajo del Monitor) ══
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('<div class="seccion-titulo" style="font-size:1rem">📊 Resumen por Estatus y Semana</div>', unsafe_allow_html=True)
 
         # Columnas necesarias
         C_UND  = C_CANTIDAD
@@ -1172,9 +1361,8 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
         C_CST  = "PRECIO PROVEEDOR X CANTIDAD"
         C_FLT  = C_FLETE
 
-        # Selector de período
         meses_disp = sorted(df['_mes'].dropna().unique().tolist(), reverse=True) if '_mes' in df.columns else []
-        mes_sel = st.selectbox("📅 Mes a analizar", ["Mes completo"] + meses_disp if meses_disp else ["Mes completo"])
+        mes_sel = st.selectbox("📅 Mes", ["Mes completo"] + meses_disp if meses_disp else ["Mes completo"], key="mes_mon2")
 
         semana_tabs = st.tabs(["📅 Mes Completo", "Sem 1 (1-8)", "Sem 2 (9-16)", "Sem 3 (17-24)", "Sem 4 (25-31)"])
 
@@ -1182,7 +1370,9 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
             if sem == 0: return df_base
             rangos = {1:(1,8), 2:(9,16), 3:(17,24), 4:(25,31)}
             ini, fin = rangos[sem]
-            return df_base[df_base[C_FECHA].dt.day.between(ini, fin)]
+            return df_base[df_base[C_FECHA].dt.day.between(ini, fin)] if C_FECHA in df_base.columns else df_base
+
+
 
         def construir_tabla(df_filtrado):
             if len(df_filtrado) == 0:
