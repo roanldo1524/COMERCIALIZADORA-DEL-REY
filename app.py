@@ -537,7 +537,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
     elif "Catálogo" in vista_activa:
         nav = "🛍️ Catálogo"
     else:
-        nav = st.radio("", ["📅 Evolución Mensual","🗺️ Mapa Colombia","🏆 Productos Estrella","💡 Insights"],
+        nav = st.radio("", ["🫀 Pulso del Negocio","🗺️ Mapa Colombia","🏆 Productos Estrella","💡 Insights"],
                        horizontal=True, label_visibility="collapsed")
 
 
@@ -859,8 +859,326 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         else:
             st.info("Se necesitan al menos 2 meses de datos para generar proyecciones.")
 
-    # ── EVOLUCIÓN MENSUAL ──
-    elif "Evolución" in nav and '_mes' in df.columns and C_TOTAL in df.columns:
+    # ══════════════════════════════════════════════════════════════════
+    # 🫀 PULSO DEL NEGOCIO — PANEL EJECUTIVO REVOLUCIONARIO
+    # ══════════════════════════════════════════════════════════════════
+    elif "Pulso" in nav:
+        from datetime import date, timedelta
+        import calendar
+
+        # ── Datos base ──
+        hoy        = date.today()
+        mes_actual = hoy.strftime("%Y-%m")
+        mes_ant    = (hoy.replace(day=1) - timedelta(days=1)).strftime("%Y-%m")
+
+        df_act = df[df['_mes'] == mes_actual].copy() if '_mes' in df.columns else df.copy()
+        df_ant = df[df['_mes'] == mes_ant].copy()    if '_mes' in df.columns else pd.DataFrame()
+
+        def pct_est(col, val):
+            return df_act[C_ESTATUS].astype(str).str.upper().str.contains(val, na=False).sum() if C_ESTATUS in df_act.columns else 0
+
+        n_tot   = len(df_act)
+        n_ent   = pct_est(C_ESTATUS,'ENTREGAD')
+        n_can   = pct_est(C_ESTATUS,'CANCELAD')
+        n_dev   = pct_est(C_ESTATUS,'DEVOLUCI')
+        n_nov   = pct_est(C_ESTATUS,'NOVEDAD')
+        n_proc  = n_tot - n_ent - n_can - n_dev
+
+        ventas_act  = df_act[C_TOTAL].sum()    if C_TOTAL    in df_act.columns else 0
+        gan_act     = df_act[C_GANANCIA].sum()  if C_GANANCIA in df_act.columns else 0
+        flete_act   = df_act[C_FLETE].sum()     if C_FLETE    in df_act.columns else 0
+        ticket_act  = ventas_act / n_ent if n_ent else 0
+
+        ventas_ant  = df_ant[C_TOTAL].sum()    if C_TOTAL    in df_ant.columns and len(df_ant) else 0
+        gan_ant     = df_ant[C_GANANCIA].sum()  if C_GANANCIA in df_ant.columns and len(df_ant) else 0
+        n_ent_ant   = df_ant[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD',na=False).sum() if C_ESTATUS in df_ant.columns and len(df_ant) else 0
+
+        tasa_ent    = n_ent / n_tot * 100  if n_tot else 0
+        tasa_dev    = n_dev / n_tot * 100  if n_tot else 0
+        tasa_can    = n_can / n_tot * 100  if n_tot else 0
+        margen      = gan_act / ventas_act * 100 if ventas_act else 0
+
+        # ══════════════════════════════════════════
+        # 🫀 COMPONENTE 1 — SCORE DE SALUD
+        # ══════════════════════════════════════════
+
+        # Calcular score 0-100
+        score_ent   = min(tasa_ent / 80 * 35, 35)          # 35 pts: entrega >= 80%
+        score_mrgn  = min(margen / 30 * 25, 25)            # 25 pts: margen >= 30%
+        score_dev   = max(0, 20 - tasa_dev * 1.5)          # 20 pts: devolución < 10%
+        score_can   = max(0, 20 - tasa_can * 1.0)          # 20 pts: cancelación < 10%
+        score_total = int(score_ent + score_mrgn + score_dev + score_can)
+
+        if score_total >= 75:
+            score_color, score_label, score_emoji = "#10b981", "EXCELENTE", "🟢"
+        elif score_total >= 50:
+            score_color, score_label, score_emoji = "#f59e0b", "ATENCIÓN", "🟡"
+        else:
+            score_color, score_label, score_emoji = "#ef4444", "CRÍTICO", "🔴"
+
+        # Velocímetro
+        fig_gauge = go.Figure(go.Indicator(
+            mode="gauge+number+delta",
+            value=score_total,
+            number={'font':{'size':52,'color':score_color,'family':'Syne'},'suffix':''},
+            delta={'reference':70,'increasing':{'color':'#10b981'},'decreasing':{'color':'#ef4444'},
+                   'font':{'size':16}},
+            gauge={
+                'axis':{'range':[0,100],'tickwidth':1,'tickcolor':'#2d2b45',
+                        'tickvals':[0,25,50,75,100],'tickfont':{'color':'#8b8aaa','size':11}},
+                'bar':{'color':score_color,'thickness':0.22},
+                'bgcolor':'#1a1829',
+                'borderwidth':0,
+                'steps':[
+                    {'range':[0,33],  'color':'rgba(239,68,68,0.15)'},
+                    {'range':[33,66], 'color':'rgba(245,158,11,0.15)'},
+                    {'range':[66,100],'color':'rgba(16,185,129,0.15)'},
+                ],
+                'threshold':{'line':{'color':'white','width':3},'thickness':0.8,'value':score_total}
+            },
+            title={'text':f"<b>SALUD DEL NEGOCIO</b><br><span style='font-size:13px;color:{score_color}'>{score_emoji} {score_label}</span>",
+                   'font':{'color':'#f0ede8','size':14,'family':'Syne'}}
+        ))
+        fig_gauge.update_layout(
+            **PLOT_LAYOUT, height=280,
+            margin=dict(t=60,b=10,l=30,r=30)
+        )
+
+        # Layout: velocímetro a la izquierda, breakdown a la derecha
+        col_gauge, col_break = st.columns([1, 1.4])
+        with col_gauge:
+            st.plotly_chart(fig_gauge, use_container_width=True)
+
+        with col_break:
+            st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
+            st.markdown('<div style="font-family:Syne,sans-serif;font-weight:700;color:#8b8aaa;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Desglose del score</div>', unsafe_allow_html=True)
+
+            componentes_score = [
+                ("🚚 Tasa de Entrega",  score_ent,  35, f"{tasa_ent:.1f}%"),
+                ("💰 Margen Bruto",     score_mrgn, 25, f"{margen:.1f}%"),
+                ("↩️ Devoluciones",     score_dev,  20, f"{tasa_dev:.1f}%"),
+                ("❌ Cancelaciones",    score_can,  20, f"{tasa_can:.1f}%"),
+            ]
+            for lbl, pts, maximo, valor in componentes_score:
+                pct_comp = pts / maximo * 100 if maximo else 0
+                c_comp   = "#10b981" if pct_comp >= 75 else "#f59e0b" if pct_comp >= 40 else "#ef4444"
+                st.markdown(
+                    f'<div style="margin-bottom:10px">'
+                    f'<div style="display:flex;justify-content:space-between;font-size:0.77rem;margin-bottom:4px">'
+                    f'<span style="color:#d4d0ea">{lbl}</span>'
+                    f'<span style="color:{c_comp};font-weight:700">{pts:.0f}/{maximo} pts &nbsp;·&nbsp; {valor}</span>'
+                    f'</div>'
+                    f'<div style="background:#2d2b45;border-radius:100px;height:8px;overflow:hidden">'
+                    f'<div style="background:{c_comp};width:{pct_comp:.0f}%;height:100%;border-radius:100px"></div>'
+                    f'</div></div>',
+                    unsafe_allow_html=True
+                )
+
+        st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
+
+        # ══════════════════════════════════════════
+        # 🎯 COMPONENTE 3 — EL MARCADOR
+        # ══════════════════════════════════════════
+        st.markdown('<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:1rem;margin-bottom:14px">🎯 El Marcador — Este Mes vs Mes Anterior</div>', unsafe_allow_html=True)
+
+        def delta_card(titulo, val_act, val_ant, fmt_fn, icono, color_base):
+            delta     = val_act - val_ant
+            pct_delta = delta / val_ant * 100 if val_ant else 0
+            sube      = delta >= 0
+            # Para devoluciones/cancelaciones, subir es malo
+            es_malo   = "Dev" in titulo or "Can" in titulo
+            color_d   = ("#10b981" if sube else "#ef4444") if not es_malo else ("#ef4444" if sube else "#10b981")
+            flecha    = "▲" if sube else "▼"
+            return (
+                f'<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:14px;'
+                f'padding:16px 18px;border-top:3px solid {color_base};text-align:center">'
+                f'<div style="font-size:1.3rem;margin-bottom:4px">{icono}</div>'
+                f'<div style="font-size:0.68rem;color:#8b8aaa;font-weight:700;text-transform:uppercase;'
+                f'letter-spacing:0.06em;margin-bottom:8px">{titulo}</div>'
+                f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:1.15rem">{fmt_fn(val_act)}</div>'
+                f'<div style="margin-top:6px;font-size:0.8rem;color:{color_d};font-weight:700">'
+                f'{flecha} {abs(pct_delta):.1f}% vs mes ant.</div>'
+                f'<div style="font-size:0.72rem;color:#5a5878;margin-top:3px">Anterior: {fmt_fn(val_ant)}</div>'
+                f'</div>'
+            )
+
+        mc1,mc2,mc3,mc4,mc5 = st.columns(5)
+        with mc1: st.markdown(delta_card("Ventas", ventas_act, ventas_ant, fmt_money, "💰", "#6366f1"), unsafe_allow_html=True)
+        with mc2: st.markdown(delta_card("Ganancia", gan_act, gan_ant, fmt_money, "📈", "#10b981"), unsafe_allow_html=True)
+        with mc3: st.markdown(delta_card("Pedidos Entregados", n_ent, n_ent_ant, lambda x: f"{int(x):,}", "📦", "#06b6d4"), unsafe_allow_html=True)
+        tasa_dev_ant = df_ant[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI',na=False).sum()/len(df_ant)*100 if len(df_ant) else 0
+        tasa_can_ant = df_ant[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD',na=False).sum()/len(df_ant)*100 if len(df_ant) else 0
+        with mc4: st.markdown(delta_card("% Devolución", tasa_dev, tasa_dev_ant, lambda x: f"{x:.1f}%", "↩️", "#f59e0b"), unsafe_allow_html=True)
+        with mc5: st.markdown(delta_card("% Cancelación", tasa_can, tasa_can_ant, lambda x: f"{x:.1f}%", "❌", "#ef4444"), unsafe_allow_html=True)
+
+        st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
+
+        # ══════════════════════════════════════════
+        # 🌊 COMPONENTE 2 — RÍO DEL DINERO
+        # ══════════════════════════════════════════
+        st.markdown('<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:1rem;margin-bottom:14px">🌊 El Río del Dinero — ¿Dónde está tu plata?</div>', unsafe_allow_html=True)
+
+        ventas_bruta = df_act[C_TOTAL].sum() if C_TOTAL in df_act.columns else 0
+        costo_prod_r = df_act["PRECIO PROVEEDOR X CANTIDAD"].sum() if "PRECIO PROVEEDOR X CANTIDAD" in df_act.columns else 0
+        flete_ent_r  = df_act[df_act[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD',na=False)][C_FLETE].sum() if C_FLETE in df_act.columns and C_ESTATUS in df_act.columns else 0
+        flete_dev_r  = df_act[df_act[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI',na=False)][C_FLETE].sum() if C_FLETE in df_act.columns and C_ESTATUS in df_act.columns else 0
+        pauta_r      = sum(st.session_state.get('pauta_dict',{}).values())
+        nomina_r     = st.session_state.get('nomina_total', 0)
+        en_transito  = df_act[~df_act[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD|CANCELAD|DEVOLUCI',na=False)][C_TOTAL].sum() if C_TOTAL in df_act.columns and C_ESTATUS in df_act.columns else 0
+        dinero_tuyo  = gan_act - pauta_r - nomina_r
+
+        bloques_rio = [
+            ("💳 Ventas Brutas",      ventas_bruta, "#6366f1", "Total facturado este mes"),
+            ("📦 Costo Productos",    -costo_prod_r, "#ef4444", "Lo que le pagas al proveedor"),
+            ("🚚 Flete Entrega",      -flete_ent_r, "#f59e0b", "Costo envíos exitosos"),
+            ("↩️ Flete Devoluciones", -flete_dev_r, "#ef4444", "Pérdida en devoluciones"),
+            ("📣 Pauta",              -pauta_r,     "#8b5cf6", "Inversión publicitaria"),
+            ("👥 Nómina",             -nomina_r,    "#ec4899", "Equipo de trabajo"),
+            ("⏳ En Tránsito",         en_transito,  "#06b6d4", "Dinero amarrado en pedidos activos"),
+            ("✅ Es Tuyo",            dinero_tuyo,  "#10b981", "Lo que realmente queda en tu bolsillo"),
+        ]
+
+        rio_html = '<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;margin-bottom:8px">'
+        max_val = max(abs(b[1]) for b in bloques_rio if b[1] != 0) or 1
+        for nombre, valor, color, desc in bloques_rio:
+            altura = max(40, int(abs(valor) / max_val * 140))
+            positivo = valor >= 0
+            bg_color  = f"{color}22"
+            border_col= color
+            signo     = "+" if positivo else "-"
+            rio_html += (
+                f'<div style="flex:1;min-width:100px;display:flex;flex-direction:column;align-items:center;gap:6px">'
+                f'<div style="font-size:0.68rem;color:#8b8aaa;text-align:center;font-weight:600;'
+                f'text-transform:uppercase;letter-spacing:0.04em;line-height:1.3">{nombre}</div>'
+                f'<div style="width:100%;height:{altura}px;background:{bg_color};'
+                f'border:1.5px solid {border_col};border-radius:10px;'
+                f'display:flex;flex-direction:column;align-items:center;justify-content:center;'
+                f'transition:all 0.3s">'
+                f'<div style="font-family:Syne,sans-serif;font-weight:800;color:{color};font-size:0.78rem">'
+                f'{signo}{fmt_money(abs(valor))}</div>'
+                f'</div>'
+                f'<div style="font-size:0.62rem;color:#5a5878;text-align:center;line-height:1.3">{desc}</div>'
+                f'</div>'
+            )
+        rio_html += '</div>'
+        st.markdown(rio_html, unsafe_allow_html=True)
+
+        st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
+
+        # ══════════════════════════════════════════
+        # 🚨 COMPONENTE 5 — CENTRO DE MANDO
+        # ══════════════════════════════════════════
+        st.markdown('<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:1rem;margin-bottom:14px">🚨 Centro de Mando — Alertas Prioritarias</div>', unsafe_allow_html=True)
+
+        alertas_cmd = []
+        if tasa_dev > 15:
+            alertas_cmd.append({"nivel":1,"icono":"🔴","titulo":"Devoluciones críticas",
+                "msg":f"Tu tasa de devolución es {tasa_dev:.1f}% — el doble del umbral saludable (7%).",
+                "accion":"Revisa las ciudades con más devoluciones en el Mapa Colombia.", "color":"#ef4444"})
+        if tasa_can > 15:
+            alertas_cmd.append({"nivel":1,"icono":"🔴","titulo":"Cancelaciones elevadas",
+                "msg":f"{tasa_can:.1f}% de cancelación — revisa el proceso de confirmación.",
+                "accion":"Refuerza el equipo de confirmación y revisa tiempos de respuesta.", "color":"#ef4444"})
+        if margen < 15:
+            alertas_cmd.append({"nivel":1,"icono":"🔴","titulo":"Margen en riesgo",
+                "msg":f"Margen bruto de {margen:.1f}% — por debajo del mínimo recomendado (15%).",
+                "accion":"Revisa costos de producto y pauta en el módulo Finanzas.", "color":"#ef4444"})
+        if n_proc > n_tot * 0.4:
+            alertas_cmd.append({"nivel":2,"icono":"🟡","titulo":"Alta cartera en tránsito",
+                "msg":f"{n_proc:,} pedidos ({n_proc/n_tot*100:.0f}%) aún en proceso — capital inmovilizado.",
+                "accion":"Monitorea con las transportadoras los pedidos más antiguos.", "color":"#f59e0b"})
+        if tasa_ent < 60:
+            alertas_cmd.append({"nivel":2,"icono":"🟡","titulo":"Entrega por debajo del objetivo",
+                "msg":f"Solo {tasa_ent:.1f}% de entrega efectiva — el objetivo es ≥80%.",
+                "accion":"Identifica las transportadoras con menor rendimiento.", "color":"#f59e0b"})
+        if ventas_ant > 0 and ventas_act < ventas_ant * 0.85:
+            alertas_cmd.append({"nivel":2,"icono":"🟡","titulo":"Caída en ventas",
+                "msg":f"Ventas {(1-ventas_act/ventas_ant)*100:.0f}% por debajo del mes anterior.",
+                "accion":"Aumenta pauta o revisa el catálogo de productos.", "color":"#f59e0b"})
+        if score_total >= 75:
+            alertas_cmd.append({"nivel":3,"icono":"🟢","titulo":"Operación saludable",
+                "msg":f"Score de salud {score_total}/100 — el negocio opera dentro de los parámetros ideales.",
+                "accion":"Mantén el ritmo y analiza oportunidades de escalar.", "color":"#10b981"})
+
+        alertas_cmd.sort(key=lambda x: x['nivel'])
+
+        if alertas_cmd:
+            acols = st.columns(min(len(alertas_cmd), 3))
+            for idx, alerta in enumerate(alertas_cmd[:6]):
+                with acols[idx % 3]:
+                    st.markdown(
+                        f'<div style="background:#1a1829;border:1px solid {alerta["color"]}44;'
+                        f'border-left:4px solid {alerta["color"]};border-radius:12px;padding:16px;margin-bottom:12px">'
+                        f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+                        f'<span style="font-size:1.1rem">{alerta["icono"]}</span>'
+                        f'<span style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.85rem">{alerta["titulo"]}</span>'
+                        f'</div>'
+                        f'<div style="font-size:0.78rem;color:#b0aec8;margin-bottom:10px;line-height:1.5">{alerta["msg"]}</div>'
+                        f'<div style="background:{alerta["color"]}15;border-radius:8px;padding:8px 10px">'
+                        f'<span style="font-size:0.72rem;color:{alerta["color"]};font-weight:700">⚡ Acción: </span>'
+                        f'<span style="font-size:0.72rem;color:#d4d0ea">{alerta["accion"]}</span>'
+                        f'</div></div>',
+                        unsafe_allow_html=True
+                    )
+
+        st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
+
+        # ══════════════════════════════════════════
+        # 💬 COMPONENTE 6 — EL NEGOCIO TE HABLA
+        # ══════════════════════════════════════════
+        st.markdown('<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:1rem;margin-bottom:14px">💬 El Negocio te Habla</div>', unsafe_allow_html=True)
+
+        # Generar resumen dinámico en lenguaje natural
+        prod_top = ""
+        if C_PRODUCTO in df_act.columns and C_GANANCIA in df_act.columns:
+            top = df_act.groupby(C_PRODUCTO)[C_GANANCIA].sum().idxmax() if len(df_act) else ""
+            prod_top = f" Tu producto más rentable fue <b style='color:#c9a84c'>{str(top)[:40]}</b>." if top else ""
+
+        ciudad_prob = ""
+        if C_CIUDAD in df_act.columns and C_ESTATUS in df_act.columns:
+            devs_ciudad = df_act[df_act[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI',na=False)].groupby(C_CIUDAD).size()
+            if len(devs_ciudad):
+                c_prob = devs_ciudad.idxmax()
+                ciudad_prob = f" Las devoluciones se concentran principalmente en <b style='color:#f59e0b'>{c_prob}</b>."
+
+        delta_pct = (ventas_act - ventas_ant) / ventas_ant * 100 if ventas_ant else 0
+        comparativo = (
+            f"un <b style='color:#10b981'>+{delta_pct:.0f}%</b> más que el mes anterior" if delta_pct >= 0
+            else f"un <b style='color:#ef4444'>{delta_pct:.0f}%</b> menos que el mes anterior"
+        )
+
+        alertas_criticas = sum(1 for a in alertas_cmd if a['nivel'] == 1)
+        txt_alertas = (
+            f"Tienes <b style='color:#ef4444'>{alertas_criticas} alerta{'s' if alertas_criticas!=1 else ''} crítica{'s' if alertas_criticas!=1 else ''}</b> que requieren atención inmediata."
+            if alertas_criticas else
+            "<b style='color:#10b981'>No tienes alertas críticas</b> — la operación fluye bien."
+        )
+
+        resumen_txt = (
+            f"Este mes llevás <b style='color:#6366f1'>{n_tot:,} pedidos</b> procesados, "
+            f"de los cuales <b style='color:#10b981'>{n_ent:,} fueron entregados</b> — {comparativo}. "
+            f"Tu tasa de entrega es del <b style='color:#10b981'>{tasa_ent:.1f}%</b>"
+            + (f", sin embargo la devolución subió al <b style='color:#f59e0b'>{tasa_dev:.1f}%</b>.{ciudad_prob}" if tasa_dev > 7 else f" con devolución controlada en {tasa_dev:.1f}%.") +
+            f" {txt_alertas}{prod_top} "
+            f"El score de salud del negocio hoy es <b style='color:{score_color}'>{score_total}/100 — {score_label}</b>."
+        )
+
+        st.markdown(
+            f'<div style="background:linear-gradient(135deg,#1a1829,#1f1d35);'
+            f'border:1px solid #2d2b45;border-radius:16px;padding:24px 28px;'
+            f'border-left:4px solid {score_color};position:relative">'
+            f'<div style="font-size:2rem;position:absolute;top:18px;right:22px;opacity:0.15">🤖</div>'
+            f'<div style="font-size:0.68rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;'
+            f'letter-spacing:0.1em;margin-bottom:12px">📡 Resumen automático · {hoy.strftime("%d de %B %Y")}</div>'
+            f'<div style="font-size:0.9rem;color:#d4d0ea;line-height:1.8;font-family:Space Grotesk,sans-serif">'
+            f'{resumen_txt}</div>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+
+    # ── EVOLUCIÓN MENSUAL (mantenido como referencia interna) ──
+    elif "Evolución_Mensual_Legado" in nav and '_mes' in df.columns and C_TOTAL in df.columns:
         v_mes = df.groupby('_mes').agg(
             Ventas=(C_TOTAL, 'sum'),
             Ganancia=(C_GANANCIA, 'sum') if C_GANANCIA in df.columns else (C_TOTAL,'count'),
@@ -1584,34 +1902,354 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         # ══════════════════════════════════════════════════════
         # 📉 ANÁLISIS DE COSTOS
         # ══════════════════════════════════════════════════════
+        elif "Flujo de Caja" in fin_nav:
+            st.markdown('<div class="seccion-titulo">💧 Flujo de Caja del Período</div>', unsafe_allow_html=True)
+
+            # ── Calcular valores ──
+            costo_cancel_fc = df_fin[mask_can][C_FLETE].sum() if C_FLETE in df_fin.columns else 0
+            costo_dev_fc    = flete_dev
+            cartera_transito= df_fin[~mask_ent & ~mask_can & ~mask_dev][C_TOTAL].sum() if C_TOTAL in df_fin.columns else 0
+            entradas_total  = ingresos
+            salidas_prod    = costo_prod
+            salidas_flete   = flete_ent + flete_dev
+            salidas_pauta   = pauta_fin
+            salidas_nomina  = nomina_total
+            salidas_fijos   = sum(costos_fijos.values())
+            salidas_total   = salidas_prod + salidas_flete + salidas_pauta + salidas_nomina + salidas_fijos
+            saldo_disp      = entradas_total - salidas_total
+
+            # ── KPIs principales ──
+            fc1, fc2, fc3, fc4 = st.columns(4)
+            with fc1: st.markdown(kpi("green","💰 Entradas Totales",fmt_money(entradas_total),"Pedidos entregados"), unsafe_allow_html=True)
+            with fc2: st.markdown(kpi("red","💸 Salidas Totales",fmt_money(salidas_total),"Todos los costos"), unsafe_allow_html=True)
+            with fc3:
+                col_sd = "green" if saldo_disp >= 0 else "red"
+                st.markdown(kpi(col_sd,"🏦 Saldo Disponible",fmt_money(saldo_disp),"Entradas - Salidas"), unsafe_allow_html=True)
+            with fc4: st.markdown(kpi("gold","📦 Cartera en Tránsito",fmt_money(cartera_transito),"Pedidos aún no entregados"), unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # ── Tabla flujo detallada ──
+            hdr_fc = "background:#161525;padding:11px 16px;font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#8b8aaa;border-bottom:2px solid #2d2b45"
+            td_fc  = "padding:11px 16px;font-size:0.83rem;border-bottom:1px solid #1f1d35"
+
+            def fila_fc(concepto, valor, tipo, icono, sub=""):
+                color = "#10b981" if tipo == "entrada" else "#ef4444"
+                signo = "+" if tipo == "entrada" else "-"
+                bg    = "rgba(16,185,129,0.04)" if tipo=="entrada" else "rgba(239,68,68,0.04)"
+                sub_html = f'<div style="font-size:0.7rem;color:#5a5878;margin-top:2px">{sub}</div>' if sub else ""
+                return (
+                    f'<tr style="background:{bg}">'
+                    f'<td style="{td_fc};color:#d4d0ea">{icono} {concepto}{sub_html}</td>'
+                    f'<td style="{td_fc};text-align:center;font-size:0.75rem;color:#8b8aaa">'
+                    f'<span style="background:{"#10b98120" if tipo=="entrada" else "#ef444420"};'
+                    f'color:{color};padding:2px 8px;border-radius:20px;font-weight:700">'
+                    f'{"ENTRADA" if tipo=="entrada" else "SALIDA"}</span></td>'
+                    f'<td style="{td_fc};text-align:right;color:{color};font-weight:700;font-size:0.9rem">'
+                    f'{signo}{fmt_money(abs(valor))}</td>'
+                    f'<td style="{td_fc};text-align:right;color:#5a5878;font-size:0.75rem">'
+                    f'{"" if entradas_total==0 else f"{abs(valor)/entradas_total*100:.1f}% de ingresos"}</td>'
+                    f'</tr>'
+                )
+
+            tabla_fc = (
+                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #2d2b45;margin-bottom:20px">'
+                f'<table style="width:100%;border-collapse:collapse;background:#1a1829;font-family:Space Grotesk,sans-serif">'
+                f'<thead><tr>'
+                f'<th style="{hdr_fc};text-align:left;min-width:220px">Concepto</th>'
+                f'<th style="{hdr_fc};text-align:center">Tipo</th>'
+                f'<th style="{hdr_fc};text-align:right">Valor</th>'
+                f'<th style="{hdr_fc};text-align:right">% Ingreso</th>'
+                f'</tr></thead><tbody>'
+                + '<tr><td colspan="4" style="padding:6px 16px;background:#161525"><span style="font-size:0.68rem;color:#10b981;text-transform:uppercase;font-weight:800;letter-spacing:0.06em">▼ ENTRADAS</span></td></tr>'
+                + fila_fc("Pagos recibidos — Pedidos Entregados", ingresos, "entrada", "💳", f"{n_ent:,} pedidos × {fmt_money(ticket_prom)} ticket prom.")
+                + '<tr><td colspan="4" style="padding:6px 16px;background:#161525"><span style="font-size:0.68rem;color:#ef4444;text-transform:uppercase;font-weight:800;letter-spacing:0.06em">▼ SALIDAS</span></td></tr>'
+                + fila_fc("Costo de Productos Vendidos", salidas_prod, "salida", "📦", f"Costo unitario × {n_ent:,} unds")
+                + fila_fc("Fletes de Entrega", flete_ent, "salida", "🚚", f"{n_ent:,} pedidos entregados")
+                + fila_fc("Fletes de Devolución", flete_dev, "salida", "↩️", f"{n_dev:,} devoluciones")
+                + fila_fc("Pauta Publicitaria", pauta_fin, "salida", "📣", "Inversión en ads")
+                + fila_fc("Nómina", nomina_total, "salida", "👥", f"{len(st.session_state.get('empleados',[]))} colaboradores")
+                + fila_fc("Costos Fijos Adicionales", salidas_fijos, "salida", "🏢", "Arriendo, software, servicios")
+            )
+
+            # Fila saldo final
+            color_sf = "#10b981" if saldo_disp >= 0 else "#ef4444"
+            bg_sf    = "rgba(16,185,129,0.08)" if saldo_disp >= 0 else "rgba(239,68,68,0.08)"
+            tabla_fc += (
+                f'<tr style="background:{bg_sf};border-top:2px solid {color_sf}">'
+                f'<td style="{td_fc};color:{color_sf};font-weight:800;font-size:0.9rem">🏦 SALDO NETO DEL PERÍODO</td>'
+                f'<td></td>'
+                f'<td style="{td_fc};text-align:right;color:{color_sf};font-weight:800;font-size:1rem">{fmt_money(saldo_disp)}</td>'
+                f'<td style="{td_fc};text-align:right;color:{color_sf};font-size:0.8rem">{saldo_disp/entradas_total*100:.1f}% de ingresos</td>'
+                f'</tr>'
+                f'<tr style="background:rgba(201,168,76,0.06);border-top:1px dashed #c9a84c44">'
+                f'<td style="{td_fc};color:#c9a84c;font-weight:700">📦 Cartera en Tránsito (pedidos en proceso)</td>'
+                f'<td></td>'
+                f'<td style="{td_fc};text-align:right;color:#c9a84c;font-weight:700">{fmt_money(cartera_transito)}</td>'
+                f'<td style="{td_fc};text-align:right;color:#5a5878;font-size:0.75rem">Capital inmovilizado</td>'
+                f'</tr>'
+                f'</tbody></table></div>'
+            )
+            st.markdown(tabla_fc, unsafe_allow_html=True)
+
+            # ── Gráfica waterfall entradas vs salidas ──
+            cats_wf = ["Ingresos","Productos","Fletes","Pauta","Nómina","Fijos","Saldo Neto"]
+            vals_wf = [entradas_total, -salidas_prod, -salidas_flete, -salidas_pauta, -salidas_nomina, -salidas_fijos, saldo_disp]
+            medidas = ["absolute","relative","relative","relative","relative","relative","total"]
+            colores_wf = ["#10b981","#ef4444","#f59e0b","#06b6d4","#8b5cf6","#6366f1",
+                          "#10b981" if saldo_disp >= 0 else "#ef4444"]
+
+            fig_wf = go.Figure(go.Waterfall(
+                name="Flujo", orientation="v", measure=medidas,
+                x=cats_wf, y=vals_wf,
+                connector={"line":{"color":"#2d2b45","width":1}},
+                increasing={"marker":{"color":"#10b981"}},
+                decreasing={"marker":{"color":"#ef4444"}},
+                totals={"marker":{"color": "#10b981" if saldo_disp >= 0 else "#ef4444"}},
+                text=[fmt_money(abs(v)) for v in vals_wf],
+                textposition="outside"
+            ))
+            fig_wf.update_layout(**PLOT_LAYOUT, height=420,
+                                  title="Cascada de Flujo de Caja",
+                                  yaxis={**AXIS_STYLE, "tickprefix":"$"})
+            st.plotly_chart(fig_wf, use_container_width=True)
+
         elif "Costos" in fin_nav:
             st.markdown('<div class="seccion-titulo">📉 Análisis de Costos</div>', unsafe_allow_html=True)
 
             costo_x_ped   = (costo_prod + flete_ent) / n_ent if n_ent else 0
-            costo_dev_u   = (flete_dev / n_dev) if n_dev else 0
+            costo_dev_u   = flete_dev / n_dev if n_dev else 0
             pauta_x_ped   = pauta_fin / n_ent if n_ent else 0
             costo_cancel  = df_fin[mask_can][C_FLETE].sum() if C_FLETE in df_fin.columns else 0
+            cf_total_cos  = sum(costos_fijos.values())
 
-            k1,k2,k3,k4 = st.columns(4)
-            with k1: st.markdown(kpi("blue","💸 Costo por Pedido Entregado",fmt_money(costo_x_ped)), unsafe_allow_html=True)
-            with k2: st.markdown(kpi("red","🔁 Costo por Devolución",fmt_money(costo_dev_u)), unsafe_allow_html=True)
-            with k3: st.markdown(kpi("gold","📣 Pauta por Pedido Entregado",fmt_money(pauta_x_ped)), unsafe_allow_html=True)
-            with k4: st.markdown(kpi("purple","❌ Costo Total Cancelaciones",fmt_money(costo_cancel)), unsafe_allow_html=True)
+            # Datos de cada rubro
+            rubros = [
+                {"nombre":"Productos Vendidos",    "valor":costo_prod,    "icono":"📦","color":"#6366f1","x_ped": costo_prod/n_ent if n_ent else 0},
+                {"nombre":"Flete de Entrega",      "valor":flete_ent,     "icono":"🚚","color":"#06b6d4","x_ped": flete_ent/n_ent  if n_ent else 0},
+                {"nombre":"Flete de Devolución",   "valor":flete_dev,     "icono":"↩️","color":"#f59e0b","x_ped": flete_dev/n_dev  if n_dev else 0},
+                {"nombre":"Pauta Publicitaria",    "valor":pauta_fin,     "icono":"📣","color":"#8b5cf6","x_ped": pauta_fin/n_ent  if n_ent else 0},
+                {"nombre":"Nómina",                "valor":nomina_total,  "icono":"👥","color":"#ec4899","x_ped": nomina_total/n_ent if n_ent else 0},
+                {"nombre":"Costos Fijos",          "valor":cf_total_cos,  "icono":"🏢","color":"#84cc16","x_ped": cf_total_cos/n_ent if n_ent else 0},
+                {"nombre":"Cancelaciones (flete)", "valor":costo_cancel,  "icono":"❌","color":"#ef4444","x_ped": costo_cancel/n_can if n_can else 0},
+            ]
+            rubros = [r for r in rubros if r["valor"] > 0]
+            total_costos = sum(r["valor"] for r in rubros)
+
+            # ── Tarjetas grandes por rubro ──
+            cols_r = st.columns(len(rubros)) if len(rubros) <= 4 else st.columns(4)
+            for idx, r in enumerate(rubros):
+                pct_r = r["valor"] / total_costos * 100 if total_costos else 0
+                pct_ing = r["valor"] / ingresos * 100 if ingresos else 0
+                with cols_r[idx % 4]:
+                    st.markdown(
+                        f'<div style="background:#1a1829;border:1px solid {r["color"]}44;border-radius:14px;'
+                        f'padding:16px;margin-bottom:12px;border-top:3px solid {r["color"]}">'
+                        f'<div style="font-size:1.4rem;margin-bottom:6px">{r["icono"]}</div>'
+                        f'<div style="font-size:0.72rem;color:#8b8aaa;font-weight:700;text-transform:uppercase;'
+                        f'letter-spacing:0.06em;margin-bottom:6px">{r["nombre"]}</div>'
+                        f'<div style="font-family:Syne,sans-serif;font-weight:800;color:{r["color"]};font-size:1.05rem">'
+                        f'{fmt_money(r["valor"])}</div>'
+                        f'<div style="display:flex;gap:8px;margin-top:8px">'
+                        f'<span style="background:{r["color"]}18;color:{r["color"]};padding:2px 7px;'
+                        f'border-radius:20px;font-size:0.68rem;font-weight:700">{pct_r:.1f}% del costo</span>'
+                        f'<span style="background:#2d2b45;color:#8b8aaa;padding:2px 7px;'
+                        f'border-radius:20px;font-size:0.68rem">{pct_ing:.1f}% del ingreso</span>'
+                        f'</div>'
+                        f'<div style="margin-top:8px;font-size:0.72rem;color:#5a5878">'
+                        f'Por pedido: <b style="color:{r["color"]}">{fmt_money(r["x_ped"])}</b>'
+                        f'</div>'
+                        f'<div style="background:#2d2b45;border-radius:100px;height:5px;margin-top:10px;overflow:hidden">'
+                        f'<div style="background:{r["color"]};width:{min(pct_r,100):.0f}%;height:100%;border-radius:100px"></div>'
+                        f'</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
 
             st.markdown("<br>", unsafe_allow_html=True)
-            # Gráfica de torta costos
-            costos_labels = ["Productos","Flete Entrega","Flete Dev.","Pauta","Nómina","Fijos"]
-            costos_vals   = [costo_prod, flete_ent, flete_dev, pauta_fin, nomina_total, sum(costos_fijos.values())]
-            costos_vals   = [v for v in costos_vals if v > 0]
-            costos_labels = [l for l,v in zip(costos_labels,[costo_prod,flete_ent,flete_dev,pauta_fin,nomina_total,sum(costos_fijos.values())]) if v > 0]
 
-            if costos_vals:
-                fig_cos = px.pie(values=costos_vals, names=costos_labels, hole=0.45,
-                                 color_discrete_sequence=COLORES_ELEGANTES,
-                                 title='Distribución de Costos Totales')
-                fig_cos.update_layout(**PLOT_LAYOUT, height=380)
-                fig_cos.update_traces(textposition='inside', textinfo='percent+label')
-                st.plotly_chart(fig_cos, use_container_width=True)
+            # ── Tabla detallada con % ──
+            hdr_ct = "background:#161525;padding:10px 14px;font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#8b8aaa;border-bottom:2px solid #2d2b45"
+            td_ct  = "padding:10px 14px;font-size:0.82rem;border-bottom:1px solid #1f1d35"
+            tabla_ct = (
+                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #2d2b45;margin-bottom:20px">'
+                f'<table style="width:100%;border-collapse:collapse;background:#1a1829;font-family:Space Grotesk,sans-serif">'
+                f'<thead><tr>'
+                f'<th style="{hdr_ct};text-align:left">Rubro de Costo</th>'
+                f'<th style="{hdr_ct};text-align:right">Total</th>'
+                f'<th style="{hdr_ct};text-align:right">% del Costo Total</th>'
+                f'<th style="{hdr_ct};text-align:right">% sobre Ingresos</th>'
+                f'<th style="{hdr_ct};text-align:right">Costo por Pedido</th>'
+                f'</tr></thead><tbody>'
+            )
+            for r in rubros:
+                pct_r   = r["valor"] / total_costos * 100 if total_costos else 0
+                pct_ing = r["valor"] / ingresos * 100 if ingresos else 0
+                bar_w   = min(pct_r, 100)
+                tabla_ct += (
+                    f'<tr style="background:rgba(255,255,255,0.01)">'
+                    f'<td style="{td_ct};color:#d4d0ea;font-weight:600">{r["icono"]} {r["nombre"]}</td>'
+                    f'<td style="{td_ct};text-align:right;color:{r["color"]};font-weight:700">{fmt_money(r["valor"])}</td>'
+                    f'<td style="{td_ct};text-align:right">'
+                    f'<div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">'
+                    f'<div style="background:#2d2b45;border-radius:100px;height:6px;width:80px;overflow:hidden">'
+                    f'<div style="background:{r["color"]};width:{bar_w:.0f}%;height:100%;border-radius:100px"></div>'
+                    f'</div>'
+                    f'<span style="color:{r["color"]};font-weight:700;min-width:40px">{pct_r:.1f}%</span>'
+                    f'</div></td>'
+                    f'<td style="{td_ct};text-align:right;color:#8b8aaa">{pct_ing:.1f}%</td>'
+                    f'<td style="{td_ct};text-align:right;color:#f0ede8">{fmt_money(r["x_ped"])}</td>'
+                    f'</tr>'
+                )
+            tabla_ct += (
+                f'<tr style="background:rgba(201,168,76,0.07);border-top:2px solid #c9a84c">'
+                f'<td style="{td_ct};color:#c9a84c;font-weight:800">TOTAL COSTOS</td>'
+                f'<td style="{td_ct};text-align:right;color:#c9a84c;font-weight:800">{fmt_money(total_costos)}</td>'
+                f'<td style="{td_ct};text-align:right;color:#c9a84c;font-weight:800">100%</td>'
+                f'<td style="{td_ct};text-align:right;color:#c9a84c;font-weight:800">'
+                f'{total_costos/ingresos*100:.1f}%</td>'
+                f'<td style="{td_ct};text-align:right;color:#c9a84c;font-weight:800">'
+                f'{fmt_money(total_costos/n_ent if n_ent else 0)}</td>'
+                f'</tr>'
+                f'</tbody></table></div>'
+            )
+            st.markdown(tabla_ct, unsafe_allow_html=True)
+
+            # ── Gráfica cascada de costos ──
+            nombres_wf = ["Ingresos"] + [r["nombre"] for r in rubros] + ["Margen Neto"]
+            valores_wf = [ingresos] + [-r["valor"] for r in rubros] + [ingresos - total_costos]
+            medidas_wf = ["absolute"] + ["relative"]*len(rubros) + ["total"]
+            fig_cwf = go.Figure(go.Waterfall(
+                orientation="v", measure=medidas_wf,
+                x=nombres_wf, y=valores_wf,
+                connector={"line":{"color":"#2d2b45","width":1}},
+                increasing={"marker":{"color":"#10b981"}},
+                decreasing={"marker":{"color":"#ef4444"}},
+                totals={"marker":{"color":"#c9a84c"}},
+                text=[fmt_money(abs(v)) for v in valores_wf],
+                textposition="outside"
+            ))
+            fig_cwf.update_layout(**PLOT_LAYOUT, height=440,
+                                   title="Cascada — Cómo los Costos Reducen el Ingreso",
+                                   yaxis={**AXIS_STYLE, "tickprefix":"$"},
+                                   xaxis={**AXIS_STYLE})
+            st.plotly_chart(fig_cwf, use_container_width=True)
+
+            # ── Barras comparativas mes a mes ──
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown('<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.92rem;margin-bottom:14px">📊 Comparativo de Costos por Mes</div>', unsafe_allow_html=True)
+
+            C_CST_COMP = "PRECIO PROVEEDOR X CANTIDAD"
+            if '_mes' in df.columns:
+                meses_todos = sorted(df['_mes'].dropna().unique().tolist())
+
+                # Calcular costos por mes para todos los meses disponibles
+                filas_mes = []
+                for m in meses_todos:
+                    df_m_c = df[df['_mes'] == m]
+                    mask_e_m = df_m_c[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD',na=False) if C_ESTATUS in df_m_c.columns else pd.Series([True]*len(df_m_c))
+                    mask_d_m = df_m_c[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI',na=False) if C_ESTATUS in df_m_c.columns else pd.Series([False]*len(df_m_c))
+                    mask_c_m = df_m_c[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD',na=False) if C_ESTATUS in df_m_c.columns else pd.Series([False]*len(df_m_c))
+                    df_e_m = df_m_c[mask_e_m]
+                    n_e_m  = int(mask_e_m.sum())
+                    filas_mes.append({
+                        'Mes':       str(m),
+                        'Productos': df_e_m[C_CST_COMP].sum() if C_CST_COMP in df_e_m.columns else 0,
+                        'Flete Ent.':df_e_m[C_FLETE].sum()    if C_FLETE    in df_e_m.columns else 0,
+                        'Flete Dev.':df_m_c[mask_d_m][C_FLETE].sum() if C_FLETE in df_m_c.columns else 0,
+                        'Pauta':     sum(st.session_state.get('pauta_dict', {}).values()),
+                        'Nómina':    st.session_state.get('nomina_total', 0),
+                        'Ingresos':  df_e_m[C_TOTAL].sum() if C_TOTAL in df_e_m.columns else 0,
+                    })
+
+                df_mes_cos = pd.DataFrame(filas_mes)
+
+                if len(df_mes_cos) > 1:
+                    colores_barras = {
+                        'Productos':  '#6366f1',
+                        'Flete Ent.': '#06b6d4',
+                        'Flete Dev.': '#f59e0b',
+                        'Pauta':      '#8b5cf6',
+                        'Nómina':     '#ec4899',
+                    }
+                    fig_mes = go.Figure()
+                    for rubro, color in colores_barras.items():
+                        if rubro in df_mes_cos.columns and df_mes_cos[rubro].sum() > 0:
+                            fig_mes.add_trace(go.Bar(
+                                name=rubro,
+                                x=df_mes_cos['Mes'],
+                                y=df_mes_cos[rubro],
+                                marker_color=color,
+                                text=[fmt_money(v) for v in df_mes_cos[rubro]],
+                                textposition='inside',
+                                textfont={"size":10,"color":"white"},
+                            ))
+                    # Línea de ingresos como referencia
+                    fig_mes.add_trace(go.Scatter(
+                        name='Ingresos',
+                        x=df_mes_cos['Mes'],
+                        y=df_mes_cos['Ingresos'],
+                        mode='lines+markers',
+                        line={"color":"#10b981","width":2,"dash":"dot"},
+                        marker={"size":7,"color":"#10b981"},
+                    ))
+                    fig_mes.update_layout(
+                        **PLOT_LAYOUT,
+                        height=420,
+                        barmode='stack',
+                        title='Costos Apilados vs Ingresos — Mes a Mes',
+                        yaxis={**AXIS_STYLE, "tickprefix":"$"},
+                        xaxis=AXIS_STYLE,
+                        legend={"orientation":"h","y":-0.18,"x":0,"font":{"size":11,"color":"#8b8aaa"},"bgcolor":"rgba(0,0,0,0)"},
+                    )
+                    st.plotly_chart(fig_mes, use_container_width=True)
+
+                    # ── Mini tabla resumen mes a mes ──
+                    hdr_mm = "background:#161525;padding:9px 12px;font-size:0.67rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#8b8aaa;border-bottom:1px solid #2d2b45"
+                    td_mm  = "padding:9px 12px;font-size:0.79rem;border-bottom:1px solid #1f1d35"
+                    tabla_mm = (
+                        f'<div style="overflow-x:auto;border-radius:12px;border:1px solid #2d2b45">'
+                        f'<table style="width:100%;border-collapse:collapse;background:#1a1829;font-family:Space Grotesk,sans-serif">'
+                        f'<thead><tr>'
+                        f'<th style="{hdr_mm};text-align:left">Mes</th>'
+                        f'<th style="{hdr_mm};text-align:right;color:#6366f1">Productos</th>'
+                        f'<th style="{hdr_mm};text-align:right;color:#06b6d4">Flete Ent.</th>'
+                        f'<th style="{hdr_mm};text-align:right;color:#f59e0b">Flete Dev.</th>'
+                        f'<th style="{hdr_mm};text-align:right;color:#8b5cf6">Pauta</th>'
+                        f'<th style="{hdr_mm};text-align:right;color:#ec4899">Nómina</th>'
+                        f'<th style="{hdr_mm};text-align:right;color:#ef4444">Total Costos</th>'
+                        f'<th style="{hdr_mm};text-align:right;color:#10b981">Ingresos</th>'
+                        f'<th style="{hdr_mm};text-align:right;color:#c9a84c">% Costo/Ingr.</th>'
+                        f'</tr></thead><tbody>'
+                    )
+                    for _, row in df_mes_cos.iterrows():
+                        total_c = row['Productos'] + row['Flete Ent.'] + row['Flete Dev.'] + row['Pauta'] + row['Nómina']
+                        pct_ci  = total_c / row['Ingresos'] * 100 if row['Ingresos'] else 0
+                        c_pct   = "#10b981" if pct_ci < 70 else "#f59e0b" if pct_ci < 90 else "#ef4444"
+                        es_actual = row['Mes'] == mes_fin
+                        bg_row  = "rgba(201,168,76,0.07)" if es_actual else "rgba(255,255,255,0.01)"
+                        tabla_mm += (
+                            f'<tr style="background:{bg_row}">'
+                            f'<td style="{td_mm};color:{"#c9a84c" if es_actual else "#d4d0ea"};font-weight:{"800" if es_actual else "400"}'
+                            f'">{row["Mes"]}{"  ◀ actual" if es_actual else ""}</td>'
+                            f'<td style="{td_mm};text-align:right;color:#8b8aaa">{fmt_money(row["Productos"])}</td>'
+                            f'<td style="{td_mm};text-align:right;color:#8b8aaa">{fmt_money(row["Flete Ent."])}</td>'
+                            f'<td style="{td_mm};text-align:right;color:#8b8aaa">{fmt_money(row["Flete Dev."])}</td>'
+                            f'<td style="{td_mm};text-align:right;color:#8b8aaa">{fmt_money(row["Pauta"])}</td>'
+                            f'<td style="{td_mm};text-align:right;color:#8b8aaa">{fmt_money(row["Nómina"])}</td>'
+                            f'<td style="{td_mm};text-align:right;color:#ef4444;font-weight:700">{fmt_money(total_c)}</td>'
+                            f'<td style="{td_mm};text-align:right;color:#10b981;font-weight:700">{fmt_money(row["Ingresos"])}</td>'
+                            f'<td style="{td_mm};text-align:right;color:{c_pct};font-weight:800">{pct_ci:.1f}%</td>'
+                            f'</tr>'
+                        )
+                    tabla_mm += '</tbody></table></div>'
+                    st.markdown(tabla_mm, unsafe_allow_html=True)
+
+                else:
+                    st.info("Necesitas datos de al menos 2 meses para ver la comparativa mes a mes.")
+            else:
+                st.info("Sin datos de período disponibles para la comparativa.")
+
 
         # ══════════════════════════════════════════════════════
         # 🎯 KPIs FINANCIEROS
@@ -1619,19 +2257,20 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         elif "KPIs" in fin_nav:
             st.markdown('<div class="seccion-titulo">🎯 KPIs Financieros Clave</div>', unsafe_allow_html=True)
 
-            tasa_conv = n_ent / n_total * 100 if n_total else 0
-            ebitda    = utilidad_op
-            liquidez  = ingresos / cf_total if cf_total else 0
+            tasa_conv    = n_ent / n_total * 100 if n_total else 0
+            ebitda       = utilidad_op
+            liquidez     = ingresos / cf_total if cf_total else 0
+            roi_pauta_kp = (ganancia_dropi - pauta_fin) / pauta_fin * 100 if pauta_fin else 0
 
             kpis_fin = [
-                ("🎫 Ticket Promedio",           fmt_money(ticket_prom),         "Valor promedio por pedido entregado"),
-                ("👤 CAC — Costo de Adquisición", fmt_money(pauta_fin/n_ent if n_ent else 0), "Pauta ÷ pedidos entregados"),
-                ("💱 Tasa Conv. Financiera",      f"{tasa_conv:.1f}%",            "% pedidos que generan dinero real"),
-                ("📊 EBITDA",                     fmt_money(ebitda),              "Utilidad antes de impuestos"),
-                ("💧 Índice de Liquidez",          f"{liquidez:.2f}x",             "Ingresos ÷ Costos Fijos"),
-                ("📈 ROI de Pauta",               f"{roi_pauta:.1f}%",            "Retorno sobre inversión publicitaria"),
-                ("💵 Margen Bruto",               f"{margen_bruto_pct:.1f}%",     "Utilidad bruta sobre ingresos"),
-                ("💵 Margen Neto",                f"{margen_neto_pct:.1f}%",      "Utilidad neta sobre ingresos"),
+                ("🎫 Ticket Promedio",           fmt_money(ticket_prom),                       "Valor promedio por pedido entregado"),
+                ("👤 CAC — Costo de Adquisición", fmt_money(pauta_fin/n_ent if n_ent else 0),  "Pauta ÷ pedidos entregados"),
+                ("💱 Tasa Conv. Financiera",      f"{tasa_conv:.1f}%",                          "% pedidos que generan dinero real"),
+                ("📊 EBITDA",                     fmt_money(ebitda),                            "Utilidad antes de impuestos"),
+                ("💧 Índice de Liquidez",          f"{liquidez:.2f}x",                           "Ingresos ÷ Costos Fijos"),
+                ("📈 ROI de Pauta",               f"{roi_pauta_kp:.1f}%",                       "Retorno sobre inversión publicitaria"),
+                ("💵 Margen Bruto",               f"{margen_bruto_pct:.1f}%",                   "Utilidad bruta sobre ingresos"),
+                ("💵 Margen Neto",                f"{margen_neto_pct:.1f}%",                    "Utilidad neta sobre ingresos"),
             ]
 
             hdr_k = "background:#161525;padding:12px 16px;font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#8b8aaa;border-bottom:2px solid #2d2b45"
