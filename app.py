@@ -513,52 +513,117 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
     )
 
     # ══════════════════════════════════════════════════════════════════
-    # ⚡ FILTRO RÁPIDO DE DÍAS — acceso directo sin cambiar fechas
-    # Aplica sobre df para todos los módulos del panel actual
+    # 📅 FILTRO UNIVERSAL — Por Mes / Por Semana
+    # Estándar en todos los módulos del sistema
     # ══════════════════════════════════════════════════════════════════
-    from datetime import date, timedelta
-
     _hoy = pd.Timestamp.now().normalize()
-    _opciones_rapidas = {
-        "📅 Todo": None,
-        "🕐 Hoy":    0,
-        "📆 3 días": 2,
-        "📆 5 días": 4,
-        "📆 7 días": 6,
-        "📆 15 días": 14,
-        "📆 30 días": 29,
-    }
-    _col_filtro, _col_info_r = st.columns([3, 2])
-    with _col_filtro:
-        _sel_rapido = st.radio(
-            "⚡ Período rápido",
-            list(_opciones_rapidas.keys()),
-            horizontal=True,
-            label_visibility="collapsed",
-            key="filtro_rapido_dias"
-        )
-    _dias_atras = _opciones_rapidas[_sel_rapido]
 
-    if _dias_atras is not None and C_FECHA in df.columns:
-        _fecha_desde = _hoy - pd.Timedelta(days=_dias_atras)
-        df = df[df[C_FECHA] >= _fecha_desde].copy()
-        with _col_info_r:
-            st.markdown(
-                f'<div style="background:rgba(99,102,241,0.08);border:1px solid #6366f144;'
-                f'border-radius:8px;padding:6px 12px;font-size:0.72rem;color:#b0aec8;margin-top:2px">'
-                f'⚡ Filtrando desde <b style="color:#6366f1">'
-                f'{_fecha_desde.strftime("%d/%m/%Y")}</b> — '
-                f'<b style="color:#f0ede8">{len(df):,} pedidos</b> en el período</div>',
-                unsafe_allow_html=True
+    _uf_c1, _uf_c2, _uf_c3 = st.columns([1.2, 2, 2.5])
+
+    with _uf_c1:
+        _modo_periodo = st.radio(
+            "Período",
+            ["📅 Por Mes", "📆 Por Semana"],
+            horizontal=False,
+            label_visibility="collapsed",
+            key="filtro_universal_modo"
+        )
+
+    # ── Opciones según modo ──
+    if "Mes" in _modo_periodo:
+        if '_mes' in df.columns:
+            _meses_disp = sorted(df['_mes'].dropna().unique().tolist(), reverse=True)
+            _meses_lbl  = [pd.Period(_m, 'M').strftime('%B %Y').capitalize() for _m in _meses_disp]
+        else:
+            _meses_disp = [_hoy.to_period('M').strftime('%Y-%m')]
+            _meses_lbl  = [_hoy.strftime('%B %Y').capitalize()]
+
+        with _uf_c2:
+            _idx_mes_uf = st.selectbox(
+                "Mes",
+                range(len(_meses_disp)),
+                index=0,
+                format_func=lambda i: _meses_lbl[i],
+                key="filtro_universal_mes",
+                label_visibility="collapsed"
             )
-        # Recalcular totales globales con el nuevo df filtrado
-        total      = len(df)
-        entregados = contar('ENTREGADO') if total else 0
-        cancelados = contar('CANCELADO') if total else 0
-        devolucion = contar('DEVOLUCI')  if total else 0
-        tot_venta  = df[C_TOTAL].sum()    if C_TOTAL    in df.columns else 0
-        tot_gan    = df[C_GANANCIA].sum() if C_GANANCIA in df.columns else 0
-        pct_gan    = round(tot_gan/tot_venta*100,1) if tot_venta else 0
+        _periodo_sel = _meses_disp[_idx_mes_uf]
+        _periodo_lbl = _meses_lbl[_idx_mes_uf]
+
+        if '_mes' in df.columns:
+            df = df[df['_mes'] == _periodo_sel].copy()
+
+    else:  # Por Semana
+        if '_mes' in df.columns:
+            _meses_disp_s = sorted(df['_mes'].dropna().unique().tolist(), reverse=True)
+        else:
+            _meses_disp_s = [_hoy.to_period('M').strftime('%Y-%m')]
+
+        with _uf_c2:
+            _idx_mes_s = st.selectbox(
+                "Mes base",
+                range(len(_meses_disp_s)),
+                index=0,
+                format_func=lambda i: pd.Period(_meses_disp_s[i], 'M').strftime('%B %Y').capitalize(),
+                key="filtro_univ_mes_base",
+                label_visibility="collapsed"
+            )
+        _mes_base_s = _meses_disp_s[_idx_mes_s]
+
+        # Calcular semanas del mes seleccionado
+        _inicio_mes_s = pd.Period(_mes_base_s, 'M').start_time
+        _fin_mes_s    = pd.Period(_mes_base_s, 'M').end_time
+        _semanas_mes  = []
+        _cur = _inicio_mes_s
+        _sw_n = 1
+        while _cur <= _fin_mes_s:
+            _fin_sem = min(_cur + pd.Timedelta(days=6), _fin_mes_s)
+            _semanas_mes.append({
+                "lbl": f"Semana {_sw_n} ({_cur.strftime('%d/%m')} – {_fin_sem.strftime('%d/%m')})",
+                "ini": _cur,
+                "fin": _fin_sem
+            })
+            _cur = _fin_sem + pd.Timedelta(days=1)
+            _sw_n += 1
+
+        with _uf_c3:
+            _idx_sem = st.selectbox(
+                "Semana",
+                range(len(_semanas_mes)),
+                index=0,
+                format_func=lambda i: _semanas_mes[i]["lbl"],
+                key="filtro_universal_semana",
+                label_visibility="collapsed"
+            )
+        _sem_sel   = _semanas_mes[_idx_sem]
+        _periodo_lbl = _sem_sel["lbl"]
+
+        if C_FECHA in df.columns:
+            df = df[
+                (df[C_FECHA] >= _sem_sel["ini"]) &
+                (df[C_FECHA] <= _sem_sel["fin"])
+            ].copy()
+
+    # ── Badge informativo ──
+    _badge_col = "#6366f1" if "Mes" in _modo_periodo else "#8b5cf6"
+    _badge_ico = "📅" if "Mes" in _modo_periodo else "📆"
+    st.markdown(
+        f'<div style="background:{_badge_col}10;border:1px solid {_badge_col}33;'
+        f'border-radius:8px;padding:5px 12px;font-size:0.72rem;color:#b0aec8;'
+        f'display:inline-block;margin-bottom:4px">'
+        f'{_badge_ico} <b style="color:{_badge_col}">{_periodo_lbl}</b>'
+        f' &nbsp;·&nbsp; <b style="color:#f0ede8">{len(df):,} pedidos</b></div>',
+        unsafe_allow_html=True
+    )
+
+    # ── Recalcular totales globales con df filtrado ──
+    total      = len(df)
+    entregados = contar('ENTREGADO') if total else 0
+    cancelados = contar('CANCELADO') if total else 0
+    devolucion = contar('DEVOLUCI')  if total else 0
+    tot_venta  = df[C_TOTAL].sum()    if C_TOTAL    in df.columns else 0
+    tot_gan    = df[C_GANANCIA].sum() if C_GANANCIA in df.columns else 0
+    pct_gan    = round(tot_gan/tot_venta*100,1) if tot_venta else 0
 
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
