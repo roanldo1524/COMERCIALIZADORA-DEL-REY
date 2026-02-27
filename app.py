@@ -2474,7 +2474,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     ["muy_alto","alto","medio","bajo"],
                     default=["muy_alto","alto"],
                     key="cal_impacto_fil",
-                    format_option=lambda x: {"muy_alto":"🔥 Muy Alto","alto":"⚡ Alto","medio":"📊 Medio","bajo":"📉 Bajo"}.get(x,x)
+                    format_func=lambda x: {"muy_alto":"🔥 Muy Alto","alto":"⚡ Alto","medio":"📊 Medio","bajo":"📉 Bajo"}.get(x,x)
                 )
 
             # Eventos del mes seleccionado
@@ -2617,6 +2617,10 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             # ══════════════════════════════════════════════════════════════════
         elif "Recomendaciones" in mkt_nav:
             st.markdown('<div class="seccion-titulo">🤝 Recomendaciones IA de Marketing</div>', unsafe_allow_html=True)
+
+            # _mes_cal puede no estar definido si el usuario no pasó por Calendario
+            from datetime import date as _date_mkt
+            _mes_cal = _date_mkt.today().month
 
             # ── VENTA CRUZADA ──
             st.markdown(
