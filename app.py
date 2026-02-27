@@ -274,6 +274,7 @@ with st.sidebar:
         "📈  P&G",
         "💹  Finanzas",
         "🔮  Proyecciones",
+        "🧠  Asesor Financiero",
     ], label_visibility="collapsed")
 
     st.markdown('<div style="font-size:0.58rem;color:#3d3b55;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 4px;margin:14px 0 6px">OPERACIONAL</div>', unsafe_allow_html=True)
@@ -4552,6 +4553,418 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             st.download_button("⬇️ Exportar tabla a Excel", buf_cat.getvalue(),
                                file_name=f"catalogo_pauta_{mes_cat}.xlsx",
                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+
+# ═══════════════════════════════════════════════════════════
+# ██████  ASESOR FINANCIERO — MÓDULO INDEPENDIENTE
+# ═══════════════════════════════════════════════════════════
+elif "Asesor" in vista_activa:
+
+    op_nombre = operacion.split("  ")[1]
+    op_color  = op_info["color"]
+    st.markdown(
+        f'<div style="margin-bottom:28px;background:linear-gradient(135deg,#1a1829,#1f1d35);'
+        f'border:1px solid #2d2b45;border-radius:16px;padding:24px 28px">'
+        f'<div style="display:flex;align-items:center;gap:16px">'
+        f'<div style="width:4px;height:54px;background:{op_color};border-radius:4px"></div>'
+        f'<div>'
+        f'<div style="font-size:0.68rem;color:#5a5878;font-weight:700;letter-spacing:0.12em;'
+        f'text-transform:uppercase;margin-bottom:5px">{op_info["pais"]} &nbsp;·&nbsp; {op_info["moneda"]}</div>'
+        f'<div style="font-family:Syne,sans-serif;font-size:1.9rem;font-weight:800;'
+        f'color:#f0ede8;line-height:1;margin-bottom:6px">{op_nombre}</div>'
+        f'<div style="color:#8b8aaa;font-size:0.83rem">🧠 Asesor Financiero — Distribución inteligente del capital</div>'
+        f'</div></div></div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown('<div class="seccion-titulo">🧠 Asesor Financiero</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div style="font-size:0.78rem;color:#8b8aaa;margin-bottom:20px">'
+        'Ingresa el saldo disponible en tu cuenta bancaria y el asesor te dice exactamente cómo distribuirlo '
+        'según el estado real de tu negocio.</div>',
+        unsafe_allow_html=True
+    )
+
+    # ── CONTEXTO: leer métricas del negocio ──
+    _hoy_af = pd.Timestamp.now()
+    _mes_af = _hoy_af.to_period('M').strftime('%Y-%m')
+    _df_af  = df[df['_mes'] == _mes_af].copy() if '_mes' in df.columns else df.copy()
+    if len(_df_af) == 0:
+        _df_af = df.copy()
+
+    _mask_ent_af = _df_af[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD', na=False) if C_ESTATUS in _df_af.columns else pd.Series([True]*len(_df_af))
+    _mask_dev_af = _df_af[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI', na=False) if C_ESTATUS in _df_af.columns else pd.Series([False]*len(_df_af))
+    _mask_can_af = _df_af[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD', na=False) if C_ESTATUS in _df_af.columns else pd.Series([False]*len(_df_af))
+
+    _ing_af     = _df_af[_mask_ent_af][C_TOTAL].sum()   if C_TOTAL    in _df_af.columns else 0
+    _gan_af     = _df_af[_mask_ent_af][C_GANANCIA].sum() if C_GANANCIA in _df_af.columns else 0
+    _cst_af     = _df_af[_mask_ent_af]["PRECIO PROVEEDOR X CANTIDAD"].sum() if "PRECIO PROVEEDOR X CANTIDAD" in _df_af.columns else 0
+    _flete_e_af = _df_af[_mask_ent_af][C_FLETE].sum()   if C_FLETE    in _df_af.columns else 0
+    _flete_d_af = _df_af[_mask_dev_af][C_FLETE].sum()   if C_FLETE    in _df_af.columns else 0
+    _nom_af     = float(st.session_state.get('nomina_total', 0))
+    _pauta_af   = float(sum(st.session_state.get('pauta_dict', {}).values()))
+    _cf_af      = float(sum(st.session_state.get('costos_fijos', {}).values()))
+    _tasa_e_af  = len(_df_af[_mask_ent_af]) / len(_df_af) * 100 if len(_df_af) else 0
+    _tasa_d_af  = len(_df_af[_mask_dev_af]) / len(_df_af) * 100 if len(_df_af) else 0
+    _tasa_c_af  = len(_df_af[_mask_can_af]) / len(_df_af) * 100 if len(_df_af) else 0
+    _gastos_fijos_total = _nom_af + _cf_af
+    _gastos_op_total    = _gastos_fijos_total + _pauta_af + _flete_e_af + _flete_d_af
+    _ub_af      = _ing_af - _cst_af
+    _uop_af     = _ub_af - _gastos_op_total
+    _tasa_imp_af= float(st.session_state.get('diag_imp', 8.0)) * (1 - float(st.session_state.get('diag_iva_excl', 80.0)) / 100)
+    _imp_af     = _ing_af * (_tasa_imp_af / 100)
+    _util_af    = _uop_af - _imp_af
+    _margen_af  = _gan_af / _ing_af * 100 if _ing_af else 0
+
+    # ── INPUT: SALDO BANCARIO ──
+    af1, af2 = st.columns([2, 3])
+    with af1:
+        st.markdown(
+            '<div style="background:linear-gradient(135deg,#1a1829,#1f1d35);border:2px solid #6366f1;'
+            'border-radius:16px;padding:20px 22px;margin-bottom:16px">',
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:14px">'
+            '🏦 ¿Cuánto tienes en el banco hoy?</div>',
+            unsafe_allow_html=True
+        )
+        saldo_banco = st.number_input(
+            "Saldo bancario disponible (COP)",
+            min_value=0, max_value=10_000_000_000,
+            value=int(st.session_state.get('af_saldo', 0)),
+            step=1_000_000, format="%d",
+            key="af_saldo",
+            label_visibility="collapsed"
+        )
+        st.markdown(
+            f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#6366f1;font-size:1.6rem;'
+            f'margin-top:8px">{fmt_money(saldo_banco)}</div>',
+            unsafe_allow_html=True
+        )
+
+        _modo_asesor = st.radio(
+            "Perfil del negocio",
+            ["🌱 En crecimiento", "⚖️ Estable / Consolidando", "🔴 En dificultades"],
+            key="af_modo", label_visibility="visible"
+        )
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with af2:
+        # Resumen de salud del negocio
+        _score_color = "#10b981" if _tasa_e_af >= 65 and _tasa_d_af <= 12 else \
+                       "#f59e0b" if _tasa_e_af >= 50 else "#ef4444"
+        _salud_txt   = "Buena" if _score_color == "#10b981" else "Moderada" if _score_color == "#f59e0b" else "Crítica"
+        st.markdown(
+            f'<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:14px;padding:18px 20px">'
+            f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.82rem;margin-bottom:12px">'
+            f'📊 Contexto del negocio — Período actual</div>'
+            f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">',
+            unsafe_allow_html=True
+        )
+        ctx_items = [
+            ("💰 Ingresos mes",       fmt_money(_ing_af),           "#6366f1"),
+            ("📈 Utilidad neta est.", fmt_money(_util_af),           "#10b981" if _util_af >= 0 else "#ef4444"),
+            ("🚚 Tasa entrega",       f"{_tasa_e_af:.1f}%",          "#10b981" if _tasa_e_af >= 65 else "#ef4444"),
+            ("↩️ Tasa devolución",    f"{_tasa_d_af:.1f}%",          "#ef4444" if _tasa_d_af > 12 else "#10b981"),
+            ("🏢 Gastos fijos mes",   fmt_money(_gastos_fijos_total),"#f59e0b"),
+            ("🏥 Salud del negocio",  _salud_txt,                    _score_color),
+        ]
+        ctx_html = ""
+        for lbl_c, val_c, col_c in ctx_items:
+            ctx_html += (
+                f'<div style="background:#0f0e17;border-radius:10px;padding:10px 12px">'
+                f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:700;margin-bottom:3px">{lbl_c}</div>'
+                f'<div style="font-family:Syne,sans-serif;font-weight:800;color:{col_c};font-size:0.9rem">{val_c}</div>'
+                f'</div>'
+            )
+        st.markdown(ctx_html + '</div></div>', unsafe_allow_html=True)
+
+    if saldo_banco <= 0:
+        st.markdown(
+            '<div style="background:rgba(91,85,120,0.15);border:1px dashed #5a5878;border-radius:12px;'
+            'padding:20px;text-align:center;margin-top:10px">'
+            '<div style="font-size:1.8rem;margin-bottom:8px">💡</div>'
+            '<div style="color:#b0aec8;font-size:0.85rem">Ingresa el saldo bancario disponible arriba para ver la distribución recomendada</div>'
+            '</div>',
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── CALCULAR DISTRIBUCIÓN SEGÚN PERFIL ──
+        # Primero calcular necesidades reales del negocio
+        _reserva_min      = _gastos_fijos_total * 3           # 3 meses de costos fijos
+        _deuda_impuesto   = max(_imp_af, 0)                    # impuesto pendiente
+        _capital_pauta    = _pauta_af if _pauta_af > 0 else saldo_banco * 0.15
+        _capital_inventario = _ing_af * 0.35                  # ~35% ventas en inventario
+
+        # Perfil: ajusta proporciones
+        if "crecimiento" in _modo_asesor.lower():
+            _pct_dist = {
+                "operacion":  0.30,
+                "marketing":  0.25,
+                "reserva":    0.20,
+                "crecimiento":0.15,
+                "impuestos":  0.05,
+                "retiro":     0.05,
+            }
+        elif "dificultades" in _modo_asesor.lower():
+            _pct_dist = {
+                "operacion":  0.40,
+                "marketing":  0.10,
+                "reserva":    0.30,
+                "crecimiento":0.05,
+                "impuestos":  0.10,
+                "retiro":     0.05,
+            }
+        else:  # estable
+            _pct_dist = {
+                "operacion":  0.30,
+                "marketing":  0.20,
+                "reserva":    0.20,
+                "crecimiento":0.15,
+                "impuestos":  0.08,
+                "retiro":     0.07,
+            }
+
+        _bolsillos = {
+            "operacion":   {"lbl":"🔄 Operación",        "col":"#6366f1",  "pct":_pct_dist["operacion"],
+                            "desc":"Capital de trabajo, inventario, flete, proveedor",
+                            "meta": fmt_money(_capital_inventario + _flete_e_af),
+                            "meta_lbl":"necesitas para próximo mes"},
+            "marketing":   {"lbl":"📣 Marketing & Pauta","col":"#8b5cf6",  "pct":_pct_dist["marketing"],
+                            "desc":"Pauta pagada, creativos, herramientas",
+                            "meta": fmt_money(_capital_pauta),
+                            "meta_lbl":"pauta actual mensual"},
+            "reserva":     {"lbl":"🏦 Reserva Emergencia","col":"#06b6d4","pct":_pct_dist["reserva"],
+                            "desc":"Mínimo 3 meses de costos fijos cubiertos",
+                            "meta": fmt_money(_reserva_min),
+                            "meta_lbl":"objetivo de reserva (3 meses)"},
+            "crecimiento": {"lbl":"📈 Inversión & Crec.","col":"#10b981","pct":_pct_dist["crecimiento"],
+                            "desc":"Nuevos productos, equipos, expansión",
+                            "meta": "—",
+                            "meta_lbl":"según oportunidad"},
+            "impuestos":   {"lbl":"🏛️ Obligaciones Fisc.","col":"#c9a84c","pct":_pct_dist["impuestos"],
+                            "desc":"Impuestos, retenciones, obligaciones DIAN",
+                            "meta": fmt_money(_deuda_impuesto),
+                            "meta_lbl":"impuesto estimado este mes"},
+            "retiro":      {"lbl":"💼 Retiro / Utilidad","col":"#f97416","pct":_pct_dist["retiro"],
+                            "desc":"Tu rentabilidad personal como empresario",
+                            "meta": "—",
+                            "meta_lbl":"según utilidad neta real"},
+        }
+
+        # ── TÍTULO SECCIÓN ──
+        st.markdown(
+            f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.95rem;margin-bottom:4px">'
+            f'💡 Distribución recomendada para <span style="color:#6366f1">{fmt_money(saldo_banco)}</span></div>'
+            f'<div style="font-size:0.72rem;color:#8b8aaa;margin-bottom:16px">'
+            f'Perfil: {_modo_asesor} · Basado en métricas reales del período</div>',
+            unsafe_allow_html=True
+        )
+
+        # ── CARDS DE DISTRIBUCIÓN ──
+        _cols_af = st.columns(3)
+        for bi, (key_b, bol) in enumerate(_bolsillos.items()):
+            monto_b = saldo_banco * bol["pct"]
+            # Alerta si el monto es insuficiente vs la meta
+            try:
+                _meta_num = float(bol["meta"].replace("$","").replace(",","").replace("M","e6").replace("K","e3").replace("—","0"))
+            except:
+                _meta_num = 0
+            _suficiente = monto_b >= _meta_num if _meta_num > 0 else True
+            _alerta_col = bol["col"] if _suficiente else "#ef4444"
+            _alerta_ico = "✅" if _suficiente else "⚠️"
+
+            with _cols_af[bi % 3]:
+                st.markdown(
+                    f'<div style="background:linear-gradient(135deg,{bol["col"]}0d,#1a1829);'
+                    f'border:1.5px solid {_alerta_col}44;border-top:3px solid {_alerta_col};'
+                    f'border-radius:14px;padding:16px 14px;margin-bottom:12px">'
+
+                    f'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;'
+                    f'font-size:0.78rem;line-height:1.3">{bol["lbl"]}</div>'
+                    f'<span style="font-size:0.8rem">{_alerta_ico}</span>'
+                    f'</div>'
+
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:{bol["col"]};'
+                    f'font-size:1.35rem;margin-bottom:2px">{fmt_money(monto_b)}</div>'
+                    f'<div style="font-size:0.65rem;color:{bol["col"]};font-weight:700;margin-bottom:8px">'
+                    f'{bol["pct"]*100:.0f}% del saldo</div>'
+
+                    f'<div style="font-size:0.68rem;color:#5a5878;margin-bottom:8px;line-height:1.4">{bol["desc"]}</div>'
+
+                    f'<div style="background:#0f0e17;border-radius:8px;padding:6px 10px">'
+                    f'<div style="font-size:0.6rem;color:#5a5878">{bol["meta_lbl"]}</div>'
+                    f'<div style="font-size:0.72rem;color:{"#10b981" if _suficiente else "#ef4444"};font-weight:700">'
+                    f'{bol["meta"]}'
+                    f'{"  ✅ cubierto" if _suficiente and _meta_num > 0 else "  ⚠️ insuficiente" if not _suficiente else ""}'
+                    f'</div></div>'
+
+                    f'<div style="background:#2d2b45;border-radius:100px;height:5px;margin-top:10px;overflow:hidden">'
+                    f'<div style="background:{bol["col"]};width:{min(monto_b/_meta_num*100,100) if _meta_num else 100:.0f}%;'
+                    f'height:100%;border-radius:100px"></div></div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+        # ── BARRA VISUAL DE DISTRIBUCIÓN ──
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(
+            '<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.8rem;margin-bottom:8px">'
+            '📊 Vista proporcional del saldo</div>',
+            unsafe_allow_html=True
+        )
+        barra_seg = ""
+        for key_b, bol in _bolsillos.items():
+            barra_seg += (
+                f'<div style="flex:{bol["pct"]*100:.0f};background:{bol["col"]};height:28px;'
+                f'display:flex;align-items:center;justify-content:center;'
+                f'font-size:0.6rem;color:white;font-weight:800;white-space:nowrap;overflow:hidden;'
+                f'text-overflow:ellipsis;padding:0 4px">'
+                f'{bol["pct"]*100:.0f}%</div>'
+            )
+        st.markdown(
+            f'<div style="display:flex;border-radius:10px;overflow:hidden;border:1px solid #2d2b45;margin-bottom:6px">'
+            f'{barra_seg}</div>',
+            unsafe_allow_html=True
+        )
+        # Leyenda
+        leyenda_html = '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px">'
+        for key_b, bol in _bolsillos.items():
+            leyenda_html += (
+                f'<div style="display:flex;align-items:center;gap:4px">'
+                f'<div style="width:10px;height:10px;border-radius:3px;background:{bol["col"]}"></div>'
+                f'<span style="font-size:0.65rem;color:#8b8aaa">{bol["lbl"]}</span>'
+                f'</div>'
+            )
+        leyenda_html += '</div>'
+        st.markdown(leyenda_html, unsafe_allow_html=True)
+
+        # ── DIAGNÓSTICO PERSONALIZADO ──
+        st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
+        st.markdown(
+            '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:10px">'
+            '🤖 Diagnóstico del Asesor</div>',
+            unsafe_allow_html=True
+        )
+
+        _alertas_af = []
+        _consejos_af= []
+
+        # Reserva
+        _reserva_actual = saldo_banco * _pct_dist["reserva"]
+        if _reserva_actual < _reserva_min:
+            _alertas_af.append({
+                "ico":"🔴","txt":f"Tu reserva de emergencia ({fmt_money(_reserva_actual)}) está por debajo del mínimo recomendado "
+                                 f"de 3 meses de costos fijos ({fmt_money(_reserva_min)}). Ante cualquier caída en ventas, "
+                                 f"el negocio quedaría sin colchón operativo.",
+                "col":"#ef4444"
+            })
+        else:
+            _consejos_af.append(f"✅ Reserva cubierta — tienes {fmt_money(_reserva_actual)} disponibles para emergencias.")
+
+        # Pauta
+        _pauta_disponible = saldo_banco * _pct_dist["marketing"]
+        if _pauta_disponible < _capital_pauta * 0.8:
+            _alertas_af.append({
+                "ico":"🟡","txt":f"El capital destinado a pauta ({fmt_money(_pauta_disponible)}) es menor que tu pauta actual "
+                                 f"({fmt_money(_capital_pauta)}). Considera reducir temporalmente o buscar financiación.",
+                "col":"#f59e0b"
+            })
+        else:
+            _consejos_af.append(f"✅ Pauta cubierta — {fmt_money(_pauta_disponible)} disponibles para publicidad.")
+
+        # Impuestos
+        _imp_disponible = saldo_banco * _pct_dist["impuestos"]
+        if _imp_disponible < _deuda_impuesto * 0.9 and _deuda_impuesto > 0:
+            _alertas_af.append({
+                "ico":"🔴","txt":f"El capital reservado para impuestos ({fmt_money(_imp_disponible)}) podría ser insuficiente. "
+                                 f"El impuesto estimado del mes es {fmt_money(_deuda_impuesto)}.",
+                "col":"#ef4444"
+            })
+
+        # Saldo muy alto sin invertir
+        if saldo_banco > _ing_af * 3 and _ing_af > 0:
+            _consejos_af.append(
+                f"💡 Tienes un saldo muy alto vs tus ingresos mensuales. "
+                f"Considera invertir el excedente en inventario, nuevos productos o instrumentos financieros."
+            )
+
+        # Devolución alta
+        if _tasa_d_af > 12:
+            _consejos_af.append(
+                f"⚠️ Tu devolución está en {_tasa_d_af:.1f}% — cada peso destinado a marketing se pierde parcialmente. "
+                f"Prioriza reducir devoluciones antes de escalar la pauta."
+            )
+
+        # Utilidad negativa
+        if _util_af < 0:
+            _alertas_af.append({
+                "ico":"🔴","txt":f"El negocio tiene utilidad neta negativa este período ({fmt_money(_util_af)}). "
+                                 f"No hay excedente real para distribuir. Usa el saldo para cubrir operación y reserva únicamente.",
+                "col":"#ef4444"
+            })
+
+        # Render diagnóstico
+        for al in _alertas_af:
+            st.markdown(
+                f'<div style="background:{al["col"]}0d;border:1px solid {al["col"]}44;border-left:4px solid {al["col"]};'
+                f'border-radius:10px;padding:12px 16px;margin-bottom:8px">'
+                f'<span style="font-size:0.9rem">{al["ico"]}</span> '
+                f'<span style="font-size:0.78rem;color:#d4d0ea;line-height:1.6">{al["txt"]}</span>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+        if _consejos_af:
+            cons_html = '<div style="background:rgba(16,185,129,0.05);border:1px solid #10b98122;border-radius:10px;padding:14px 16px;margin-bottom:8px">'
+            for c in _consejos_af:
+                cons_html += f'<div style="font-size:0.78rem;color:#b0aec8;margin-bottom:6px;line-height:1.5">{c}</div>'
+            cons_html += '</div>'
+            st.markdown(cons_html, unsafe_allow_html=True)
+
+        # ── TABLA RESUMEN ──
+        st.markdown("<br>", unsafe_allow_html=True)
+        tbl_html = (
+            '<div style="overflow-x:auto;border-radius:12px;border:1px solid #2d2b45">'
+            '<table style="width:100%;border-collapse:collapse;background:#1a1829;font-family:Space Grotesk,sans-serif">'
+            '<thead><tr>'
+            '<th style="padding:10px 14px;text-align:left;color:#8b8aaa;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid #2d2b45">Bolsillo</th>'
+            '<th style="padding:10px 14px;text-align:right;color:#8b8aaa;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid #2d2b45">% Asignado</th>'
+            '<th style="padding:10px 14px;text-align:right;color:#8b8aaa;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid #2d2b45">Monto</th>'
+            '<th style="padding:10px 14px;text-align:right;color:#8b8aaa;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid #2d2b45">Meta / Referencia</th>'
+            '<th style="padding:10px 14px;text-align:center;color:#8b8aaa;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid #2d2b45">Estado</th>'
+            '</tr></thead><tbody>'
+        )
+        for key_b, bol in _bolsillos.items():
+            monto_b = saldo_banco * bol["pct"]
+            try:
+                _meta_n = float(bol["meta"].replace("$","").replace(",","").replace("M","e6").replace("K","e3").replace("—","0"))
+            except:
+                _meta_n = 0
+            _ok = monto_b >= _meta_n if _meta_n > 0 else True
+            _est = f'<span style="color:#10b981;font-weight:700">✅ OK</span>' if _ok else f'<span style="color:#ef4444;font-weight:700">⚠️ Bajo</span>'
+            tbl_html += (
+                f'<tr style="border-bottom:1px solid #2d2b45">'
+                f'<td style="padding:10px 14px;color:{bol["col"]};font-weight:700;font-size:0.82rem">{bol["lbl"]}</td>'
+                f'<td style="padding:10px 14px;text-align:right;color:#b0aec8;font-size:0.82rem">{bol["pct"]*100:.0f}%</td>'
+                f'<td style="padding:10px 14px;text-align:right;color:{bol["col"]};font-weight:800;font-size:0.82rem">{fmt_money(monto_b)}</td>'
+                f'<td style="padding:10px 14px;text-align:right;color:#5a5878;font-size:0.75rem">{bol["meta"]}</td>'
+                f'<td style="padding:10px 14px;text-align:center;font-size:0.78rem">{_est}</td>'
+                f'</tr>'
+            )
+        tbl_html += (
+            f'<tr style="background:rgba(99,102,241,0.07)">'
+            f'<td style="padding:10px 14px;color:#f0ede8;font-weight:800;font-size:0.85rem">TOTAL</td>'
+            f'<td style="padding:10px 14px;text-align:right;color:#f0ede8;font-weight:800">100%</td>'
+            f'<td style="padding:10px 14px;text-align:right;color:#6366f1;font-weight:900;font-size:0.9rem">{fmt_money(saldo_banco)}</td>'
+            f'<td colspan="2"></td>'
+            f'</tr>'
+            '</tbody></table></div>'
+        )
+        st.markdown(tbl_html, unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════
