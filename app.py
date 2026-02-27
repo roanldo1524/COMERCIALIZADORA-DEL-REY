@@ -2210,8 +2210,13 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
     # 📣 MARKETING — MAPA, PRODUCTO ESTRELLA, INSIGHTS
     # ══════════════════════════════════════════════════════════════════
     elif nav == "📣 Marketing":
-        mkt_nav = st.radio("", ["🗺️ Mapa de Calor", "⭐ Producto Estrella", "💡 Insights"],
-                           horizontal=True, label_visibility="collapsed", key="mkt_nav")
+        mkt_nav = st.radio("", [
+            "🗺️ Mapa de Calor",
+            "⭐ Producto Estrella",
+            "📅 Calendario Comercial",
+            "🤝 Recomendaciones IA",
+            "💡 Insights",
+        ], horizontal=True, label_visibility="collapsed", key="mkt_nav")
         st.markdown("<br>", unsafe_allow_html=True)
 
         # ── MAPA COLOMBIA ──
@@ -2337,6 +2342,515 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     st.plotly_chart(fig_prod, use_container_width=True)
 
 
+
+            # ══════════════════════════════════════════════════════════════════
+            # 📅 CALENDARIO COMERCIAL COLOMBIA
+            # ══════════════════════════════════════════════════════════════════
+        elif "Calendario" in mkt_nav:
+            st.markdown('<div class="seccion-titulo">📅 Calendario Comercial Colombia</div>', unsafe_allow_html=True)
+
+            from datetime import date
+            _hoy_cal = date.today()
+            _mes_cal = _hoy_cal.month
+            _año_cal = _hoy_cal.year
+
+            # ── BASE DE DATOS FECHAS ESPECIALES COLOMBIA ──
+            CALENDARIO_COL = [
+                # ── ENERO ──
+                {"mes":1,  "dia":1,   "nombre":"Año Nuevo",                    "ico":"🎆", "tipo":"festivo",   "impacto":"alto",
+                 "tip":"Campañas de propósitos / resoluciones. Productos de salud, bienestar, organización del hogar."},
+                {"mes":1,  "dia":6,   "nombre":"Día de Reyes",                  "ico":"👑", "tipo":"comercial",  "impacto":"medio",
+                 "tip":"Regiones con tradición fuerte (Caribe). Juguetes, dulces, ropa infantil."},
+                {"mes":1,  "dia":None,"nombre":"Enero — Regreso Escolar",       "ico":"🎒", "tipo":"temporada",  "impacto":"alto",
+                 "tip":"Útiles, maletas, uniformes, accesorios. Pico de compras las 2 primeras semanas."},
+
+                # ── FEBRERO ──
+                {"mes":2,  "dia":14,  "nombre":"Día del Amor y la Amistad",     "ico":"❤️", "tipo":"comercial",  "impacto":"muy_alto",
+                 "tip":"El pico más fuerte del año en regalos. Perfumes, accesorios, detalles, chocolates. Pauta desde feb 1."},
+                {"mes":2,  "dia":None,"nombre":"Carnavales (Barranquilla)",      "ico":"🎭", "tipo":"regional",   "impacto":"alto",
+                 "tip":"Región Caribe. Disfraces, accesorios de fiesta, bebidas. Pauta específica para Atlántico y Bolívar."},
+
+                # ── MARZO ──
+                {"mes":3,  "dia":8,   "nombre":"Día de la Mujer",               "ico":"👩", "tipo":"comercial",  "impacto":"alto",
+                 "tip":"Perfumes, joyería, ropa, bienestar. Campaña inclusiva de marca. Pauta 5 días antes."},
+                {"mes":3,  "dia":19,  "nombre":"Día del Padre (Colombia)",       "ico":"👨", "tipo":"comercial",  "impacto":"alto",
+                 "tip":"Ropa masculina, accesorios, gadgets, deportes. Pico de compra semana anterior."},
+                {"mes":3,  "dia":None,"nombre":"Semana Santa",                  "ico":"✝️", "tipo":"festivo",    "impacto":"medio",
+                 "tip":"Viajes internos, gastronomía, artículos de playa y piscina. Fechas variables cada año."},
+
+                # ── ABRIL ──
+                {"mes":4,  "dia":None,"nombre":"Feria de Cali / Ferias regionales","ico":"🎪","tipo":"regional","impacto":"medio",
+                 "tip":"Temporada de ferias y fiestas patronales en múltiples ciudades. Artículos de fiesta, moda."},
+
+                # ── MAYO ──
+                {"mes":5,  "dia":None,"nombre":"Día de la Madre",               "ico":"🌸", "tipo":"comercial",  "impacto":"muy_alto",
+                 "tip":"El evento más grande del año en e-commerce Colombia. Perfumes, flores, ropa, joyería, accesorios del hogar. Pauta desde abr 20."},
+                {"mes":5,  "dia":None,"nombre":"Temporada de lluvias (inicio)",  "ico":"🌧️", "tipo":"temporada",  "impacto":"medio",
+                 "tip":"Regiones Andina y Pacífica. Impermeables, botas, artículos del hogar para humedad."},
+
+                # ── JUNIO ──
+                {"mes":6,  "dia":None,"nombre":"Mitad de año — Liquidaciones",  "ico":"🏷️", "tipo":"comercial",  "impacto":"alto",
+                 "tip":"Temporada de descuentos y liquidaciones. Textiles, moda, electrodomésticos."},
+                {"mes":6,  "dia":None,"nombre":"Temporada de Vacaciones Escolares","ico":"🏖️","tipo":"temporada","impacto":"alto",
+                 "tip":"Juguetes, ropa de temporada, artículos de recreación y viaje."},
+
+                # ── JULIO ──
+                {"mes":7,  "dia":20,  "nombre":"Día de la Independencia",        "ico":"🇨🇴", "tipo":"festivo",   "impacto":"medio",
+                 "tip":"Productos con identidad nacional. Ferias y eventos locales. Consumo de moda y recreación."},
+                {"mes":7,  "dia":None,"nombre":"Temporada Baja — Mitad de año",  "ico":"📉", "tipo":"temporada",  "impacto":"bajo",
+                 "tip":"Mes de análisis y planificación. Optimiza catálogo y prepara pauta para agosto."},
+
+                # ── AGOSTO ──
+                {"mes":8,  "dia":7,   "nombre":"Batalla de Boyacá (festivo)",    "ico":"⚔️", "tipo":"festivo",    "impacto":"bajo",
+                 "tip":"Fin de semana largo. Turismo interno y consumo familiar."},
+                {"mes":8,  "dia":None,"nombre":"Feria de las Flores — Medellín", "ico":"🌺", "tipo":"regional",   "impacto":"alto",
+                 "tip":"Antioquia y zonas cafeteras. Flores, artesanías, turismo gastronómico."},
+                {"mes":8,  "dia":None,"nombre":"Regreso a clases (segundo semestre)","ico":"📚","tipo":"temporada","impacto":"alto",
+                 "tip":"Segunda ola de útiles escolares. Maletas, uniformes, tecnología educativa."},
+
+                # ── SEPTIEMBRE ──
+                {"mes":9,  "dia":None,"nombre":"Día del Amor y la Amistad",      "ico":"💛", "tipo":"comercial",  "impacto":"muy_alto",
+                 "tip":"Versión colombiana de San Valentín. Detalles, regalos, restaurantes. Pico de ventas semanas 2 y 3 de septiembre."},
+                {"mes":9,  "dia":None,"nombre":"Temporada Seca (Llanos/Caribe)", "ico":"☀️", "tipo":"regional",   "impacto":"medio",
+                 "tip":"Meta, Casanare, Costa Caribe. Productos para calor: ventiladores, ropa liviana, hidratación."},
+
+                # ── OCTUBRE ──
+                {"mes":10, "dia":12,  "nombre":"Día de la Raza (festivo)",       "ico":"🌎", "tipo":"festivo",    "impacto":"bajo",
+                 "tip":"Puente festivo. Buena ventana para campañas de fin de semana."},
+                {"mes":10, "dia":31,  "nombre":"Halloween",                      "ico":"🎃", "tipo":"comercial",  "impacto":"alto",
+                 "tip":"Disfraces, decoración, dulces, artículos de fiesta. Mercado joven y familiar. Pauta desde oct 15."},
+                {"mes":10, "dia":None,"nombre":"Temporada pre-Noviembre",        "ico":"⚡", "tipo":"comercial",  "impacto":"alto",
+                 "tip":"Anticipa Black Friday. Calienta audiencias, crea listas de deseos, genera expectativa."},
+
+                # ── NOVIEMBRE ──
+                {"mes":11, "dia":None,"nombre":"Black Friday / Cyber Monday",    "ico":"🖤", "tipo":"comercial",  "impacto":"muy_alto",
+                 "tip":"La semana de mayor conversión del año. Descuentos, combos, flash sales. Pauta 10x desde nov 18."},
+                {"mes":11, "dia":1,   "nombre":"Día de Todos los Santos",        "ico":"🕯️", "tipo":"festivo",    "impacto":"bajo",
+                 "tip":"Festivo. Actividad reducida. Aprovecha para preparar creativos de Black Friday."},
+                {"mes":11, "dia":None,"nombre":"Inicio Temporada Navidad",       "ico":"🎄", "tipo":"temporada",  "impacto":"muy_alto",
+                 "tip":"Desde nov 15 empieza la intención de compra navideña. Activa colecciones, combos regalo."},
+
+                # ── DICIEMBRE ──
+                {"mes":12, "dia":None,"nombre":"Temporada Navidad",              "ico":"🎁", "tipo":"comercial",  "impacto":"muy_alto",
+                 "tip":"El mes de mayor volumen del año. Regalos, decoración, ropa especial, electrodomésticos. Pauta máxima dic 1-23."},
+                {"mes":12, "dia":8,   "nombre":"Día de las Velitas",             "ico":"🕯️", "tipo":"cultural",   "impacto":"medio",
+                 "tip":"Inicio de la temporada navideña colombiana. Velas, luces, decoración festiva."},
+                {"mes":12, "dia":16,  "nombre":"Inicio Novenas de Aguinaldo",    "ico":"🎶", "tipo":"cultural",   "impacto":"medio",
+                 "tip":"9 días de reuniones familiares. Regalos, comidas, decoración, productos de mesa."},
+                {"mes":12, "dia":25,  "nombre":"Navidad",                        "ico":"⛪", "tipo":"festivo",    "impacto":"muy_alto",
+                 "tip":"Pico máximo. Ultimo jalón de ventas dic 20-24. Post-Navidad: cambios y liquidaciones."},
+                {"mes":12, "dia":31,  "nombre":"Fin de Año",                     "ico":"🥂", "tipo":"festivo",    "impacto":"alto",
+                 "tip":"Ropa de fiesta, accesorios, bebidas, artículos de celebración. Campaña propósitos nuevo año."},
+            ]
+
+            # ── RECOMENDACIONES POR REGIÓN ──
+            RECOMENDACIONES_REGION = {
+                "CUNDINAMARCA": {"temp": "Fría", "prod": ["Buzos","Chaquetas","Thermos","Cobijas"], "pico": "Ago-Nov"},
+                "BOGOTA":       {"temp": "Fría", "prod": ["Buzos","Chaquetas","Thermos","Cobijas"], "pico": "Ago-Nov"},
+                "ANTIOQUIA":    {"temp": "Templada", "prod": ["Ropa casual","Accesorios","Flores","Artesanías"], "pico": "Ago (Feria de Flores)"},
+                "ATLANTICO":    {"temp": "Caliente", "prod": ["Ropa liviana","Ventiladores","Hidratación","Disfraces"], "pico": "Feb (Carnavales)"},
+                "BOLIVAR":      {"temp": "Caliente", "prod": ["Ropa playera","Artículos de playa","Hidratación"], "pico": "Dic-Ene"},
+                "VALLE DEL CAUCA": {"temp": "Templada", "prod": ["Moda","Accesorios","Artículos deportivos"], "pico": "Jun-Jul"},
+                "SANTANDER":    {"temp": "Variable", "prod": ["Ropa todo clima","Artesanías","Gastronomía local"], "pico": "Jun-Jul"},
+                "META":         {"temp": "Caliente/Seca", "prod": ["Ropa liviana","Protección solar","Calzado outdoor"], "pico": "Jul-Sep (sequía)"},
+                "NARIÑO":       {"temp": "Fría", "prod": ["Artesanías","Lana","Ropa de abrigo"], "pico": "Sep-Dic"},
+                "HUILA":        {"temp": "Templada", "prod": ["Café","Artesanías","Ropa casual"], "pico": "Jun (Festival Folclórico)"},
+            }
+
+            # ── SELECTOR DE MES ──
+            cal_c1, cal_c2 = st.columns([1, 2])
+            with cal_c1:
+                _mes_sel_cal = st.selectbox(
+                    "📅 Ver mes",
+                    list(range(1, 13)),
+                    index=_mes_cal - 1,
+                    format_func=lambda m: ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                                           "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"][m-1],
+                    key="cal_mes_sel"
+                )
+            with cal_c2:
+                _col_impacto_fil = st.multiselect(
+                    "Filtrar por impacto",
+                    ["muy_alto","alto","medio","bajo"],
+                    default=["muy_alto","alto"],
+                    key="cal_impacto_fil",
+                    format_option=lambda x: {"muy_alto":"🔥 Muy Alto","alto":"⚡ Alto","medio":"📊 Medio","bajo":"📉 Bajo"}.get(x,x)
+                )
+
+            # Eventos del mes seleccionado
+            eventos_mes = [e for e in CALENDARIO_COL
+                           if e["mes"] == _mes_sel_cal and e["impacto"] in _col_impacto_fil]
+
+            # ── PRÓXIMOS EVENTOS (los siguientes 60 días) ──
+            import calendar as _cal_mod
+            _proximos = []
+            for e in CALENDARIO_COL:
+                if e["dia"]:
+                    try:
+                        fe = date(_año_cal, e["mes"], e["dia"])
+                        dias_faltan = (fe - _hoy_cal).days
+                        if 0 <= dias_faltan <= 60:
+                            _proximos.append({**e, "dias_faltan": dias_faltan, "fecha": fe})
+                    except:
+                        pass
+            _proximos.sort(key=lambda x: x["dias_faltan"])
+
+            if _proximos:
+                st.markdown(
+                    '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:10px">'
+                    '⏰ Próximas fechas clave — próximos 60 días</div>',
+                    unsafe_allow_html=True
+                )
+                prox_cols = st.columns(min(len(_proximos), 4))
+                for pi, pe in enumerate(_proximos[:4]):
+                    urgencia = "#ef4444" if pe["dias_faltan"] <= 7 else "#f59e0b" if pe["dias_faltan"] <= 21 else "#6366f1"
+                    with prox_cols[pi]:
+                        st.markdown(
+                            f'<div style="background:{urgencia}10;border:1.5px solid {urgencia}55;'
+                            f'border-top:3px solid {urgencia};border-radius:12px;padding:14px;text-align:center">'
+                            f'<div style="font-size:1.5rem;margin-bottom:4px">{pe["ico"]}</div>'
+                            f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.75rem;margin-bottom:4px">{pe["nombre"]}</div>'
+                            f'<div style="font-family:Syne,sans-serif;font-weight:900;color:{urgencia};font-size:1.3rem">{pe["dias_faltan"]}</div>'
+                            f'<div style="font-size:0.62rem;color:#8b8aaa">días para preparar</div>'
+                            f'<div style="font-size:0.6rem;color:#5a5878;margin-top:4px">{pe["fecha"].strftime("%d/%m/%Y")}</div>'
+                            f'</div>',
+                            unsafe_allow_html=True
+                        )
+                st.markdown("<br>", unsafe_allow_html=True)
+
+            # ── VISTA MES COMPLETO ──
+            mes_nombres = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                           "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
+            st.markdown(
+                f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.95rem;margin-bottom:12px">'
+                f'📆 {mes_nombres[_mes_sel_cal-1]} — Eventos y Estrategias</div>',
+                unsafe_allow_html=True
+            )
+
+            col_imp_colors = {
+                "muy_alto": ("#ef4444", "🔥 Muy Alto"),
+                "alto":     ("#f59e0b", "⚡ Alto"),
+                "medio":    ("#06b6d4", "📊 Medio"),
+                "bajo":     ("#5a5878", "📉 Bajo"),
+            }
+            col_tipo_colors = {
+                "festivo":   "#8b5cf6",
+                "comercial": "#10b981",
+                "temporada": "#6366f1",
+                "regional":  "#f97416",
+                "cultural":  "#c9a84c",
+            }
+
+            if not eventos_mes:
+                st.info(f"No hay eventos de impacto seleccionado para {mes_nombres[_mes_sel_cal-1]}. Amplía los filtros de impacto.")
+            else:
+                for ev in eventos_mes:
+                    c_imp, lbl_imp = col_imp_colors.get(ev["impacto"], ("#5a5878","📉"))
+                    c_tipo = col_tipo_colors.get(ev["tipo"], "#8b8aaa")
+                    dia_txt = f"Día {ev['dia']}" if ev["dia"] else "Mes completo"
+                    st.markdown(
+                        f'<div style="background:#1a1829;border:1px solid {c_imp}33;'
+                        f'border-left:4px solid {c_imp};border-radius:12px;padding:16px 18px;margin-bottom:10px">'
+                        f'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'
+                        f'<div style="display:flex;align-items:center;gap:10px">'
+                        f'<span style="font-size:1.4rem">{ev["ico"]}</span>'
+                        f'<div>'
+                        f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem">{ev["nombre"]}</div>'
+                        f'<div style="font-size:0.63rem;color:#5a5878;margin-top:2px">{dia_txt} de {mes_nombres[_mes_sel_cal-1]}</div>'
+                        f'</div></div>'
+                        f'<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">'
+                        f'<span style="background:{c_imp}18;color:{c_imp};border:1px solid {c_imp}44;'
+                        f'border-radius:20px;padding:2px 9px;font-size:0.62rem;font-weight:800">{lbl_imp}</span>'
+                        f'<span style="background:{c_tipo}18;color:{c_tipo};border:1px solid {c_tipo}44;'
+                        f'border-radius:20px;padding:2px 9px;font-size:0.62rem;font-weight:800">{ev["tipo"].capitalize()}</span>'
+                        f'</div></div>'
+                        f'<div style="font-size:0.78rem;color:#b0aec8;line-height:1.6">'
+                        f'💡 {ev["tip"]}'
+                        f'</div></div>',
+                        unsafe_allow_html=True
+                    )
+
+            # ── RECOMENDACIONES POR REGIÓN ACTIVA ──
+            st.markdown("<hr style='border-color:#2d2b45;margin:20px 0'>", unsafe_allow_html=True)
+            st.markdown(
+                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:12px">'
+                '🗺️ Recomendaciones por Región — productos según tu zona de venta</div>',
+                unsafe_allow_html=True
+            )
+
+            # Detectar regiones activas en los datos
+            regiones_activas = []
+            if C_DEPTO in df.columns:
+                tops_dep = df[C_DEPTO].astype(str).str.upper().value_counts().head(6)
+                for dep in tops_dep.index:
+                    for key_r, info_r in RECOMENDACIONES_REGION.items():
+                        if key_r in dep or dep in key_r:
+                            regiones_activas.append({"dep": dep, "info": info_r, "n": tops_dep[dep]})
+                            break
+
+            if regiones_activas:
+                reg_cols = st.columns(min(len(regiones_activas), 3))
+                for ri, reg in enumerate(regiones_activas[:6]):
+                    with reg_cols[ri % 3]:
+                        prods_html = " · ".join([
+                            f'<span style="background:#6366f118;color:#6366f1;border:1px solid #6366f133;'
+                            f'border-radius:6px;padding:1px 7px;font-size:0.62rem">{p}</span>'
+                            for p in reg["info"]["prod"]
+                        ])
+                        st.markdown(
+                            f'<div style="background:#1a1829;border:1px solid #2d2b45;'
+                            f'border-radius:12px;padding:14px;margin-bottom:10px">'
+                            f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.8rem;margin-bottom:4px">'
+                            f'📍 {reg["dep"].title()}</div>'
+                            f'<div style="font-size:0.62rem;color:#5a5878;margin-bottom:8px">'
+                            f'{reg["n"]:,} pedidos · Clima: {reg["info"]["temp"]} · Pico: {reg["info"]["pico"]}</div>'
+                            f'<div style="display:flex;flex-wrap:wrap;gap:4px">{prods_html}</div>'
+                            f'</div>',
+                            unsafe_allow_html=True
+                        )
+            else:
+                st.info("📋 Agrega una columna DEPARTAMENTO en tu Excel para ver recomendaciones por región.")
+
+            # ══════════════════════════════════════════════════════════════════
+            # 🤝 RECOMENDACIONES IA
+            # Venta cruzada · Promociones · Packs
+            # ══════════════════════════════════════════════════════════════════
+        elif "Recomendaciones" in mkt_nav:
+            st.markdown('<div class="seccion-titulo">🤝 Recomendaciones IA de Marketing</div>', unsafe_allow_html=True)
+
+            # ── VENTA CRUZADA ──
+            st.markdown(
+                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.9rem;margin-bottom:4px">'
+                '🔀 Venta Cruzada — productos que se compran juntos</div>'
+                '<div style="font-size:0.72rem;color:#8b8aaa;margin-bottom:14px">'
+                'Basado en clientes que compraron más de un producto en el período</div>',
+                unsafe_allow_html=True
+            )
+
+            cruces = []
+            if C_PRODUCTO in df.columns:
+                # Agrupar por cliente si existe columna de cliente/teléfono
+                C_CLI = next((c for c in df.columns if any(x in c.upper() for x in ["TELEFONO","CELULAR","CLIENTE","CUSTOMER","PHONE","CEL"])), None)
+                if C_CLI:
+                    df_multi = df.groupby(C_CLI)[C_PRODUCTO].apply(lambda x: list(x.astype(str).unique())).reset_index()
+                    df_multi = df_multi[df_multi[C_PRODUCTO].apply(len) > 1]
+                    pares = {}
+                    for prods in df_multi[C_PRODUCTO]:
+                        prods = sorted(set(prods))[:5]
+                        for i in range(len(prods)):
+                            for j in range(i+1, len(prods)):
+                                key_p = (prods[i], prods[j])
+                                pares[key_p] = pares.get(key_p, 0) + 1
+                    top_pares = sorted(pares.items(), key=lambda x: x[1], reverse=True)[:8]
+                    cruces = [{"prod_a": p[0][0], "prod_b": p[0][1], "n": p[1]} for p in top_pares]
+
+            if cruces:
+                st.markdown(
+                    '<div style="font-size:0.72rem;color:#10b981;margin-bottom:10px">'
+                    f'✅ Se encontraron {len(cruces)} pares de productos comprados juntos frecuentemente</div>',
+                    unsafe_allow_html=True
+                )
+                for cr in cruces:
+                    rentabilidad = ""
+                    if C_GANANCIA in df.columns and C_PRODUCTO in df.columns:
+                        g_a = df[df[C_PRODUCTO].astype(str)==cr["prod_a"]][C_GANANCIA].mean()
+                        g_b = df[df[C_PRODUCTO].astype(str)==cr["prod_b"]][C_GANANCIA].mean()
+                        rentabilidad = f" · Ganancia combinada est.: {fmt_money(g_a + g_b)}/par"
+                    st.markdown(
+                        f'<div style="background:#1a1829;border:1px solid #6366f133;border-radius:10px;'
+                        f'padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px">'
+                        f'<div style="background:#6366f118;border-radius:8px;padding:8px 10px;'
+                        f'font-size:0.78rem;color:#6366f1;font-weight:700;min-width:80px;text-align:center">'
+                        f'{cr["n"]} veces</div>'
+                        f'<div style="flex:1">'
+                        f'<span style="font-size:0.8rem;color:#f0ede8;font-weight:600">{str(cr["prod_a"])[:40]}</span>'
+                        f'<span style="color:#c9a84c;font-size:0.9rem;margin:0 8px">+</span>'
+                        f'<span style="font-size:0.8rem;color:#f0ede8;font-weight:600">{str(cr["prod_b"])[:40]}</span>'
+                        f'<div style="font-size:0.65rem;color:#5a5878;margin-top:2px">'
+                        f'💡 Crea un pack combo con descuento del 10-15%{rentabilidad}</div>'
+                        f'</div></div>',
+                        unsafe_allow_html=True
+                    )
+            else:
+                st.markdown(
+                    '<div style="background:rgba(99,102,241,0.07);border:1px dashed #6366f144;border-radius:10px;'
+                    'padding:14px;font-size:0.78rem;color:#8b8aaa">'
+                    '📋 Para activar análisis de venta cruzada, tu Excel necesita una columna de '
+                    '<b style="color:#d4d0ea">teléfono o ID de cliente</b> que permita identificar '
+                    'compras repetidas del mismo cliente. '
+                    'Mientras tanto, aquí van sugerencias estratégicas basadas en patrones generales.</div>',
+                    unsafe_allow_html=True
+                )
+                # Sugerencias basadas en datos disponibles
+                if C_PRODUCTO in df.columns:
+                    top_prods = df[C_PRODUCTO].astype(str).value_counts().head(5).index.tolist()
+                    if len(top_prods) >= 2:
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        st.markdown(
+                            '<div style="font-size:0.75rem;color:#c9a84c;font-weight:700;margin-bottom:8px">'
+                            '💡 Packs sugeridos con tus productos más vendidos:</div>',
+                            unsafe_allow_html=True
+                        )
+                        for i in range(0, min(len(top_prods)-1, 4), 2):
+                            st.markdown(
+                                f'<div style="background:#1a1829;border:1px solid #c9a84c33;border-radius:10px;'
+                                f'padding:12px 16px;margin-bottom:8px">'
+                                f'<span style="font-size:0.8rem;color:#f0ede8">{top_prods[i][:40]}</span>'
+                                f'<span style="color:#c9a84c;margin:0 8px">+</span>'
+                                f'<span style="font-size:0.8rem;color:#f0ede8">{top_prods[i+1][:40]}</span>'
+                                f'<div style="font-size:0.65rem;color:#5a5878;margin-top:4px">'
+                                f'💡 Sugerencia: pack combo. Prueba con descuento del 10% al comprar ambos.</div>'
+                                f'</div>',
+                                unsafe_allow_html=True
+                            )
+
+            st.markdown("<hr style='border-color:#2d2b45;margin:20px 0'>", unsafe_allow_html=True)
+
+            # ── PROMOCIONES SUGERIDAS ──
+            st.markdown(
+                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.9rem;margin-bottom:12px">'
+                '🏷️ Estrategias de Promoción Recomendadas</div>',
+                unsafe_allow_html=True
+            )
+
+            # Calcular contexto actual para personalizar las sugerencias
+            _tasa_dev_mkt = devolucion / total * 100 if total else 0
+            _tasa_can_mkt = cancelados / total * 100 if total else 0
+            _margen_mkt   = tot_gan / tot_venta * 100 if tot_venta else 0
+
+            promo_sugeridas = []
+
+            # 1. Si hay muchas devoluciones → pack con garantía
+            if _tasa_dev_mkt > 10:
+                promo_sugeridas.append({
+                    "tipo": "🛡️ Pack con Garantía",
+                    "desc": f"Tu devolución está en {_tasa_dev_mkt:.1f}%. Ofrecer garantía de satisfacción o cambio incluido en el precio puede reducir el miedo a comprar y bajar la tasa de devolución.",
+                    "accion": "Crea un 'Pack Garantizado' con margen del 5% adicional que cubra el costo de posible devolución.",
+                    "color": "#06b6d4"
+                })
+
+            # 2. Si hay muchas cancelaciones → oferta de urgencia
+            if _tasa_can_mkt > 12:
+                promo_sugeridas.append({
+                    "tipo": "⏱️ Oferta de Urgencia (Scarcity)",
+                    "desc": f"Con {_tasa_can_mkt:.1f}% de cancelación, hay intención de compra pero la decisión se dilata. Las ofertas por tiempo limitado aumentan la conversión.",
+                    "accion": "Flash Sale de 24h o '¡Últimas X unidades!'. Úsalo en el bot de confirmación para reducir el tiempo de duda.",
+                    "color": "#ef4444"
+                })
+
+            # 3. Si el margen es bueno → 2x1 o descuento por volumen
+            if _margen_mkt > 25:
+                promo_sugeridas.append({
+                    "tipo": "2️⃣ 2x1 o Descuento por Volumen",
+                    "desc": f"Con {_margen_mkt:.1f}% de margen tienes espacio para ofrecer el segundo a mitad de precio o descuentos en combos sin sacrificar rentabilidad.",
+                    "accion": "Prueba: 'Lleva 2 y el segundo a mitad de precio'. Proyecta que el ticket promedio sube un 60-80%.",
+                    "color": "#10b981"
+                })
+
+            # 4. Siempre: regalo con la compra
+            promo_sugeridas.append({
+                "tipo": "🎁 Regalo con la Compra",
+                "desc": "Los regalos aumentan percepción de valor sin bajar precio. Son especialmente efectivos en temporadas emocionales (Día de la Madre, Navidad, Amor y Amistad).",
+                "accion": "Incluye un detalle de bajo costo (muestra, accesorio, empaque especial) que aparezca como 'gratis' en la pauta.",
+                "color": "#c9a84c"
+            })
+
+            # 5. Producto con menor rotación → empujarlo con descuento
+            if C_PRODUCTO in df.columns and C_GANANCIA in df.columns:
+                prod_menos = df.groupby(C_PRODUCTO)[C_TOTAL].count().sort_values().head(1)
+                if len(prod_menos):
+                    prod_bajo = prod_menos.index[0]
+                    promo_sugeridas.append({
+                        "tipo": f"📦 Liquidar: {str(prod_bajo)[:35]}",
+                        "desc": f"'{prod_bajo}' es el producto con menor rotación. Tiene inventario parado que inmoviliza capital.",
+                        "accion": "Crea un combo: compra tu producto estrella y lleva este a precio especial. Elimina el inventario sin perder margen.",
+                        "color": "#f97416"
+                    })
+
+            # 6. Siempre: programa de referidos
+            promo_sugeridas.append({
+                "tipo": "👥 Programa de Referidos",
+                "desc": "El costo de adquisición por referido es 3-5x menor que por pauta paga. Cada cliente satisfecho puede traer 1-2 clientes nuevos.",
+                "accion": "Ofrece descuento al referido + beneficio al cliente que refiere. Comunícalo en el empaque o mensaje post-entrega.",
+                "color": "#8b5cf6"
+            })
+
+            for ps in promo_sugeridas:
+                st.markdown(
+                    f'<div style="background:#1a1829;border:1px solid {ps["color"]}33;'
+                    f'border-left:4px solid {ps["color"]};border-radius:12px;padding:16px 18px;margin-bottom:10px">'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.85rem;margin-bottom:6px">'
+                    f'{ps["tipo"]}</div>'
+                    f'<div style="font-size:0.78rem;color:#b0aec8;margin-bottom:8px;line-height:1.5">{ps["desc"]}</div>'
+                    f'<div style="background:{ps["color"]}10;border-radius:8px;padding:8px 12px">'
+                    f'<span style="font-size:0.72rem;color:{ps["color"]};font-weight:800">⚡ Cómo aplicarlo: </span>'
+                    f'<span style="font-size:0.72rem;color:#d4d0ea">{ps["accion"]}</span>'
+                    f'</div></div>',
+                    unsafe_allow_html=True
+                )
+
+            # ── PRODUCTOS POR TEMPORADA (mes actual) ──
+            st.markdown("<hr style='border-color:#2d2b45;margin:20px 0'>", unsafe_allow_html=True)
+            st.markdown(
+                f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.9rem;margin-bottom:12px">'
+                f'🌡️ Productos Recomendados para Esta Temporada</div>',
+                unsafe_allow_html=True
+            )
+
+            PRODUCTOS_TEMPORADA = {
+                (12,1,2):   {"season":"🥶 Temporada de Frío / Fin de Año",
+                             "prods":["Ropa de abrigo","Cobijas","Thermos","Decoración navideña","Regalos","Chocolates"]},
+                (3,4,5):    {"season":"🌸 Primavera Comercial / Temporada de Amor",
+                             "prods":["Perfumes","Joyería","Flores","Ropa casual","Accesorios","Detalles regalo"]},
+                (6,7,8):    {"season":"☀️ Vacaciones / Temporada de Calor",
+                             "prods":["Ropa de verano","Artículos de playa","Juguetes","Deportes","Gafas de sol"]},
+                (9,10,11):  {"season":"🍂 Pre-Navidad / Halloween / Black Friday",
+                             "prods":["Disfraces","Decoración","Electrónicos","Ropa de temporada","Gadgets","Artículos de regalo"]},
+            }
+
+            temp_actual = None
+            for meses_t, data_t in PRODUCTOS_TEMPORADA.items():
+                if _mes_cal in meses_t:
+                    temp_actual = data_t
+                    break
+
+            if temp_actual:
+                st.markdown(
+                    f'<div style="background:rgba(201,168,76,0.07);border:1px solid #c9a84c33;'
+                    f'border-radius:12px;padding:16px 18px;margin-bottom:12px">'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:700;color:#c9a84c;font-size:0.85rem;margin-bottom:10px">'
+                    f'{temp_actual["season"]}</div>'
+                    f'<div style="display:flex;flex-wrap:wrap;gap:6px">',
+                    unsafe_allow_html=True
+                )
+                for prod_t in temp_actual["prods"]:
+                    st.markdown(
+                        f'<span style="background:#6366f118;color:#b0aec8;border:1px solid #6366f133;'
+                        f'border-radius:8px;padding:4px 10px;font-size:0.75rem">{prod_t}</span>',
+                        unsafe_allow_html=True
+                    )
+                st.markdown('</div></div>', unsafe_allow_html=True)
+
+                # Cruce con productos actuales del catálogo
+                if C_PRODUCTO in df.columns:
+                    prods_cat = df[C_PRODUCTO].astype(str).str.lower().unique()
+                    prods_alineados = [p for p in temp_actual["prods"]
+                                       if any(p.lower().split()[0] in pc for pc in prods_cat)]
+                    prods_faltantes = [p for p in temp_actual["prods"] if p not in prods_alineados]
+                    if prods_alineados:
+                        st.markdown(
+                            f'<div style="font-size:0.72rem;color:#10b981;margin-bottom:4px">'
+                            f'✅ Productos de temporada que YA tienes en catálogo: '
+                            f'{", ".join(prods_alineados)}</div>',
+                            unsafe_allow_html=True
+                        )
+                    if prods_faltantes:
+                        st.markdown(
+                            f'<div style="font-size:0.72rem;color:#f59e0b">'
+                            f'💡 Oportunidad: productos de temporada que NO tienes aún: '
+                            f'{", ".join(prods_faltantes[:4])}</div>',
+                            unsafe_allow_html=True
+                        )
 
             # ── INSIGHTS ──
         elif "Insights" in mkt_nav:
