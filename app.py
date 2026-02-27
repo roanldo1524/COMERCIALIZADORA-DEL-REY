@@ -5079,6 +5079,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
             "📦 Monitor de Pedidos",
             "📊 Monitor de Estatus",
             "📋 Monitor Financiero",
+            "🗓️ Calendario Estratégico",
             "🚚 Transportadoras",
             "👥 Proveedores",
             "📦 Stock & Inventario",
@@ -6327,6 +6328,279 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 st.download_button("⬇️ Descargar Completo", buf2.getvalue(),
                                    f"todos_pedidos_{date.today()}.xlsx",
                                    "application/vnd.ms-excel", key="dl_mon_ped_all")
+
+
+    # ══════════════════════════════════════════════════════════════════
+    # 🗓️ CALENDARIO ESTRATÉGICO ANUAL — Colombia + Chile
+    # Modo importación con alertas 60 días antes
+    # ══════════════════════════════════════════════════════════════════
+    elif "Calendario" in op_nav:
+        from datetime import date as _date_cal
+        import calendar as _calendar_lib
+
+        st.markdown('<div class="seccion-titulo">🗓️ Calendario Estratégico Anual</div>', unsafe_allow_html=True)
+
+        # ── Base de datos de fechas estratégicas ──
+        _anio = _date_cal.today().year
+        _HOY_CAL = _date_cal.today()
+
+        FECHAS_ESTRATEGICAS = {
+            "Colombia": [
+                # ENERO
+                {"mes":1,"dia":1,  "nombre":"Año Nuevo",                    "ico":"🎆","tipo":"festivo",   "impacto":"alto",    "pais":"CO","tip":"Lanzar promociones de inicio de año. Liquida inventario navideño."},
+                {"mes":1,"dia":6,  "nombre":"Día de Reyes",                 "ico":"👑","tipo":"comercial", "impacto":"alto",    "pais":"CO","tip":"Regalos infantiles, juguetes. Pauta 2 semanas antes."},
+                {"mes":1,"dia":15, "nombre":"Regreso Escolar (inicio)",     "ico":"🎒","tipo":"temporada", "impacto":"muy_alto","pais":"CO","tip":"Útiles, uniformes, mochilas. Campaña desde dic."},
+                # FEBRERO
+                {"mes":2,"dia":14, "nombre":"San Valentín",                 "ico":"❤️","tipo":"comercial", "impacto":"alto",    "pais":"CO","tip":"Perfumes, joyería, ropa íntima, accesorios. Pauta 10 días antes."},
+                {"mes":2,"dia":5,  "nombre":"Carnaval de Barranquilla",     "ico":"🎭","tipo":"regional",  "impacto":"medio",   "pais":"CO","tip":"Disfraces, artículos festivos. Mercado Atlántico."},
+                # MARZO
+                {"mes":3,"dia":8,  "nombre":"Día Internacional de la Mujer","ico":"🌸","tipo":"comercial", "impacto":"muy_alto","pais":"CO","tip":"Cosméticos, accesorios, moda femenina. Campaña masiva 2 sem antes."},
+                {"mes":3,"dia":19, "nombre":"Día del Padre (Colombia)",     "ico":"👔","tipo":"comercial", "impacto":"alto",    "pais":"CO","tip":"Ropa, accesorios, artículos deportivos, gadgets."},
+                # ABRIL
+                {"mes":4,"dia":None,"nombre":"Semana Santa",                "ico":"✝️","tipo":"festivo",   "impacto":"medio",   "pais":"CO","tip":"Turismo y religiosa. Bajas ventas e-com. Prepara post-SS."},
+                {"mes":4,"dia":23, "nombre":"Día del Libro (Feria Bogotá)", "ico":"📚","tipo":"cultural",  "impacto":"bajo",    "pais":"CO","tip":"Papelería, libros, artículos educativos."},
+                # MAYO
+                {"mes":5,"dia":12, "nombre":"Día de la Madre",              "ico":"💐","tipo":"comercial", "impacto":"muy_alto","pais":"CO","tip":"¡EVENTO MÁS GRANDE! Perfumes, flores, spa, moda. Campaña desde abril 15."},
+                {"mes":5,"dia":25, "nombre":"Feria del Libro Bogotá (cierre)","ico":"📖","tipo":"cultural","impacto":"bajo",    "pais":"CO","tip":"Útiles educativos, papelería premium."},
+                # JUNIO
+                {"mes":6,"dia":1,  "nombre":"Inicio Vacaciones Escolares",  "ico":"🏖️","tipo":"temporada", "impacto":"alto",    "pais":"CO","tip":"Juguetes, ropa verano, viajes. Campaña familiar."},
+                {"mes":6,"dia":20, "nombre":"Liquidaciones Mitad de Año",   "ico":"🏷️","tipo":"comercial", "impacto":"alto",    "pais":"CO","tip":"Rotar inventario semestre 1. Descuentos agresivos."},
+                # JULIO
+                {"mes":7,"dia":20, "nombre":"Día de la Independencia",      "ico":"🇨🇴","tipo":"festivo",  "impacto":"medio",   "pais":"CO","tip":"Decoración patria, eventos. Baja conversión."},
+                # AGOSTO
+                {"mes":8,"dia":7,  "nombre":"Batalla de Boyacá",            "ico":"⚔️","tipo":"festivo",   "impacto":"bajo",    "pais":"CO","tip":"Festivo nacional. Foco en entregas previas."},
+                {"mes":8,"dia":1,  "nombre":"Feria de las Flores (Medellín)","ico":"🌺","tipo":"regional", "impacto":"alto",    "pais":"CO","tip":"Artesanías, flores, moda típica. Mercado Antioquia."},
+                {"mes":8,"dia":15, "nombre":"Regreso a Clases (2do sem)",   "ico":"✏️","tipo":"temporada", "impacto":"muy_alto","pais":"CO","tip":"Útiles, uniformes, tecnología educativa."},
+                # SEPTIEMBRE
+                {"mes":9,"dia":20, "nombre":"Amor y Amistad",               "ico":"🤝","tipo":"comercial", "impacto":"muy_alto","pais":"CO","tip":"¡ÚNICO EN COLOMBIA! Detalles, accesorios, perfumes. Pauta desde sep 1."},
+                # OCTUBRE
+                {"mes":10,"dia":12,"nombre":"Día de la Raza (festivo)",     "ico":"🗓️","tipo":"festivo",   "impacto":"bajo",    "pais":"CO","tip":"Festivo. Planifica envíos evitando este día."},
+                {"mes":10,"dia":31,"nombre":"Halloween",                    "ico":"🎃","tipo":"comercial", "impacto":"medio",   "pais":"CO","tip":"Disfraces, dulces, decoración. Creciendo en Col."},
+                {"mes":10,"dia":20,"nombre":"Pre-Black Friday (anticipo)",  "ico":"🔥","tipo":"comercial", "impacto":"alto",    "pais":"CO","tip":"Calentar audiencia. Teaser de ofertas BF."},
+                # NOVIEMBRE
+                {"mes":11,"dia":None,"nombre":"Black Friday / Cyber Monday","ico":"🖤","tipo":"comercial", "impacto":"muy_alto","pais":"CO","tip":"SEMANA DE MAYOR CONVERSIÓN. Stock listo, pauta máxima desde nov 1."},
+                {"mes":11,"dia":15,"nombre":"Inicio Temporada Navidad",     "ico":"🎄","tipo":"temporada", "impacto":"muy_alto","pais":"CO","tip":"Decoración, regalos, ropa festiva. La temporada más larga."},
+                # DICIEMBRE
+                {"mes":12,"dia":7, "nombre":"Noche de Velitas",             "ico":"🕯️","tipo":"cultural",  "impacto":"medio",   "pais":"CO","tip":"Velas, decoración, artículos navideños. Ventas pick."},
+                {"mes":12,"dia":16,"nombre":"Inicio Novenas de Aguinaldo",  "ico":"⭐","tipo":"cultural",  "impacto":"alto",    "pais":"CO","tip":"Temporada pico total. Stock al máximo."},
+                {"mes":12,"dia":25,"nombre":"Navidad",                      "ico":"🎁","tipo":"festivo",   "impacto":"muy_alto","pais":"CO","tip":"Máximas ventas del año. Post-Navidad: canje de regalos."},
+                {"mes":12,"dia":31,"nombre":"Fin de Año",                   "ico":"🎊","tipo":"comercial", "impacto":"alto",    "pais":"CO","tip":"Ropa nueva año, accesorios. Liquidación final inventario."},
+            ],
+            "Chile": [
+                # ENERO
+                {"mes":1,"dia":1,  "nombre":"Año Nuevo",                    "ico":"🎆","tipo":"festivo",   "impacto":"alto",    "pais":"CL","tip":"Verano chileno. Alta actividad consumo."},
+                {"mes":1,"dia":15, "nombre":"Temporada Verano (peak)",      "ico":"🏖️","tipo":"temporada", "impacto":"muy_alto","pais":"CL","tip":"Ropa verano, protección solar, artículos playa."},
+                # FEBRERO
+                {"mes":2,"dia":14, "nombre":"San Valentín",                 "ico":"❤️","tipo":"comercial", "impacto":"alto",    "pais":"CL","tip":"Regalos de pareja. Joyería, perfumes, experiencias."},
+                {"mes":2,"dia":None,"nombre":"Carnaval con la Fuerza del Sol","ico":"🌞","tipo":"regional","impacto":"medio",   "pais":"CL","tip":"Arica. Artículos festivos, artesanías norteñas."},
+                # MARZO
+                {"mes":3,"dia":8,  "nombre":"Día de la Mujer",              "ico":"🌸","tipo":"comercial", "impacto":"muy_alto","pais":"CL","tip":"Cosméticos, moda, accesorios. Campaña 2 sem antes."},
+                {"mes":3,"dia":20, "nombre":"Regreso Escolar (otoño)",      "ico":"🎒","tipo":"temporada", "impacto":"muy_alto","pais":"CL","tip":"Útiles, uniformes, tecnología educativa."},
+                # ABRIL
+                {"mes":4,"dia":None,"nombre":"Semana Santa",                "ico":"✝️","tipo":"festivo",   "impacto":"medio",   "pais":"CL","tip":"Festivo nacional. Turismo playa/montaña."},
+                # MAYO
+                {"mes":5,"dia":1,  "nombre":"Día del Trabajo",              "ico":"⚒️","tipo":"festivo",   "impacto":"bajo",    "pais":"CL","tip":"Festivo. Ropa laboral, herramientas."},
+                {"mes":5,"dia":21, "nombre":"Día de las Glorias Navales",   "ico":"⚓","tipo":"festivo",   "impacto":"bajo",    "pais":"CL","tip":"Festivo. Baja actividad e-commerce."},
+                {"mes":5,"dia":12, "nombre":"Día de la Madre (Chile)",      "ico":"💐","tipo":"comercial", "impacto":"muy_alto","pais":"CL","tip":"¡EVENTO CLAVE CHILE! Perfumes, flores, spa, moda."},
+                # JUNIO
+                {"mes":6,"dia":None,"nombre":"CyberDay Chile",              "ico":"💻","tipo":"comercial", "impacto":"muy_alto","pais":"CL","tip":"Equivalente al BF chileno. El mayor evento e-com del año."},
+                {"mes":6,"dia":16, "nombre":"Día del Padre (Chile)",        "ico":"👔","tipo":"comercial", "impacto":"alto",    "pais":"CL","tip":"Ropa, electrónicos, herramientas, deportes."},
+                # JULIO
+                {"mes":7,"dia":16, "nombre":"Día de la Virgen del Carmen",  "ico":"⛪","tipo":"festivo",   "impacto":"bajo",    "pais":"CL","tip":"Festivo. Turismo interior."},
+                {"mes":7,"dia":None,"nombre":"Vacaciones Invierno Escolar", "ico":"❄️","tipo":"temporada", "impacto":"alto",    "pais":"CL","tip":"Abrigos, calefacción, artículos hogar."},
+                # AGOSTO
+                {"mes":8,"dia":15, "nombre":"Asunción de la Virgen",        "ico":"🕊️","tipo":"festivo",   "impacto":"bajo",    "pais":"CL","tip":"Festivo. Evitar lanzamientos este día."},
+                # SEPTIEMBRE
+                {"mes":9,"dia":18, "nombre":"Fiestas Patrias Chile",        "ico":"🇨🇱","tipo":"festivo",  "impacto":"muy_alto","pais":"CL","tip":"¡EVENTO NACIONAL! Ropa típica, empanadas, chicha. Ventas masivas."},
+                {"mes":9,"dia":19, "nombre":"Día de las Glorias del Ejército","ico":"🎖️","tipo":"festivo", "impacto":"medio",   "pais":"CL","tip":"Festivo ext. Patrias. Temporada alto consumo."},
+                # OCTUBRE
+                {"mes":10,"dia":12,"nombre":"Encuentro de Dos Mundos",      "ico":"🌍","tipo":"festivo",   "impacto":"bajo",    "pais":"CL","tip":"Festivo. Baja actividad."},
+                {"mes":10,"dia":31,"nombre":"Halloween",                    "ico":"🎃","tipo":"comercial", "impacto":"alto",    "pais":"CL","tip":"Muy popular en Chile. Disfraces, decoración, dulces."},
+                # NOVIEMBRE
+                {"mes":11,"dia":1, "nombre":"Día de Todos los Santos",      "ico":"🕯️","tipo":"festivo",   "impacto":"bajo",    "pais":"CL","tip":"Festivo. Flores, velas."},
+                {"mes":11,"dia":None,"nombre":"Black Friday Chile",         "ico":"🖤","tipo":"comercial", "impacto":"muy_alto","pais":"CL","tip":"SEMANA CLAVE. Stock preparado, pauta máxima."},
+                # DICIEMBRE
+                {"mes":12,"dia":8, "nombre":"Inmaculada Concepción",        "ico":"⛪","tipo":"festivo",   "impacto":"bajo",    "pais":"CL","tip":"Festivo. Inicio fuerte temporada navideña."},
+                {"mes":12,"dia":25,"nombre":"Navidad",                      "ico":"🎁","tipo":"festivo",   "impacto":"muy_alto","pais":"CL","tip":"Temporada de mayor volumen de ventas."},
+                {"mes":12,"dia":31,"nombre":"Fin de Año",                   "ico":"🎊","tipo":"comercial", "impacto":"alto",    "pais":"CL","tip":"Ropa nueva, accesorios. Verano chileno."},
+            ]
+        }
+
+        MESES_NOMBRES = ["","Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                         "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
+
+        IMPACTO_COLOR = {"muy_alto":"#ef4444","alto":"#f59e0b","medio":"#6366f1","bajo":"#8b8aaa"}
+        IMPACTO_LABEL = {"muy_alto":"🔴 Muy Alto","alto":"🟡 Alto","medio":"🔵 Medio","bajo":"⚫ Bajo"}
+
+        # ── Controles ──
+        _cal_c1, _cal_c2, _cal_c3 = st.columns([1.5, 1.5, 2])
+        with _cal_c1:
+            _pais_cal = st.radio("País", ["🇨🇴 Colombia","🇨🇱 Chile"], horizontal=True, key="cal_pais", label_visibility="collapsed")
+        with _cal_c2:
+            _mes_cal_op = st.selectbox("Mes", list(range(1,13)),
+                index=_HOY_CAL.month - 1,
+                format_func=lambda m: MESES_NOMBRES[m], key="cal_mes_op",
+                label_visibility="collapsed")
+        with _cal_c3:
+            _impacto_filter = st.multiselect(
+                "Impacto", ["muy_alto","alto","medio","bajo"],
+                default=["muy_alto","alto"],
+                format_func=lambda x: IMPACTO_LABEL[x],
+                key="cal_impacto_filter",
+                label_visibility="collapsed"
+            )
+
+        _pais_key = "Colombia" if "Colombia" in _pais_cal else "Chile"
+        _fechas_pais = FECHAS_ESTRATEGICAS[_pais_key]
+
+        # ══════════════════════════════════════
+        # 🔔 MODO IMPORTACIÓN — Próximas 60 días
+        # ══════════════════════════════════════
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        _proximas_imp = []
+        for _fe in _fechas_pais:
+            _d = _fe.get("dia") or 1
+            try:
+                _fecha_ev = _date_cal(_anio, _fe["mes"], _d)
+            except:
+                continue
+            _diff = (_fecha_ev - _HOY_CAL).days
+            if -5 <= _diff <= 90:  # Incluye eventos hasta 90 días
+                _proximas_imp.append({**_fe, "_fecha": _fecha_ev, "_dias": _diff})
+
+        _proximas_imp.sort(key=lambda x: x["_dias"])
+
+        if _proximas_imp:
+            st.markdown(
+                '<div style="background:rgba(201,168,76,0.1);border:1px solid #c9a84c44;border-radius:12px;padding:14px 18px;margin-bottom:18px">'
+                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#c9a84c;font-size:0.95rem;margin-bottom:12px">'
+                '⚡ Modo Importación — Equipo de Proyecto Activado</div>',
+                unsafe_allow_html=True
+            )
+            _imp_cols = st.columns(min(len(_proximas_imp), 3))
+            for _i, _fe_p in enumerate(_proximas_imp[:3]):
+                _dias_p = _fe_p["_dias"]
+                if _dias_p < 0:
+                    _color_p = "#8b8aaa"; _estado = f"Hace {abs(_dias_p)} días"
+                elif _dias_p == 0:
+                    _color_p = "#ef4444"; _estado = "⚡ HOY"
+                elif _dias_p <= 14:
+                    _color_p = "#ef4444"; _estado = f"🔴 {_dias_p} días"
+                elif _dias_p <= 30:
+                    _color_p = "#f59e0b"; _estado = f"🟡 {_dias_p} días"
+                else:
+                    _color_p = "#6366f1"; _estado = f"🔵 {_dias_p} días"
+
+                with _imp_cols[_i % 3]:
+                    st.markdown(
+                        f'<div style="background:#1a1829;border:1px solid {_color_p}44;border-radius:10px;padding:14px;text-align:center">'
+                        f'<div style="font-size:1.6rem">{_fe_p["ico"]}</div>'
+                        f'<div style="font-family:Syne,sans-serif;font-weight:800;color:{_color_p};font-size:1.4rem;margin:4px 0">{_estado}</div>'
+                        f'<div style="color:#f0ede8;font-size:0.82rem;font-weight:700">{_fe_p["nombre"]}</div>'
+                        f'<div style="color:#8b8aaa;font-size:0.72rem;margin-top:4px">{_fe_p["_fecha"].strftime("%d/%m/%Y")}</div>'
+                        f'<div style="background:{_color_p}15;border-radius:6px;padding:6px 8px;margin-top:8px;font-size:0.72rem;color:#d4d0ea;text-align:left">'
+                        f'📌 {_fe_p["tip"]}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+            st.markdown("</div>", unsafe_allow_html=True)
+
+            # Mostrar próximos 60 días completos como línea de tiempo
+            _todos_60 = [f for f in _proximas_imp if 0 < f["_dias"] <= 60]
+            if _todos_60:
+                st.markdown(
+                    '<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.85rem;margin:12px 0 8px">📆 Próximos 60 días — Plan de Importación</div>',
+                    unsafe_allow_html=True
+                )
+                for _ev60 in _todos_60:
+                    _col_ev = IMPACTO_COLOR.get(_ev60["impacto"], "#8b8aaa")
+                    _lbl_ev = IMPACTO_LABEL.get(_ev60["impacto"], "")
+                    st.markdown(
+                        f'<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;'
+                        f'margin-bottom:6px;background:#1a1829;border-left:3px solid {_col_ev};border-radius:8px">'
+                        f'<div style="font-size:1.3rem;min-width:30px">{_ev60["ico"]}</div>'
+                        f'<div style="flex:1">'
+                        f'<span style="color:#f0ede8;font-weight:700;font-size:0.84rem">{_ev60["nombre"]}</span>'
+                        f'<span style="color:#8b8aaa;font-size:0.72rem;margin-left:8px">{_ev60["_fecha"].strftime("%d/%m/%Y")}</span>'
+                        f'</div>'
+                        f'<div style="background:{_col_ev}20;color:{_col_ev};padding:3px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;white-space:nowrap">'
+                        f'Restan {_ev60["_dias"]} días</div>'
+                        f'<div style="background:#2d2b45;color:#8b8aaa;padding:3px 10px;border-radius:20px;font-size:0.7rem;white-space:nowrap">'
+                        f'{_lbl_ev}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(
+            f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.95rem;margin-bottom:12px">'
+            f'📅 {MESES_NOMBRES[_mes_cal_op]} {_anio} — {"🇨🇴 Colombia" if _pais_key=="Colombia" else "🇨🇱 Chile"}</div>',
+            unsafe_allow_html=True
+        )
+
+        # ── Vista del mes seleccionado ──
+        _fechas_mes = [f for f in _fechas_pais if f["mes"] == _mes_cal_op and f["impacto"] in _impacto_filter]
+
+        if not _fechas_mes:
+            st.info("No hay eventos estratégicos para este mes con los filtros seleccionados.")
+        else:
+            for _fe_m in _fechas_mes:
+                _col_m = IMPACTO_COLOR.get(_fe_m["impacto"], "#8b8aaa")
+                _dia_str = f'{_fe_m["dia"]:02d}/{_mes_cal_op:02d}/{_anio}' if _fe_m.get("dia") else f'{MESES_NOMBRES[_mes_cal_op]}'
+                try:
+                    _fecha_ev_m = _date_cal(_anio, _fe_m["mes"], _fe_m.get("dia") or 1)
+                    _diff_m = (_fecha_ev_m - _HOY_CAL).days
+                    _diff_lbl = f"Restan {_diff_m} días" if _diff_m > 0 else ("HOY 🔴" if _diff_m == 0 else f"Hace {abs(_diff_m)} días")
+                except:
+                    _diff_lbl = ""
+
+                st.markdown(
+                    f'<div style="border-left:4px solid {_col_m};background:{_col_m}08;border-radius:0 10px 10px 0;'
+                    f'padding:14px 16px;margin-bottom:10px">'
+                    f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
+                    f'<span style="font-size:1.5rem">{_fe_m["ico"]}</span>'
+                    f'<span style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.9rem">{_fe_m["nombre"]}</span>'
+                    f'<span style="color:#8b8aaa;font-size:0.75rem">{_dia_str}</span>'
+                    f'<span style="background:{_col_m}20;color:{_col_m};padding:2px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;margin-left:auto">'
+                    f'{IMPACTO_LABEL[_fe_m["impacto"]]}</span>'
+                    f'<span style="background:#2d2b45;color:#8b8aaa;padding:2px 10px;border-radius:20px;font-size:0.7rem">'
+                    f'{_fe_m["tipo"].capitalize()}</span>'
+                    f'{"<span style=background:#ef444420;color:#ef4444;padding:2px 10px;border-radius:20px;font-size:0.7rem;font-weight:700>" + _diff_lbl + "</span>" if _diff_lbl else ""}'
+                    f'</div>'
+                    f'<div style="background:rgba(255,255,255,0.04);border-radius:6px;padding:8px 12px;font-size:0.78rem;color:#d4d0ea">'
+                    f'💡 {_fe_m["tip"]}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+        # ── Vista anual completa (acordeón por mes) ──
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(
+            '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:10px">'
+            f'📆 Año Completo {_anio} — {"🇨🇴 Colombia" if _pais_key=="Colombia" else "🇨🇱 Chile"}</div>',
+            unsafe_allow_html=True
+        )
+        for _m_idx in range(1, 13):
+            _fevs_m = [f for f in _fechas_pais if f["mes"] == _m_idx]
+            if not _fevs_m:
+                continue
+            _muy_alto_m = any(f["impacto"] == "muy_alto" for f in _fevs_m)
+            _ico_mes = "🔴" if _muy_alto_m else "🟡"
+            with st.expander(f"{_ico_mes} {MESES_NOMBRES[_m_idx]} — {len(_fevs_m)} evento{'s' if len(_fevs_m)>1 else ''}"):
+                for _fe_a in _fevs_m:
+                    _col_a = IMPACTO_COLOR.get(_fe_a["impacto"], "#8b8aaa")
+                    st.markdown(
+                        f'<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:4px;'
+                        f'background:{_col_a}08;border-left:3px solid {_col_a};border-radius:0 8px 8px 0">'
+                        f'<span>{_fe_a["ico"]}</span>'
+                        f'<span style="color:#f0ede8;font-size:0.82rem;font-weight:700;flex:1">{_fe_a["nombre"]}</span>'
+                        f'<span style="background:{_col_a}20;color:{_col_a};padding:2px 8px;border-radius:12px;font-size:0.68rem;font-weight:700">'
+                        f'{IMPACTO_LABEL[_fe_a["impacto"]]}</span>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+                    st.markdown(f'<div style="color:#8b8aaa;font-size:0.73rem;padding:0 10px 8px 36px">💡 {_fe_a["tip"]}</div>', unsafe_allow_html=True)
 
 
     # Claude
