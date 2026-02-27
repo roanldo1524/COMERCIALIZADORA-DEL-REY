@@ -511,19 +511,71 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         unsafe_allow_html=True
     )
 
+    # ══════════════════════════════════════════════════════════════════
+    # ⚡ FILTRO RÁPIDO DE DÍAS — acceso directo sin cambiar fechas
+    # Aplica sobre df para todos los módulos del panel actual
+    # ══════════════════════════════════════════════════════════════════
+    from datetime import date, timedelta
+
+    _hoy = pd.Timestamp.now().normalize()
+    _opciones_rapidas = {
+        "📅 Todo": None,
+        "🕐 Hoy":    0,
+        "📆 3 días": 2,
+        "📆 5 días": 4,
+        "📆 7 días": 6,
+        "📆 15 días": 14,
+        "📆 30 días": 29,
+    }
+    _col_filtro, _col_info_r = st.columns([3, 2])
+    with _col_filtro:
+        _sel_rapido = st.radio(
+            "⚡ Período rápido",
+            list(_opciones_rapidas.keys()),
+            horizontal=True,
+            label_visibility="collapsed",
+            key="filtro_rapido_dias"
+        )
+    _dias_atras = _opciones_rapidas[_sel_rapido]
+
+    if _dias_atras is not None and C_FECHA in df.columns:
+        _fecha_desde = _hoy - pd.Timedelta(days=_dias_atras)
+        df = df[df[C_FECHA] >= _fecha_desde].copy()
+        with _col_info_r:
+            st.markdown(
+                f'<div style="background:rgba(99,102,241,0.08);border:1px solid #6366f144;'
+                f'border-radius:8px;padding:6px 12px;font-size:0.72rem;color:#b0aec8;margin-top:2px">'
+                f'⚡ Filtrando desde <b style="color:#6366f1">'
+                f'{_fecha_desde.strftime("%d/%m/%Y")}</b> — '
+                f'<b style="color:#f0ede8">{len(df):,} pedidos</b> en el período</div>',
+                unsafe_allow_html=True
+            )
+        # Recalcular totales globales con el nuevo df filtrado
+        total      = len(df)
+        entregados = contar('ENTREGADO') if total else 0
+        cancelados = contar('CANCELADO') if total else 0
+        devolucion = contar('DEVOLUCI')  if total else 0
+        tot_venta  = df[C_TOTAL].sum()    if C_TOTAL    in df.columns else 0
+        tot_gan    = df[C_GANANCIA].sum() if C_GANANCIA in df.columns else 0
+        pct_gan    = round(tot_gan/tot_venta*100,1) if tot_venta else 0
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
     # ── KPIs financieros (análisis) ──
     ticket_prom = round(tot_venta / total, 0) if total else 0
     pct_cancel  = round(cancelados/total*100,1) if total else 0
     pct_dev_g   = round(devolucion/total*100,1) if total else 0
-    c1,c2,c3,c4,c5,c6 = st.columns(6)
-    with c1: st.markdown(kpi("cyan","💰 Ventas Totales",fmt_money(tot_venta)), unsafe_allow_html=True)
-    with c2: st.markdown(kpi("green","✅ Ganancia Neta",fmt_money(tot_gan),f"{pct_gan}% margen"), unsafe_allow_html=True)
-    with c3: st.markdown(kpi("blue","📦 Pedidos",f"{total:,}",f"{entregados:,} entregados"), unsafe_allow_html=True)
-    with c4: st.markdown(kpi("gold","🎫 Ticket Promedio",fmt_money(ticket_prom)), unsafe_allow_html=True)
-    with c5: st.markdown(kpi("red","❌ Cancelación",f"{pct_cancel}%",f"{cancelados:,} pedidos"), unsafe_allow_html=True)
-    with c6: st.markdown(kpi("purple","🔁 Devolución",f"{pct_dev_g}%",f"{devolucion:,} pedidos"), unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    # ── KPIs globales — ocultar en P&G (tiene su propia vista limpia) ──
+    if "P&G" not in vista_activa:
+        c1,c2,c3,c4,c5,c6 = st.columns(6)
+        with c1: st.markdown(kpi("cyan","💰 Ventas Totales",fmt_money(tot_venta)), unsafe_allow_html=True)
+        with c2: st.markdown(kpi("green","✅ Ganancia Neta",fmt_money(tot_gan),f"{pct_gan}% margen"), unsafe_allow_html=True)
+        with c3: st.markdown(kpi("blue","📦 Pedidos",f"{total:,}",f"{entregados:,} entregados"), unsafe_allow_html=True)
+        with c4: st.markdown(kpi("gold","🎫 Ticket Promedio",fmt_money(ticket_prom)), unsafe_allow_html=True)
+        with c5: st.markdown(kpi("red","❌ Cancelación",f"{pct_cancel}%",f"{cancelados:,} pedidos"), unsafe_allow_html=True)
+        with c6: st.markdown(kpi("purple","🔁 Devolución",f"{pct_dev_g}%",f"{devolucion:,} pedidos"), unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
 
     # ── NAVEGACIÓN INTERACTIVA ──
     st.markdown('<div class="seccion-titulo">Explorar datos</div>', unsafe_allow_html=True)
@@ -890,63 +942,344 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         st.plotly_chart(fig_pg2, use_container_width=True)
 
 
-    # ── PROYECCIONES ──
+    # ══════════════════════════════════════════════════════════════════
+    # 🔮 PROYECCIONES — REDISEÑO COMPLETO
+    # Punto de partida automático · crecimiento % configurable
+    # Ingresos + Gastos + Capacidad financiera proyectados
+    # ══════════════════════════════════════════════════════════════════
     elif nav == "🔮 Proyecciones":
-        st.markdown('<div class="seccion-titulo">🔮 Proyecciones</div>', unsafe_allow_html=True)
-        if '_mes' in df.columns and C_TOTAL in df.columns and len(df['_mes'].unique()) >= 2:
-            v_mes = df.groupby('_mes')[C_TOTAL].sum().reset_index()
-            v_mes.columns = ['Mes','Ventas']
-            v_mes = v_mes.sort_values('Mes')
+        st.markdown('<div class="seccion-titulo">🔮 Motor de Proyecciones</div>', unsafe_allow_html=True)
 
-            # Promedio últimos 3 meses como base de proyección
-            ult3  = v_mes['Ventas'].tail(3).mean()
-            ult1  = v_mes['Ventas'].iloc[-1]
-            meses_hist = list(v_mes['Mes'])
-
-            pr1,pr2,pr3 = st.columns(3)
-            with pr1:
-                crecimiento = st.slider("📈 Crecimiento mensual %", -30, 100, 10, 5,
-                                       help="Ajusta el crecimiento esperado mes a mes")
-            with pr2:
-                n_meses = st.slider("🗓️ Meses a proyectar", 1, 12, 3)
-            with pr3:
-                base = st.radio("Base de cálculo", ["Último mes","Promedio 3 meses"],
-                               horizontal=False)
-
-            base_val = ult1 if base == "Último mes" else ult3
-            proyecciones = []
-            for i in range(1, n_meses+1):
-                val = base_val * ((1 + crecimiento/100) ** i)
-                proyecciones.append({'Mes': f"Proyección +{i}", 'Ventas': val, 'Tipo': 'Proyección'})
-
-            v_mes['Tipo'] = 'Histórico'
-            proj_df = pd.concat([v_mes, pd.DataFrame(proyecciones)], ignore_index=True)
-
-            fig_proj = go.Figure()
-            hist = proj_df[proj_df['Tipo']=='Histórico']
-            proy = proj_df[proj_df['Tipo']=='Proyección']
-            fig_proj.add_trace(go.Scatter(x=hist['Mes'], y=hist['Ventas']/1e6, name='Histórico',
-                                         line=dict(color=op_color, width=3), marker=dict(size=8)))
-            fig_proj.add_trace(go.Scatter(x=[hist['Mes'].iloc[-1]] + list(proy['Mes']),
-                                         y=[hist['Ventas'].iloc[-1]/1e6] + list(proy['Ventas']/1e6),
-                                         name='Proyección', line=dict(color='#c9a84c', width=3, dash='dash'),
-                                         marker=dict(size=8, symbol='diamond')))
-            fig_proj.update_layout(**PLOT_LAYOUT, height=420, title='Proyección de Ventas',
-                                   xaxis=AXIS_STYLE,
-                                   yaxis=dict(title='Millones COP', **AXIS_STYLE))
-            st.plotly_chart(fig_proj, use_container_width=True)
-
-            # KPIs de proyección
-            total_proy = sum(p['Ventas'] for p in proyecciones)
-            mejor_mes_proy = max(proyecciones, key=lambda x: x['Ventas'])
-            pp1, pp2, pp3 = st.columns(3)
-            with pp1: st.markdown(kpi("gold","📅 Proyección Total",fmt_money(total_proy),f"{n_meses} meses"), unsafe_allow_html=True)
-            with pp2: st.markdown(kpi("green","📈 Mejor mes proy.",fmt_money(mejor_mes_proy['Ventas'])), unsafe_allow_html=True)
-            with pp3:
-                gan_proy = total_proy * (pct_gan/100) if pct_gan else 0
-                st.markdown(kpi("purple","💰 Ganancia estimada",fmt_money(gan_proy),f"{pct_gan}% margen actual"), unsafe_allow_html=True)
+        if '_mes' not in df.columns or C_TOTAL not in df.columns or len(df['_mes'].unique()) < 2:
+            st.info("⬆️ Se necesitan al menos 2 meses de datos para generar proyecciones.")
         else:
-            st.info("Se necesitan al menos 2 meses de datos para generar proyecciones.")
+            # ── Calcular histórico ──
+            MESES_ES_P = {1:"Ene",2:"Feb",3:"Mar",4:"Abr",5:"May",6:"Jun",
+                          7:"Jul",8:"Ago",9:"Sep",10:"Oct",11:"Nov",12:"Dic"}
+            def fmt_mes_p(m):
+                try: y,mo = str(m).split('-'); return f"{MESES_ES_P[int(mo)]} {y[-2:]}"
+                except: return str(m)
+
+            v_mes_p = df.groupby('_mes').agg(
+                Ventas    = (C_TOTAL,   'sum'),
+                Pedidos   = (C_TOTAL,   'count'),
+                Ganancia  = (C_GANANCIA,'sum') if C_GANANCIA in df.columns else (C_TOTAL,'count'),
+            ).reset_index().sort_values('_mes')
+            v_mes_p['Mes_Label'] = v_mes_p['_mes'].apply(fmt_mes_p)
+
+            # Últimos 3 y 6 meses
+            ult1  = v_mes_p['Ventas'].iloc[-1]
+            ult3  = v_mes_p['Ventas'].tail(3).mean()
+            ult6  = v_mes_p['Ventas'].tail(6).mean()
+            ult3_min = v_mes_p['Ventas'].tail(3).min()
+            ult3_max = v_mes_p['Ventas'].tail(3).max()
+            gan_pct_hist = (v_mes_p['Ganancia'].tail(3).mean() / ult3 * 100) if ult3 else 0
+            mes_actual_p  = v_mes_p['Mes_Label'].iloc[-1]
+
+            # ── BLOQUE: PUNTO DE PARTIDA ──
+            st.markdown(
+                '<div style="background:linear-gradient(135deg,#1a1829,#1f1d35);border:1px solid #2d2b45;'
+                'border-radius:14px;padding:20px 24px;margin-bottom:20px">'
+                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.92rem;margin-bottom:14px">'
+                '📍 Punto de Partida — ¿desde dónde proyectamos?</div>',
+                unsafe_allow_html=True
+            )
+
+            bp1, bp2, bp3, bp4 = st.columns(4)
+            with bp1:
+                st.markdown(
+                    f'<div style="text-align:center">'
+                    f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;margin-bottom:4px">Último mes ({mes_actual_p})</div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#6366f1;font-size:1.2rem">{fmt_money(ult1)}</div>'
+                    f'</div>', unsafe_allow_html=True
+                )
+            with bp2:
+                st.markdown(
+                    f'<div style="text-align:center">'
+                    f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;margin-bottom:4px">Promedio 3 meses</div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#06b6d4;font-size:1.2rem">{fmt_money(ult3)}</div>'
+                    f'<div style="font-size:0.62rem;color:#5a5878;margin-top:2px">entre {fmt_money(ult3_min)} y {fmt_money(ult3_max)}</div>'
+                    f'</div>', unsafe_allow_html=True
+                )
+            with bp3:
+                st.markdown(
+                    f'<div style="text-align:center">'
+                    f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;margin-bottom:4px">Promedio 6 meses</div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#10b981;font-size:1.2rem">{fmt_money(ult6)}</div>'
+                    f'</div>', unsafe_allow_html=True
+                )
+            with bp4:
+                st.markdown(
+                    f'<div style="text-align:center">'
+                    f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;margin-bottom:4px">Margen promedio</div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#c9a84c;font-size:1.2rem">{gan_pct_hist:.1f}%</div>'
+                    f'<div style="font-size:0.62rem;color:#5a5878;margin-top:2px">últimos 3 meses</div>'
+                    f'</div>', unsafe_allow_html=True
+                )
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            # ── CONFIGURADOR ──
+            st.markdown(
+                '<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:14px;'
+                'padding:20px 24px;margin-bottom:20px">',
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:16px">'
+                '⚙️ Configurar Proyección</div>',
+                unsafe_allow_html=True
+            )
+
+            cfg1, cfg2, cfg3, cfg4 = st.columns(4)
+            with cfg1:
+                base_proy = st.radio(
+                    "📍 Punto de partida",
+                    ["Último mes", "Promedio 3 meses", "Promedio 6 meses", "Manual"],
+                    key="proy_base", horizontal=False
+                )
+            with cfg2:
+                n_meses_proy = st.selectbox(
+                    "📅 Meses a proyectar",
+                    [3, 6, 9, 12], index=1, key="proy_nmeses"
+                )
+                fecha_inicio_ref = pd.Timestamp.now()
+                meses_label_proy = []
+                for mi in range(1, n_meses_proy + 1):
+                    m_fut = fecha_inicio_ref + pd.DateOffset(months=mi)
+                    meses_label_proy.append(m_fut.strftime("%b %Y"))
+
+            with cfg3:
+                crecimiento_proy = st.number_input(
+                    "📈 Crecimiento mensual %", -50.0, 200.0,
+                    float(st.session_state.get('proy_crec', 10.0)),
+                    step=5.0, key="proy_crec"
+                )
+                # Sugerencia automática
+                if len(v_mes_p) >= 2:
+                    crec_real = (v_mes_p['Ventas'].iloc[-1] / v_mes_p['Ventas'].iloc[-2] - 1) * 100
+                else:
+                    crec_real = 0
+                st.caption(f"Tu crecimiento real último mes: {crec_real:+.1f}%")
+
+            with cfg4:
+                if base_proy == "Manual":
+                    base_val_proy = st.number_input(
+                        "💵 Base manual (COP)", 0, 5_000_000_000,
+                        int(ult3), 1_000_000, key="proy_manual", format="%d"
+                    )
+                else:
+                    base_val_proy = {"Último mes": ult1,
+                                     "Promedio 3 meses": ult3,
+                                     "Promedio 6 meses": ult6}[base_proy]
+                    st.metric("Base seleccionada", fmt_money(base_val_proy))
+
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            # ── CALCULAR PROYECCIONES ──
+            # Gastos estimados como % histórico
+            gastos_op_hist = st.session_state.get('nomina_total', 0) + \
+                             sum(st.session_state.get('costos_fijos', {}).values()) + \
+                             sum(st.session_state.get('pauta_dict', {}).values())
+            pct_gastos_hist = gastos_op_hist / ult3 if ult3 else 0.35
+            tasa_imp_proy   = float(st.session_state.get('diag_imp', 8.0)) * \
+                              (1 - float(st.session_state.get('diag_iva_excl', 80.0)) / 100)
+
+            filas_proy = []
+            for i in range(1, n_meses_proy + 1):
+                ventas_i   = base_val_proy * ((1 + crecimiento_proy / 100) ** i)
+                gan_i      = ventas_i * (gan_pct_hist / 100)
+                gastos_i   = ventas_i * pct_gastos_hist
+                imp_i      = (ventas_i - gastos_i) * (tasa_imp_proy / 100)
+                util_i     = gan_i - gastos_i - imp_i
+                pedidos_i  = int(ventas_i / (ult1 / len(df[df['_mes'] == v_mes_p['_mes'].iloc[-1]])) ) if len(df[df['_mes'] == v_mes_p['_mes'].iloc[-1]]) else 0
+                filas_proy.append({
+                    'Mes': meses_label_proy[i - 1],
+                    'Ventas': ventas_i, 'Ganancia': gan_i,
+                    'Gastos': gastos_i, 'Impuesto': imp_i,
+                    'Utilidad': util_i, 'Pedidos_est': pedidos_i,
+                })
+
+            # ── CUADRO RESUMEN MENSUAL ──
+            st.markdown(
+                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:10px">'
+                '📋 Proyección Detallada — mes a mes</div>',
+                unsafe_allow_html=True
+            )
+
+            # Header tabla
+            col_widths = [1.2] + [1]*n_meses_proy
+            th_cols = st.columns(col_widths)
+            with th_cols[0]:
+                st.markdown('<div style="font-size:0.65rem;color:#8b8aaa;font-weight:800;text-transform:uppercase">Concepto</div>', unsafe_allow_html=True)
+            for ci, fp in enumerate(filas_proy):
+                with th_cols[ci+1]:
+                    crec_i = (fp['Ventas'] / filas_proy[ci-1]['Ventas'] - 1)*100 if ci > 0 else crecimiento_proy
+                    st.markdown(
+                        f'<div style="text-align:center;background:#1a1829;border-radius:8px;padding:6px 4px;border:1px solid #2d2b45">'
+                        f'<div style="font-family:Syne,sans-serif;font-size:0.72rem;color:#f0ede8;font-weight:800">{fp["Mes"]}</div>'
+                        f'<div style="font-size:0.6rem;color:{"#10b981" if crec_i>=0 else "#ef4444"}">'
+                        f'{"+" if crec_i>=0 else ""}{crec_i:.0f}% vs ant.</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+
+            st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+
+            # Filas de datos
+            conceptos_proy = [
+                ("💰 Ingresos proyectados",   "Ventas",    "#6366f1"),
+                ("📈 Ganancia bruta est.",     "Ganancia",  "#10b981"),
+                ("🏢 Gastos operativos est.", "Gastos",    "#ef4444"),
+                ("🏛️ Impuesto estimado",      "Impuesto",  "#c9a84c"),
+                ("✅ Utilidad neta est.",      "Utilidad",  "#f0ede8"),
+            ]
+            for lbl_c, key_c, col_c in conceptos_proy:
+                row_cols = st.columns(col_widths)
+                es_util = key_c == "Utilidad"
+                with row_cols[0]:
+                    st.markdown(
+                        f'<div style="font-size:0.72rem;color:{col_c};font-weight:700;padding:4px 0">{lbl_c}</div>',
+                        unsafe_allow_html=True
+                    )
+                for ci, fp in enumerate(filas_proy):
+                    val_c = fp[key_c]
+                    c_val = ("#10b981" if val_c >= 0 else "#ef4444") if es_util else col_c
+                    with row_cols[ci+1]:
+                        st.markdown(
+                            f'<div style="text-align:center;padding:4px 2px;'
+                            f'background:{"rgba(16,185,129,0.05)" if es_util and val_c>0 else "rgba(239,68,68,0.05)" if es_util and val_c<0 else "transparent"};'
+                            f'border-radius:6px">'
+                            f'<div style="font-size:0.75rem;color:{c_val};font-weight:{"800" if es_util else "600"}">'
+                            f'{fmt_money(abs(val_c))}</div>'
+                            f'<div style="font-size:0.6rem;color:#5a5878">'
+                            f'{val_c/fp["Ventas"]*100:.0f}%</div>'
+                            f'</div>',
+                            unsafe_allow_html=True
+                        )
+
+            # ── GRÁFICA COMBINADA ──
+            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+            hist_xs  = list(v_mes_p['Mes_Label'])
+            hist_ys  = list(v_mes_p['Ventas'] / 1e6)
+            proy_xs  = [hist_xs[-1]] + [fp['Mes'] for fp in filas_proy]
+            proy_ys  = [hist_ys[-1]] + [fp['Ventas'] / 1e6 for fp in filas_proy]
+            proy_gan = [hist_ys[-1] * gan_pct_hist / 100] + [fp['Ganancia'] / 1e6 for fp in filas_proy]
+            proy_ut  = [0] + [fp['Utilidad'] / 1e6 for fp in filas_proy]
+
+            fig_proy = go.Figure()
+            fig_proy.add_trace(go.Scatter(
+                x=hist_xs, y=hist_ys, name='Ventas Históricas',
+                line=dict(color=op_color, width=3), marker=dict(size=7),
+                hovertemplate='%{x}<br>%{y:.2f}M COP<extra></extra>'
+            ))
+            fig_proy.add_trace(go.Scatter(
+                x=proy_xs, y=proy_ys, name='Ventas Proyectadas',
+                line=dict(color='#c9a84c', width=3, dash='dash'),
+                marker=dict(size=8, symbol='diamond'),
+                hovertemplate='%{x}<br>%{y:.2f}M COP<extra></extra>'
+            ))
+            fig_proy.add_trace(go.Scatter(
+                x=proy_xs, y=proy_gan, name='Ganancia Proy.',
+                line=dict(color='#10b981', width=2, dash='dot'),
+                marker=dict(size=6),
+            ))
+            fig_proy.add_trace(go.Bar(
+                x=[fp['Mes'] for fp in filas_proy],
+                y=[fp['Utilidad'] / 1e6 for fp in filas_proy],
+                name='Utilidad Neta Proy.',
+                marker_color=['#10b981' if fp['Utilidad'] >= 0 else '#ef4444' for fp in filas_proy],
+                opacity=0.6, yaxis='y'
+            ))
+            fig_proy.update_layout(
+                **PLOT_LAYOUT, height=420,
+                title=f"Proyección {n_meses_proy} meses · Base: {base_proy} · +{crecimiento_proy:.0f}%/mes",
+                xaxis=AXIS_STYLE,
+                yaxis=dict(title='Millones COP', **AXIS_STYLE),
+                barmode='overlay'
+            )
+            st.plotly_chart(fig_proy, use_container_width=True)
+
+            # ── KPIs RESUMEN ──
+            total_v   = sum(fp['Ventas']   for fp in filas_proy)
+            total_g   = sum(fp['Ganancia'] for fp in filas_proy)
+            total_u   = sum(fp['Utilidad'] for fp in filas_proy)
+            mejor_mes = max(filas_proy, key=lambda x: x['Ventas'])
+
+            pk1,pk2,pk3,pk4 = st.columns(4)
+            with pk1: st.markdown(kpi("cyan",  "💰 Ingresos totales",  fmt_money(total_v),    f"{n_meses_proy} meses"), unsafe_allow_html=True)
+            with pk2: st.markdown(kpi("green", "📈 Ganancia total est.",fmt_money(total_g),    f"{total_g/total_v*100:.1f}% margen"), unsafe_allow_html=True)
+            with pk3: st.markdown(kpi("gold",  "📅 Mejor mes proy.",   fmt_money(mejor_mes['Ventas']), mejor_mes['Mes']), unsafe_allow_html=True)
+            with pk4:
+                c_u = "green" if total_u >= 0 else "red"
+                st.markdown(kpi(c_u, "✅ Utilidad neta total", fmt_money(total_u), f"{total_u/total_v*100:.1f}% del ingreso"), unsafe_allow_html=True)
+
+            # ── CAPACIDAD FINANCIERA ──
+            st.markdown("<hr style='border-color:#2d2b45;margin:20px 0'>", unsafe_allow_html=True)
+            st.markdown(
+                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.92rem;margin-bottom:6px">'
+                '🏋️ Capacidad Financiera — ¿Tienes el músculo para este crecimiento?</div>'
+                '<div style="font-size:0.72rem;color:#8b8aaa;margin-bottom:14px">'
+                'Cuánto capital necesitas para sostener este ritmo de crecimiento sin presión</div>',
+                unsafe_allow_html=True
+            )
+
+            # Capital requerido = gastos fijos × 3 meses (reserva) + pauta próximo mes
+            capital_reserva   = gastos_op_hist * 3
+            capital_pauta_mes = sum(st.session_state.get('pauta_dict', {}).values())
+            capital_inv_prod  = filas_proy[0]['Ventas'] * 0.40  # ~40% de las ventas en inventario
+            capital_total_req = capital_reserva + capital_pauta_mes + capital_inv_prod
+
+            cf1, cf2, cf3, cf4 = st.columns(4)
+            with cf1:
+                st.markdown(
+                    f'<div style="background:rgba(6,182,212,0.07);border:1px solid #06b6d444;'
+                    f'border-radius:12px;padding:14px;text-align:center">'
+                    f'<div style="font-size:0.6rem;color:#06b6d4;font-weight:800;text-transform:uppercase;margin-bottom:4px">🏦 Reserva operativa</div>'
+                    f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">3 meses de costos fijos</div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#06b6d4;font-size:1rem">{fmt_money(capital_reserva)}</div>'
+                    f'</div>', unsafe_allow_html=True
+                )
+            with cf2:
+                st.markdown(
+                    f'<div style="background:rgba(139,92,246,0.07);border:1px solid #8b5cf644;'
+                    f'border-radius:12px;padding:14px;text-align:center">'
+                    f'<div style="font-size:0.6rem;color:#8b5cf6;font-weight:800;text-transform:uppercase;margin-bottom:4px">📣 Capital pauta</div>'
+                    f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">Inversión publicidad mes 1</div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#8b5cf6;font-size:1rem">{fmt_money(capital_pauta_mes)}</div>'
+                    f'</div>', unsafe_allow_html=True
+                )
+            with cf3:
+                st.markdown(
+                    f'<div style="background:rgba(201,168,76,0.07);border:1px solid #c9a84c44;'
+                    f'border-radius:12px;padding:14px;text-align:center">'
+                    f'<div style="font-size:0.6rem;color:#c9a84c;font-weight:800;text-transform:uppercase;margin-bottom:4px">📦 Capital inventario</div>'
+                    f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">~40% ventas mes 1</div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#c9a84c;font-size:1rem">{fmt_money(capital_inv_prod)}</div>'
+                    f'</div>', unsafe_allow_html=True
+                )
+            with cf4:
+                st.markdown(
+                    f'<div style="background:rgba(99,102,241,0.12);border:2px solid #6366f1;'
+                    f'border-radius:12px;padding:14px;text-align:center">'
+                    f'<div style="font-size:0.6rem;color:#6366f1;font-weight:800;text-transform:uppercase;margin-bottom:4px">💪 CAPITAL TOTAL REQ.</div>'
+                    f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">para operar sin presión</div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#6366f1;font-size:1.1rem">{fmt_money(capital_total_req)}</div>'
+                    f'</div>', unsafe_allow_html=True
+                )
+
+            # Frase cierre
+            st.markdown(
+                f'<div style="background:rgba(99,102,241,0.05);border:1px dashed #6366f144;'
+                f'border-radius:10px;padding:14px 18px;margin-top:14px;font-size:0.76rem;color:#b0aec8;line-height:1.7">'
+                f'💡 <b style="color:#c9a84c">Diagnóstico de capacidad:</b> '
+                f'Para sostener un crecimiento del <b style="color:#6366f1">{crecimiento_proy:.0f}% mensual</b> '
+                f'durante <b style="color:#6366f1">{n_meses_proy} meses</b>, necesitas un músculo financiero mínimo de '
+                f'<b style="color:#10b981">{fmt_money(capital_total_req)}</b>. '
+                f'Si la utilidad neta proyectada es <b style="color:{"#10b981" if total_u>=0 else "#ef4444"}">{fmt_money(total_u)}</b>, '
+                f'{"el negocio puede autofinanciarse parcialmente." if total_u > 0 else "necesitarás capital externo o reducir la tasa de crecimiento."}'
+                f'</div>',
+                unsafe_allow_html=True
+            )
 
     # ══════════════════════════════════════════════════════════════════
     # 🫀 PULSO DEL NEGOCIO — PANEL EJECUTIVO REVOLUCIONARIO
@@ -1618,6 +1951,213 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             f'</div>',
             unsafe_allow_html=True
         )
+
+        # ══════════════════════════════════════════════════════════════════
+        # 🤖 ALERTAS IA — ANÁLISIS DE CALIDAD DE DIRECCIONES
+        # Detecta: direcciones incompletas, barrios/torres problemáticos,
+        # cancelaciones por datos deficientes, anomalías geográficas
+        # ══════════════════════════════════════════════════════════════════
+        st.markdown("<hr style='border-color:#2d2b45;margin:20px 0'>", unsafe_allow_html=True)
+        st.markdown(
+            '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:1rem;margin-bottom:4px">'
+            '🤖 IA — Análisis de Calidad de Direcciones</div>'
+            '<div style="font-size:0.72rem;color:#8b8aaa;margin-bottom:14px">'
+            'Detecta cancelaciones por dirección incompleta, barrios problemáticos y anomalías geográficas</div>',
+            unsafe_allow_html=True
+        )
+
+        # Columnas que necesitamos
+        C_DIR   = next((c for c in df_act.columns if any(x in c.upper() for x in ["DIREC","ADDRESS","CALLE","DOMICILIO"])), None)
+        C_BARRIO= next((c for c in df_act.columns if any(x in c.upper() for x in ["BARRIO","NEIGHBORHOOD","SECTOR","COLONIA"])), None)
+        C_TORRE = next((c for c in df_act.columns if any(x in c.upper() for x in ["TORRE","APTO","APARTAMENTO","UNIDAD","BLOQUE","PISO"])), None)
+        C_DEPTO = next((c for c in df_act.columns if any(x in c.upper() for x in ["DEPARTAMENTO","ESTADO","PROVINCIA","REGION"])), C_CIUDAD if C_CIUDAD in df_act.columns else None)
+
+        # ── PALABRAS CLAVE de dirección incompleta ──
+        PALABRAS_INCOMPLETA = [
+            "incompleta","incomplete","sin direc","no hay dir","falta dir",
+            "datos incompletos","sin datos","pendiente","n/a","na","ninguna",
+            "s/d","sd","xx","000","sin info","no aplica","---","???"
+        ]
+
+        alertas_dir = []
+
+        # ── 1. Cancelaciones por dirección incompleta ──
+        df_can_act = df_act[df_act[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD', na=False)] if C_ESTATUS in df_act.columns else pd.DataFrame()
+        n_can_dir_inc = 0
+        if C_DIR and len(df_can_act):
+            mask_inc = df_can_act[C_DIR].astype(str).str.lower().apply(
+                lambda v: any(p in v for p in PALABRAS_INCOMPLETA) or len(v.strip()) < 10
+            )
+            n_can_dir_inc = int(mask_inc.sum())
+            pct_can_dir = n_can_dir_inc / len(df_can_act) * 100 if len(df_can_act) else 0
+            if n_can_dir_inc > 0:
+                nivel_d = "🔴" if pct_can_dir > 10 else "🟡"
+                alertas_dir.append({
+                    "icono": nivel_d,
+                    "titulo": "Cancelaciones por dirección incompleta",
+                    "msg": f"{n_can_dir_inc:,} cancelaciones ({pct_can_dir:.1f}% del total cancelado) tienen dirección deficiente o incompleta.",
+                    "detalle": "Estas NO son cancelaciones operativas reales — hay intención de compra pero falló la captura de datos.",
+                    "accion": "Actualiza el bot para solicitar dirección completa: barrio + calle + número + referencia.",
+                    "color": "#f59e0b" if pct_can_dir <= 10 else "#ef4444",
+                    "impacto": "recuperable"
+                })
+
+        # ── 2. Tags NOVEDADES con dirección incompleta ──
+        if C_TAGS in df_act.columns:
+            tags_dir = df_act[C_TAGS].astype(str).str.lower()
+            n_tag_dir = tags_dir.apply(lambda t: any(p in t for p in
+                ["datos incompletos","sin direc","dirección incorrecta","direc incorrecta",
+                 "no existe","dir no existe","domicilio no encontrado"])).sum()
+            if n_tag_dir > 0:
+                alertas_dir.append({
+                    "icono": "🔴" if n_tag_dir > n_tot * 0.05 else "🟡",
+                    "titulo": "Novedades etiquetadas: dirección incorrecta",
+                    "msg": f"{n_tag_dir:,} pedidos tienen tag relacionado con problemas de dirección.",
+                    "detalle": "El bot posiblemente no está solicitando correctamente los datos de entrega.",
+                    "accion": "Revisa el flujo de captura del bot: pide número de puerta, barrio, referencia y confirmación.",
+                    "color": "#ef4444" if n_tag_dir > n_tot * 0.05 else "#f59e0b",
+                    "impacto": "bot"
+                })
+
+        # ── 3. Barrios con alta concentración de devoluciones ──
+        if C_BARRIO and C_ESTATUS in df_act.columns:
+            df_dev_b = df_act[df_act[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI', na=False)]
+            if len(df_dev_b):
+                barrios_dev = df_dev_b[C_BARRIO].astype(str).value_counts().head(5)
+                barrios_prob = barrios_dev[barrios_dev > 3]
+                if len(barrios_prob):
+                    top_b = barrios_prob.index[0]
+                    alertas_dir.append({
+                        "icono": "🟡",
+                        "titulo": f"Barrio problemático: {top_b}",
+                        "msg": f"{barrios_prob.iloc[0]:,} devoluciones provienen de '{top_b}'.",
+                        "detalle": "Patrón geográfico de devolución — puede indicar cobertura deficiente o problemas de acceso.",
+                        "accion": f"Evalúa si la transportadora cubre bien '{top_b}'. Considera ruta alternativa o confirmación extra.",
+                        "color": "#f59e0b",
+                        "impacto": "geografico"
+                    })
+
+        # ── 4. Torres/Aptos con alta cancelación ──
+        if C_TORRE and C_ESTATUS in df_act.columns:
+            df_can_t = df_act[df_act[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD', na=False)]
+            if len(df_can_t):
+                torres_can = df_can_t[C_TORRE].astype(str).value_counts()
+                torres_prob = torres_can[(torres_can > 2) & (~torres_can.index.str.lower().isin(["","nan","none","0"]))]
+                if len(torres_prob):
+                    top_t = torres_prob.index[0]
+                    alertas_dir.append({
+                        "icono": "🟡",
+                        "titulo": f"Concentración de cancelaciones: {top_t}",
+                        "msg": f"{torres_prob.iloc[0]:,} cancelaciones en la misma torre/unidad '{top_t}'.",
+                        "detalle": "Múltiples cancelaciones del mismo punto de entrega pueden indicar dirección ficticia o bloqueo.",
+                        "accion": "Verifica si es una dirección de alto riesgo o si hay pedidos duplicados.",
+                        "color": "#f59e0b",
+                        "impacto": "anomalia"
+                    })
+
+        # ── 5. Flete > umbral ──
+        flete_prom = df_act[C_FLETE].mean() if C_FLETE in df_act.columns and len(df_act) else 0
+        flete_max_razonable = flete_prom * 2.5
+        if C_FLETE in df_act.columns and flete_prom > 0:
+            n_flete_alto = int((df_act[C_FLETE] > flete_max_razonable).sum())
+            if n_flete_alto > 0:
+                alertas_dir.append({
+                    "icono": "🟡",
+                    "titulo": "Fletes atípicamente altos",
+                    "msg": f"{n_flete_alto:,} pedidos tienen flete > {fmt_money(flete_max_razonable)} (2.5× el promedio de {fmt_money(flete_prom)}).",
+                    "detalle": "Posibles rutas de difícil acceso o datos de ciudad/depto incorrectos que generan recargos.",
+                    "accion": "Revisa que ciudad y departamento estén correctamente cargados en el Excel.",
+                    "color": "#f59e0b",
+                    "impacto": "costos"
+                })
+
+        # ── 6. Alertas de cancelación cerca del límite ──
+        meta_can_lim = float(st.session_state.get('pg_meta_can', 10.0))
+        if tasa_can >= meta_can_lim * 0.8 and tasa_can < meta_can_lim:
+            alertas_dir.append({
+                "icono": "🟡",
+                "titulo": f"Cancelación cerca del límite ({tasa_can:.1f}% / meta {meta_can_lim:.0f}%)",
+                "msg": f"Estás a {meta_can_lim - tasa_can:.1f} pp del límite de cancelación. El sistema activa análisis preventivo.",
+                "detalle": f"Con {n_can:,} cancelaciones actuales, {int((meta_can_lim/100*n_tot) - n_can)} más cancelaciones activarían la alerta roja.",
+                "accion": "Refuerza confirmación y revisa direcciones del backlog pendiente.",
+                "color": "#f59e0b",
+                "impacto": "preventivo"
+            })
+
+        # ── RENDER alertas IA ──
+        if not alertas_dir:
+            st.markdown(
+                '<div style="background:rgba(16,185,129,0.07);border:1px solid #10b98144;'
+                'border-radius:12px;padding:18px;text-align:center">'
+                '<div style="font-size:1.3rem;margin-bottom:6px">✅</div>'
+                '<div style="color:#10b981;font-weight:700;font-size:0.9rem">Sin anomalías de dirección detectadas</div>'
+                '<div style="font-size:0.72rem;color:#8b8aaa;margin-top:4px">'
+                f'Analizados {n_tot:,} pedidos · {n_can:,} cancelaciones · sin patrones de riesgo geográfico</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            # KPIs resumen IA
+            ia1, ia2, ia3 = st.columns(3)
+            n_criticas_d = sum(1 for a in alertas_dir if a['icono'] == "🔴")
+            n_atencion_d = sum(1 for a in alertas_dir if a['icono'] == "🟡")
+            n_recup = sum(1 for a in alertas_dir if a.get('impacto') == 'recuperable')
+            with ia1: st.markdown(kpi("red",   "🔴 Alertas críticas",  f"{n_criticas_d}", "Requieren acción inmediata"), unsafe_allow_html=True)
+            with ia2: st.markdown(kpi("gold",  "🟡 Alertas atención",  f"{n_atencion_d}", "Monitorear"), unsafe_allow_html=True)
+            with ia3: st.markdown(kpi("green", "♻️ Recuperables",      f"{n_recup}", "Cancel. por datos incompletos"), unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            for alerta_d in alertas_dir:
+                impacto_badges = {
+                    "recuperable": ("🟢 Recuperable", "#10b981"),
+                    "bot":         ("🤖 Problema de Bot", "#8b5cf6"),
+                    "geografico":  ("🗺️ Patrón Geográfico", "#06b6d4"),
+                    "anomalia":    ("⚠️ Anomalía", "#f59e0b"),
+                    "costos":      ("💸 Impacto en Costos", "#f97416"),
+                    "preventivo":  ("🛡️ Preventivo", "#6366f1"),
+                }
+                imp_key = alerta_d.get('impacto', '')
+                imp_lbl, imp_col = impacto_badges.get(imp_key, ("📌 Alerta", "#8b8aaa"))
+                st.markdown(
+                    f'<div style="background:#1a1829;border:1px solid {alerta_d["color"]}33;'
+                    f'border-left:4px solid {alerta_d["color"]};border-radius:12px;padding:16px 18px;margin-bottom:10px">'
+                    f'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'
+                    f'<div style="display:flex;align-items:center;gap:8px">'
+                    f'<span style="font-size:1rem">{alerta_d["icono"]}</span>'
+                    f'<span style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem">{alerta_d["titulo"]}</span>'
+                    f'</div>'
+                    f'<span style="background:{imp_col}18;color:{imp_col};border:1px solid {imp_col}44;'
+                    f'border-radius:20px;padding:2px 10px;font-size:0.65rem;font-weight:800;white-space:nowrap">{imp_lbl}</span>'
+                    f'</div>'
+                    f'<div style="font-size:0.8rem;color:#b0aec8;margin-bottom:6px;line-height:1.5">{alerta_d["msg"]}</div>'
+                    f'<div style="font-size:0.72rem;color:#5a5878;margin-bottom:10px;font-style:italic">{alerta_d["detalle"]}</div>'
+                    f'<div style="background:{alerta_d["color"]}12;border-radius:8px;padding:8px 12px">'
+                    f'<span style="font-size:0.72rem;color:{alerta_d["color"]};font-weight:800">⚡ Acción: </span>'
+                    f'<span style="font-size:0.72rem;color:#d4d0ea">{alerta_d["accion"]}</span>'
+                    f'</div></div>',
+                    unsafe_allow_html=True
+                )
+
+        # Columnas disponibles para diagnóstico
+        cols_dir_disponibles = [c for c in [C_DIR, C_BARRIO, C_TORRE, C_DEPTO] if c]
+        if not cols_dir_disponibles:
+            st.markdown(
+                '<div style="background:rgba(91,85,120,0.1);border:1px dashed #5a5878;'
+                'border-radius:10px;padding:14px;margin-top:10px;font-size:0.75rem;color:#8b8aaa">'
+                '📋 <b style="color:#d4d0ea">Para activar el análisis completo de direcciones</b>, '
+                'asegúrate de que tu Excel tenga columnas como: '
+                '<b>DIRECCIÓN, BARRIO, TORRE, DEPARTAMENTO</b>. '
+                'Actualmente se detecta solo por tags y estatus.'
+                '</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            cols_str = " · ".join([f"<b style='color:#6366f1'>{c}</b>" for c in cols_dir_disponibles])
+            st.markdown(
+                f'<div style="font-size:0.68rem;color:#5a5878;margin-top:6px">'
+                f'🔍 Columnas de dirección detectadas: {cols_str}</div>',
+                unsafe_allow_html=True
+            )
 
 
     # ── EVOLUCIÓN MENSUAL (mantenido como referencia interna) ──
