@@ -1882,6 +1882,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
 
         # Sub-navegación interna
         fin_nav = st.radio("", [
+            "💰 Diagnóstico Financiero",
             "📊 Estado de Resultados",
             "👥 Nómina",
             "⚖️ Punto de Equilibrio",
@@ -1937,7 +1938,356 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         utilidad_neta = utilidad_op - impuesto_est
         margen_neto_pct = utilidad_neta / ingresos * 100 if ingresos else 0
 
-        # ══════════════════════════════════════════════════════
+        # ══════════════════════════════════════════════════════════════════
+        # 💰 DIAGNÓSTICO FINANCIERO — NUEVO TAB PRINCIPAL
+        # Gastos reales · Impuestos · Flete devolución · Patrimonio
+        # ══════════════════════════════════════════════════════════════════
+        if "Diagnóstico" in fin_nav:
+            st.markdown('<div class="seccion-titulo">💰 Diagnóstico Financiero del Período</div>', unsafe_allow_html=True)
+
+            # ── Configuración fiscal inline ──
+            with st.expander("⚙️ Configurar tasa de impuesto real", expanded=False):
+                tc1, tc2, tc3 = st.columns(3)
+                with tc1:
+                    tasa_imp_diag = st.number_input(
+                        "% Impuesto sobre ingresos", 0.0, 50.0,
+                        float(st.session_state.get('diag_imp', 8.0)), step=0.5,
+                        key="diag_imp",
+                        help="Retención en la fuente, IVA efectivo, etc."
+                    )
+                with tc2:
+                    pct_iva_excl = st.number_input(
+                        "% Base excluida de impuesto", 0.0, 100.0,
+                        float(st.session_state.get('diag_iva_excl', 80.0)), step=5.0,
+                        key="diag_iva_excl",
+                        help="Si el 80% está excluido, el impuesto aplica solo al 20%"
+                    )
+                with tc3:
+                    tasa_imp_efect = tasa_imp_diag * (1 - pct_iva_excl / 100)
+                    st.metric("Tasa efectiva real", f"{tasa_imp_efect:.2f}%",
+                              help="= Tasa × (1 − % excluido)")
+            tasa_imp_efect = float(st.session_state.get('diag_imp', 8.0)) * \
+                             (1 - float(st.session_state.get('diag_iva_excl', 80.0)) / 100)
+
+            # ── Cálculos reales ──
+            ingreso_bruto     = df_fin[C_TOTAL].sum() if C_TOTAL in df_fin.columns else 0  # TODOS los pedidos
+            ingreso_neto      = ingresos                                                     # solo entregados
+            impuesto_real     = ingreso_neto * (tasa_imp_efect / 100)
+            utilidad_neta_diag = utilidad_op - impuesto_real
+            margen_util_pct   = utilidad_neta_diag / ingreso_neto * 100 if ingreso_neto else 0
+            pct_imp_sobre_ing = impuesto_real / ingreso_neto * 100 if ingreso_neto else 0
+
+            # Flete devolución como pérdida directa
+            pct_flete_dev_ing = flete_dev / ingreso_neto * 100 if ingreso_neto else 0
+
+            # Patrimonio: utilidad neta acumulada mes vs mes anterior
+            mes_fin_ant = None
+            meses_fin_list = sorted(df['_mes'].dropna().unique().tolist(), reverse=True) if '_mes' in df.columns else []
+            if mes_fin in meses_fin_list:
+                idx_f = meses_fin_list.index(mes_fin)
+                mes_fin_ant = meses_fin_list[idx_f + 1] if idx_f + 1 < len(meses_fin_list) else None
+
+            if mes_fin_ant and '_mes' in df.columns:
+                df_ant_fin = df[df['_mes'] == mes_fin_ant].copy()
+                mask_ent_a   = df_ant_fin[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD', na=False) if C_ESTATUS in df_ant_fin.columns else pd.Series([True]*len(df_ant_fin))
+                ing_ant_fin  = df_ant_fin[mask_ent_a][C_TOTAL].sum() if C_TOTAL in df_ant_fin.columns else 0
+                gan_ant_fin  = df_ant_fin[mask_ent_a][C_GANANCIA].sum() if C_GANANCIA in df_ant_fin.columns else 0
+                fd_ant       = df_ant_fin[df_ant_fin[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI', na=False)][C_FLETE].sum() if C_FLETE in df_ant_fin.columns else 0
+                cst_ant      = df_ant_fin[mask_ent_a]["PRECIO PROVEEDOR X CANTIDAD"].sum() if "PRECIO PROVEEDOR X CANTIDAD" in df_ant_fin.columns else 0
+                ub_ant       = ing_ant_fin - cst_ant
+                go_ant       = fd_ant + sum(st.session_state.get('pauta_dict', {}).values()) + st.session_state.get('nomina_total', 0) + sum(st.session_state.get('costos_fijos', {}).values())
+                uop_ant      = ub_ant - go_ant
+                un_ant       = uop_ant - ing_ant_fin * (tasa_imp_efect / 100)
+                crecimiento_patrimonio = utilidad_neta_diag - un_ant
+                pct_crec = (utilidad_neta_diag - un_ant) / abs(un_ant) * 100 if un_ant else 0
+                tiene_ant = True
+                MESES_ES2 = {1:"Ene",2:"Feb",3:"Mar",4:"Abr",5:"May",6:"Jun",
+                             7:"Jul",8:"Ago",9:"Sep",10:"Oct",11:"Nov",12:"Dic"}
+                def fmt_mes_corto(m):
+                    try: y,mo=str(m).split('-'); return f"{MESES_ES2[int(mo)]} {y[-2:]}"
+                    except: return str(m)
+            else:
+                un_ant = 0; crecimiento_patrimonio = 0; pct_crec = 0; tiene_ant = False
+
+            # ── FILA 1: 5 KPIs principales ──
+            d1,d2,d3,d4,d5 = st.columns(5)
+
+            with d1:
+                st.markdown(
+                    f'<div style="background:linear-gradient(135deg,#6366f120,#6366f108);border:2px solid #6366f1;'
+                    f'border-radius:14px;padding:16px 12px;text-align:center">'
+                    f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;'
+                    f'letter-spacing:0.06em;margin-bottom:4px">💵 INGRESO BRUTO</div>'
+                    f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">Todos los pedidos del período</div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#6366f1;font-size:1.15rem">{fmt_money(ingreso_bruto)}</div>'
+                    f'<div style="font-size:0.62rem;color:#8b8aaa;margin-top:4px">Entregados: {fmt_money(ingreso_neto)}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+            with d2:
+                c_util = "#10b981" if utilidad_neta_diag > 0 else "#ef4444"
+                st.markdown(
+                    f'<div style="background:{c_util}12;border:2px solid {c_util};'
+                    f'border-radius:14px;padding:16px 12px;text-align:center">'
+                    f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;'
+                    f'letter-spacing:0.06em;margin-bottom:4px">📈 % UTILIDAD REAL</div>'
+                    f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">Después de todos los gastos e impuestos</div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:{c_util};font-size:1.4rem">{margen_util_pct:.1f}%</div>'
+                    f'<div style="font-size:0.62rem;color:{c_util};margin-top:4px">{fmt_money(utilidad_neta_diag)} netos</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+            with d3:
+                st.markdown(
+                    f'<div style="background:#c9a84c12;border:2px solid #c9a84c;'
+                    f'border-radius:14px;padding:16px 12px;text-align:center">'
+                    f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;'
+                    f'letter-spacing:0.06em;margin-bottom:4px">🏛️ IMPUESTO REAL</div>'
+                    f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">Tasa efectiva: {tasa_imp_efect:.2f}%</div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#c9a84c;font-size:1.15rem">{fmt_money(impuesto_real)}</div>'
+                    f'<div style="font-size:0.62rem;color:#c9a84c;margin-top:4px">{pct_imp_sobre_ing:.2f}% del ingreso neto</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+            with d4:
+                st.markdown(
+                    f'<div style="background:#f9741620;border:2px solid #f97416;'
+                    f'border-radius:14px;padding:16px 12px;text-align:center">'
+                    f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;'
+                    f'letter-spacing:0.06em;margin-bottom:4px">↩️ FLETE DEVOLUCIÓN</div>'
+                    f'<div style="font-size:0.58rem;color:#f97416;margin-bottom:6px">⚠️ Pérdida financiera directa</div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#f97416;font-size:1.15rem">{fmt_money(flete_dev)}</div>'
+                    f'<div style="font-size:0.62rem;color:#f97416;margin-top:4px">{pct_flete_dev_ing:.2f}% del ingreso</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+            with d5:
+                if tiene_ant:
+                    c_crec = "#10b981" if crecimiento_patrimonio >= 0 else "#ef4444"
+                    sym_crec = "▲" if crecimiento_patrimonio >= 0 else "▼"
+                    txt_crec = f"{sym_crec} {abs(pct_crec):.1f}% vs {fmt_mes_corto(mes_fin_ant)}"
+                else:
+                    c_crec = "#8b8aaa"; txt_crec = "sin mes anterior"
+                st.markdown(
+                    f'<div style="background:{c_crec}12;border:2px solid {c_crec};'
+                    f'border-radius:14px;padding:16px 12px;text-align:center">'
+                    f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;'
+                    f'letter-spacing:0.06em;margin-bottom:4px">🏦 CRECIMIENTO PATRIMONIO</div>'
+                    f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">Δ Utilidad neta mes a mes</div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:{c_crec};font-size:1.15rem">{fmt_money(crecimiento_patrimonio)}</div>'
+                    f'<div style="font-size:0.62rem;color:{c_crec};margin-top:4px">{txt_crec}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # ── CASCADA DE GASTOS — Tabla bancaria ──
+            st.markdown(
+                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.92rem;margin-bottom:12px">'
+                '🏦 Cascada Financiera — Estructura real del dinero</div>',
+                unsafe_allow_html=True
+            )
+
+            def fila_cascada(concepto, valor, tipo="gasto", nivel=0, destacada=False, pct_base=None):
+                """
+                tipo: "ingreso" | "gasto_op" | "gasto_fin" | "impuesto" | "resultado"
+                """
+                colores = {
+                    "ingreso":    "#6366f1",
+                    "gasto_op":   "#ef4444",
+                    "gasto_fin":  "#f97416",
+                    "impuesto":   "#c9a84c",
+                    "resultado":  "#10b981" if valor >= 0 else "#ef4444",
+                    "subtotal":   "#06b6d4",
+                }
+                col_v = colores.get(tipo, "#b0aec8")
+                if tipo == "resultado" and valor < 0:
+                    col_v = "#ef4444"
+                indent = "&nbsp;" * (nivel * 5)
+                signo  = "−&nbsp;" if tipo in ("gasto_op","gasto_fin","impuesto") and valor > 0 else ""
+                bg     = f"rgba({col_v.lstrip('#')},0.06)" if destacada else "transparent"
+                bld    = "font-weight:800;" if destacada else ""
+                pct_str = f"{valor/ingreso_neto*100:.1f}%" if ingreso_neto and not destacada else \
+                          (f"<b>{valor/ingreso_neto*100:.1f}%</b>" if ingreso_neto else "")
+                barra_w = min(abs(valor)/ingreso_bruto*100, 100) if ingreso_bruto else 0
+                barra_col = col_v
+                barra_html = (
+                    f'<div style="background:#2d2b45;border-radius:100px;height:4px;margin-top:4px;overflow:hidden;max-width:140px">'
+                    f'<div style="background:{barra_col};width:{barra_w:.1f}%;height:100%;border-radius:100px"></div></div>'
+                ) if not destacada else ""
+                return (
+                    f'<tr style="background:{bg};border-bottom:1px solid #1a1829">'
+                    f'<td style="padding:10px 16px;color:#d4d0ea;font-size:0.82rem;{bld}">'
+                    f'{indent}{concepto}{barra_html}</td>'
+                    f'<td style="padding:10px 16px;text-align:right;color:{col_v};font-size:0.85rem;{bld}">'
+                    f'{signo}{fmt_money(abs(valor))}</td>'
+                    f'<td style="padding:10px 16px;text-align:right;color:#5a5878;font-size:0.72rem">{pct_str}</td>'
+                    f'</tr>'
+                )
+
+            def sep_cascada(titulo, color="#2d2b45"):
+                return (
+                    f'<tr><td colspan="3" style="padding:6px 16px;background:#0f0e1d;'
+                    f'border-bottom:1px solid {color}">'
+                    f'<span style="font-size:0.65rem;color:{color};font-weight:800;text-transform:uppercase;'
+                    f'letter-spacing:0.08em">{titulo}</span></td></tr>'
+                )
+
+            casc_html = (
+                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #2d2b45;margin-bottom:20px">'
+                f'<table style="width:100%;border-collapse:collapse;background:#1a1829;font-family:Space Grotesk,sans-serif">'
+                f'<thead><tr>'
+                f'<th style="padding:12px 16px;text-align:left;color:#8b8aaa;font-size:0.68rem;text-transform:uppercase;'
+                f'letter-spacing:0.07em;border-bottom:2px solid #2d2b45">Concepto</th>'
+                f'<th style="padding:12px 16px;text-align:right;color:#8b8aaa;font-size:0.68rem;text-transform:uppercase;'
+                f'letter-spacing:0.07em;border-bottom:2px solid #2d2b45">Valor</th>'
+                f'<th style="padding:12px 16px;text-align:right;color:#8b8aaa;font-size:0.68rem;text-transform:uppercase;'
+                f'letter-spacing:0.07em;border-bottom:2px solid #2d2b45">% Ingreso</th>'
+                f'</tr></thead><tbody>'
+
+                # BLOQUE 1 — INGRESOS
+                + sep_cascada("① Ingresos", "#6366f1")
+                + fila_cascada("Ingreso Bruto (todos los pedidos)", ingreso_bruto, "ingreso", destacada=True)
+                + fila_cascada("Pedidos no entregados (cancelados + dev.)", ingreso_bruto - ingreso_neto, "gasto_op", nivel=1)
+                + fila_cascada("INGRESO NETO COBRABLE", ingreso_neto, "subtotal", destacada=True)
+
+                # BLOQUE 2 — COSTOS DIRECTOS
+                + sep_cascada("② Costos del Producto", "#ef4444")
+                + fila_cascada("Costo de Producto Vendido", costo_prod, "gasto_op", nivel=1)
+                + fila_cascada("UTILIDAD BRUTA", utilidad_bruta, "resultado", destacada=True)
+
+                # BLOQUE 3 — GASTOS OPERATIVOS
+                + sep_cascada("③ Gastos Operativos", "#f59e0b")
+                + fila_cascada("Flete de Entrega", flete_ent, "gasto_op", nivel=1)
+                + fila_cascada("Pauta Publicitaria", pauta_fin, "gasto_op", nivel=1)
+                + fila_cascada("Nómina y Equipo", nomina_total, "gasto_op", nivel=1)
+                + fila_cascada("Costos Fijos Adicionales", sum(costos_fijos.values()), "gasto_op", nivel=1)
+                + fila_cascada("EBITDA (Utilidad Operativa)", utilidad_op, "resultado", destacada=True)
+
+                # BLOQUE 4 — GASTOS FINANCIEROS / PÉRDIDAS
+                + sep_cascada("④ Pérdidas Financieras (Devoluciones)", "#f97416")
+                + fila_cascada("↩️ Flete de Devolución", flete_dev, "gasto_fin", nivel=1)
+                + fila_cascada("  → Es dinero pagado sin recuperar ingreso", 0, "gasto_fin", nivel=2)
+                + fila_cascada("RESULTADO ANTES DE IMPUESTOS", utilidad_op - flete_dev, "resultado", destacada=True)
+
+                # BLOQUE 5 — IMPUESTOS REALES
+                + sep_cascada("⑤ Impuestos", "#c9a84c")
+                + fila_cascada(f"Impuesto efectivo ({tasa_imp_efect:.2f}% sobre ingreso neto)", impuesto_real, "impuesto", nivel=1)
+                + fila_cascada(f"  Base imponible: {(1-float(st.session_state.get('diag_iva_excl',80.0))/100)*100:.0f}% · Tasa nominal: {float(st.session_state.get('diag_imp',8.0)):.1f}%", 0, "impuesto", nivel=2)
+
+                # BLOQUE 6 — RESULTADO FINAL
+                + sep_cascada("⑥ Resultado Final", "#10b981")
+                + fila_cascada("▶ UTILIDAD NETA REAL", utilidad_neta_diag, "resultado", destacada=True)
+                + '</tbody></table></div>'
+            )
+            st.markdown(casc_html, unsafe_allow_html=True)
+
+            # ── % DE UTILIDAD — Gráfica waterfall en barras ──
+            st.markdown(
+                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:12px">'
+                '📊 Distribución del Ingreso Neto — ¿a dónde va cada peso?</div>',
+                unsafe_allow_html=True
+            )
+
+            conceptos_dist = [
+                ("Costo Producto",   costo_prod,            "#ef4444"),
+                ("Flete Entrega",    flete_ent,             "#f59e0b"),
+                ("Flete Devolución", flete_dev,             "#f97416"),
+                ("Pauta",            pauta_fin,             "#8b5cf6"),
+                ("Nómina",           nomina_total,          "#6366f1"),
+                ("Costos Fijos",     sum(costos_fijos.values()), "#06b6d4"),
+                ("Impuestos",        impuesto_real,         "#c9a84c"),
+                ("Utilidad Neta",    utilidad_neta_diag,    "#10b981" if utilidad_neta_diag >= 0 else "#ef4444"),
+            ]
+
+            dist_html = '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">'
+            for lbl, val, col in conceptos_dist:
+                pct_d = val / ingreso_neto * 100 if ingreso_neto else 0
+                dist_html += (
+                    f'<div style="background:{col}12;border:1.5px solid {col}44;border-top:3px solid {col};'
+                    f'border-radius:12px;padding:10px 12px;flex:1;min-width:100px;text-align:center">'
+                    f'<div style="font-size:0.6rem;color:{col};font-weight:800;text-transform:uppercase;'
+                    f'letter-spacing:0.05em;margin-bottom:4px">{lbl}</div>'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:{col};font-size:1.1rem">{pct_d:.1f}%</div>'
+                    f'<div style="font-size:0.62rem;color:#5a5878;margin-top:2px">{fmt_money(val)}</div>'
+                    f'<div style="background:#2d2b45;border-radius:100px;height:5px;margin-top:6px;overflow:hidden">'
+                    f'<div style="background:{col};width:{min(abs(pct_d),100):.0f}%;height:100%;border-radius:100px"></div>'
+                    f'</div></div>'
+                )
+            dist_html += '</div>'
+            st.markdown(dist_html, unsafe_allow_html=True)
+
+            # ── ASESOR: DISTRIBUCIÓN RECOMENDADA ──
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown(
+                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:4px">'
+                '🤖 Asesor — ¿Cómo distribuir la utilidad disponible?</div>'
+                '<div style="font-size:0.72rem;color:#8b8aaa;margin-bottom:12px">'
+                'Basado en tu utilidad neta real del período</div>',
+                unsafe_allow_html=True
+            )
+
+            if utilidad_neta_diag > 0:
+                # Proporciones recomendadas
+                dist_rec = [
+                    ("🔄 Reinversión en Operación", 0.30, "#6366f1",
+                     "Capital de trabajo, inventario, logística"),
+                    ("📣 Marketing",                0.20, "#8b5cf6",
+                     "Pauta, creativos, nuevos canales"),
+                    ("🏦 Reserva de Emergencia",    0.20, "#06b6d4",
+                     "Mínimo 3 meses de costos fijos cubiertos"),
+                    ("📈 Inversión / Crecimiento",  0.20, "#10b981",
+                     "Nuevos productos, equipos, expansión"),
+                    ("💼 Distribución / Retiro",    0.10, "#c9a84c",
+                     "Rentabilidad personal del negocio"),
+                ]
+                asesor_html = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px">'
+                for lbl_r, pct_r, col_r, desc_r in dist_rec:
+                    monto_r = utilidad_neta_diag * pct_r
+                    asesor_html += (
+                        f'<div style="background:{col_r}12;border:1px solid {col_r}44;border-top:3px solid {col_r};'
+                        f'border-radius:12px;padding:12px;text-align:center">'
+                        f'<div style="font-size:0.62rem;color:{col_r};font-weight:800;text-transform:uppercase;'
+                        f'letter-spacing:0.05em;margin-bottom:6px;line-height:1.3">{lbl_r}</div>'
+                        f'<div style="font-family:Syne,sans-serif;font-weight:900;color:{col_r};font-size:1rem">{fmt_money(monto_r)}</div>'
+                        f'<div style="font-size:0.7rem;color:#c9a84c;font-weight:700;margin:3px 0">{pct_r*100:.0f}% de la utilidad</div>'
+                        f'<div style="font-size:0.62rem;color:#5a5878;line-height:1.4">{desc_r}</div>'
+                        f'</div>'
+                    )
+                asesor_html += '</div>'
+                asesor_html += (
+                    f'<div style="background:rgba(99,102,241,0.06);border:1px dashed #6366f144;'
+                    f'border-radius:10px;padding:12px 16px;font-size:0.75rem;color:#b0aec8;line-height:1.7">'
+                    f'💡 <b style="color:#c9a84c">Recomendación del mes:</b> '
+                    f'Tienes <b style="color:#10b981">{fmt_money(utilidad_neta_diag)}</b> de utilidad neta real. '
+                    f'Prioriza la <b style="color:#06b6d4">reserva de emergencia</b> si no tienes 3 meses de costos fijos '
+                    f'cubiertos ({fmt_money(cf_total * 3)} objetivo). '
+                    f'El flete de devolución representa <b style="color:#f97416">{fmt_money(flete_dev)}</b> de pérdida directa — '
+                    f'reducirlo un 20% liberaría <b style="color:#f97416">{fmt_money(flete_dev * 0.2)}</b> mensuales.'
+                    f'</div>'
+                )
+                st.markdown(asesor_html, unsafe_allow_html=True)
+            else:
+                st.markdown(
+                    f'<div style="background:rgba(239,68,68,0.07);border:1px solid #ef444444;'
+                    f'border-radius:12px;padding:18px;text-align:center">'
+                    f'<div style="font-size:1.5rem;margin-bottom:8px">⚠️</div>'
+                    f'<div style="color:#ef4444;font-weight:800;margin-bottom:6px">Utilidad neta negativa — no hay excedente para distribuir</div>'
+                    f'<div style="font-size:0.78rem;color:#8b8aaa;line-height:1.6">'
+                    f'El negocio gastó más de lo que generó este período. '
+                    f'Revisa la estructura de costos: el flete ({fmt_money(flete_ent + flete_dev)}) '
+                    f'y la pauta ({fmt_money(pauta_fin)}) representan '
+                    f'{(flete_ent + flete_dev + pauta_fin) / ingreso_neto * 100:.1f}% del ingreso neto.'
+                    f'</div></div>',
+                    unsafe_allow_html=True
+                )
+
+        # ══════════════════════════════════════════════════════════════════
         # 👥 NÓMINA
         # ══════════════════════════════════════════════════════
         if "Nómina" in fin_nav:
