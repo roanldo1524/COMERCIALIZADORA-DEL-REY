@@ -540,7 +540,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
     elif "Marketing" in vista_activa:
         nav = "📣 Marketing"
     else:
-        nav = st.radio("", ["🫀 Pulso del Negocio","🎯 El Marcador","🌊 Río del Dinero","🚨 Centro de Mando"],
+        nav = st.radio("", ["🫀 Pulso del Negocio","🎯 El Marcador","🚨 Centro de Mando"],
                        horizontal=True, label_visibility="collapsed")
 
 
@@ -670,137 +670,223 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         def pct(val, base):
             return f"{round(val/base*100,1)}%" if base else "—"
 
-        def celda(val, base, invertir=False):
-            p = val/base*100 if base else 0
-            if invertir:
-                color = "#ef4444" if p > 25 else "#fbbf24" if p > 15 else "#34d399"
-            else:
-                color = "#34d399" if p >= 60 else "#fbbf24" if p >= 40 else "#ef4444"
-            bg = f"rgba({','.join(str(int(c,16)) for c in [color[1:3],color[3:5],color[5:7]])},0.12)" if color.startswith('#') else "transparent"
-            return f'<td style="padding:8px 12px;text-align:right;color:{color};font-weight:700;font-size:0.82rem">{pct(val,base)}</td>'
+        # ── Estilos base para tabla cuadriculada ──
+        TD  = "padding:9px 14px;border-right:1px solid #2d2b45;border-bottom:1px solid #2d2b45;"
+        TDN = "padding:9px 14px;border-bottom:1px solid #2d2b45;"   # última columna, sin border-right
+        HDR = "padding:10px 14px;text-align:right;background:#0d0c18;font-size:0.67rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;border-right:1px solid #2d2b45;border-bottom:2px solid #2d2b45;"
+        HDRL= "padding:10px 14px;text-align:left; background:#0d0c18;font-size:0.67rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;border-right:1px solid #2d2b45;border-bottom:2px solid #2d2b45;min-width:180px"
 
-        def fila_seccion(label, color="#f0ede8", bold=True, bg="transparent", colspan=11):
-            fw = "800" if bold else "600"
-            return f'<tr><td colspan="{colspan}" style="padding:10px 12px 4px;background:{bg};color:{color};font-family:Syne,sans-serif;font-weight:{fw};font-size:0.82rem;text-transform:uppercase;letter-spacing:0.06em">{label}</td></tr>'
+        COL_COLORS = {
+            "Sem I\n1-8":    "#c0392b","Sem II\n9-16": "#d4ac0d",
+            "Sem III\n17-24":"#7fb3d3","Sem IV\n25-31":"#a9dfbf",
+            "Total Mes":     "#27ae60"
+        }
 
-        def fila(label, vals_dict, base_dict, meta=None, kpi_meta=None, invertir=False, destacar=False, color_label="#b0aec8"):
-            bg = "rgba(201,168,76,0.06)" if destacar else "rgba(0,0,0,0)"
-            fw = "700" if destacar else "400"
-            html = f'<tr style="background:{bg};border-bottom:1px solid rgba(45,43,69,0.5)">'
-            html += f'<td style="padding:8px 12px;color:{color_label};font-weight:{fw};font-size:0.82rem;white-space:nowrap">{label}</td>'
-            if meta is not None:
-                html += f'<td style="padding:8px 12px;text-align:right;color:#5a5878;font-size:0.78rem">{fmt_money(meta)}</td>'
-                html += f'<td style="padding:8px 12px;text-align:right;color:#c9a84c;font-size:0.78rem;font-weight:700">{kpi_meta}</td>'
-            else:
-                html += '<td colspan="2"></td>'
-            for k, v in vals_dict.items():
+        def fila_seccion(label, color="#f0ede8", bg="transparent"):
+            return (
+                f'<tr style="background:{bg}">'
+                f'<td colspan="100%" style="{TDN}color:{color};font-family:Syne,sans-serif;'
+                f'font-weight:800;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.07em;'
+                f'background:{bg}">{label}</td></tr>'
+            )
+
+        def fila_pg(label, vals_dict, base_dict, invertir=False, destacar=False,
+                    color_label="#b0aec8", semanas_keys=None):
+            """
+            vals_dict:  {semana_key: valor_float}
+            base_dict:  {semana_key: base_float}  — para calcular %
+            semanas_keys: lista de columnas a mostrar (subset de cols_hdr)
+            """
+            if semanas_keys is None: semanas_keys = list(vals_dict.keys())
+            bg_row = "rgba(201,168,76,0.07)" if destacar else "rgba(0,0,0,0)"
+            fw     = "700" if destacar else "400"
+            html   = f'<tr style="background:{bg_row}">'
+            html  += f'<td style="{TDN}color:{color_label};font-weight:{fw};font-size:0.82rem;white-space:nowrap">{label}</td>'
+            last_k = semanas_keys[-1]
+            for k in semanas_keys:
+                v    = vals_dict.get(k, 0)
                 base = base_dict.get(k, 1)
-                p = v/base*100 if base else 0
+                p    = v / base * 100 if base else 0
+                # Color según lógica
                 if invertir:
                     pc = "#ef4444" if p > 25 else "#fbbf24" if p > 15 else "#34d399"
                 elif destacar:
                     pc = "#34d399" if p >= 55 else "#fbbf24" if p >= 40 else "#ef4444"
                 else:
                     pc = "#f0ede8"
-                bg_p = "rgba(239,68,68,0.08)" if pc=="#ef4444" else "rgba(245,158,11,0.08)" if pc=="#fbbf24" else "transparent"
-                html += f'<td style="padding:8px 12px;text-align:right;color:#8b8aaa;font-size:0.8rem">{fmt_money(v)}</td>'
-                html += f'<td style="padding:8px 12px;text-align:right;background:{bg_p};color:{pc};font-weight:700;font-size:0.8rem;border-radius:4px">{pct(v,base)}</td>'
+                bg_p   = "rgba(239,68,68,0.1)" if pc=="#ef4444" else \
+                         "rgba(245,158,11,0.1)" if pc=="#fbbf24" else "transparent"
+                is_last = k == last_k
+                td_sty  = TDN if is_last else TD
+                val_txt  = f"${v:,.1f}" if abs(v) < 10_000 else f"${v/1_000_000:.3f}M" if abs(v) >= 1_000_000 else f"${v/1_000:.1f}K"
+                pct_txt  = f"{p:.1f}%"
+                html += (
+                    f'<td style="{td_sty}text-align:right;font-size:0.82rem;color:#b0aec8;font-weight:{fw}">'
+                    f'{val_txt}</td>'
+                    f'<td style="{td_sty}text-align:right;background:{bg_p};color:{pc};font-weight:700;font-size:0.78rem">'
+                    f'{pct_txt}</td>'
+                )
             html += '</tr>'
             return html
 
-        # Cabeceras de columnas
-        cols_hdr = list(met.keys())
-        shopifys = {k: met[k]["shopify"] for k in cols_hdr}
-        recaudos = {k: met[k]["recaudo"] for k in cols_hdr}
-        mbrutos  = {k: met[k]["margen_bruto"] for k in cols_hdr}
+        def build_pg_html(semanas_keys):
+            """Construye la tabla P&G solo para las semanas indicadas."""
+            shopifys_s  = {k: met[k]["shopify"]      for k in semanas_keys}
+            recaudos_s  = {k: met[k]["recaudo"]       for k in semanas_keys}
+            mbrutos_s   = {k: met[k]["margen_bruto"]  for k in semanas_keys}
+            marg_ops_s  = {k: met[k]["margen_bruto"] - manuales[k]["total_mkt"] for k in semanas_keys}
+            ebitdas_s   = {k: marg_ops_s[k] - manuales[k]["total_adm"] - manuales[k]["total_imp"] for k in semanas_keys}
+            imptos_s    = {k: met[k]["shopify"] * (imp_tasa/100) for k in semanas_keys}
+            net_inv_s   = {k: ebitdas_s[k] * (red_inv/100) for k in semanas_keys}
+            netos_s     = {k: ebitdas_s[k] - imptos_s[k] - net_inv_s[k] for k in semanas_keys}
 
-        marg_ops  = {k: met[k]["margen_bruto"] - manuales[k]["total_mkt"] for k in cols_hdr}
-        ebitdas   = {k: marg_ops[k] - manuales[k]["total_adm"] - manuales[k]["total_imp"] for k in cols_hdr}
-        imptos    = {k: met[k]["shopify"] * 0.08 for k in cols_hdr}
-        netos     = {k: ebitdas[k] - imptos[k] for k in cols_hdr}
+            # Header
+            hdr_cols = ""
+            last_k = semanas_keys[-1]
+            for k in semanas_keys:
+                cc     = COL_COLORS.get(k,"#6366f1")
+                label  = k.replace("\n","<br>")
+                is_l   = k == last_k
+                brd    = "" if is_l else "border-right:1px solid #2d2b45;"
+                hdr_cols += (
+                    f'<th colspan="2" style="padding:10px 8px;text-align:center;background:{cc};'
+                    f'color:#fff;font-family:Syne,sans-serif;font-size:0.75rem;font-weight:800;'
+                    f'letter-spacing:0.04em;{brd}">{label}</th>'
+                )
 
-        header_cols = ""
-        for c in cols_hdr:
-            col_color = {"Sem I\n1-8":"#c0392b","Sem II\n9-16":"#d4ac0d","Sem III\n17-24":"#7fb3d3","Sem IV\n25-31":"#a9dfbf","Total Mes":"#27ae60"}.get(c,"#6366f1")
-            label = c.replace("\n","<br>")
-            header_cols += f'<th colspan="2" style="padding:10px 8px;text-align:center;background:{col_color};color:#fff;font-family:Syne,sans-serif;font-size:0.8rem;font-weight:800;letter-spacing:0.04em">{label}</th>'
+            h = (
+                f'<div style="overflow-x:auto;border-radius:10px;border:2px solid #2d2b45;margin-top:10px">'
+                f'<table style="width:100%;border-collapse:collapse;background:#0f0e17;'
+                f'font-family:Space Grotesk,sans-serif">'
+                f'<thead><tr style="background:#0d0c18">'
+                f'<th style="{HDRL}">Concepto</th>{hdr_cols}'
+                f'</tr></thead><tbody>'
+            )
 
-        html_pg = f"""
-        <div style="overflow-x:auto;border-radius:14px;border:1px solid #2d2b45;margin-top:16px">
-        <table style="width:100%;border-collapse:collapse;background:#0f0e17;font-family:Space Grotesk,sans-serif">
-        <thead>
-          <tr style="background:#0f0e17">
-            <th style="padding:12px;text-align:left;color:#8b8aaa;font-size:0.75rem;min-width:160px">Concepto</th>
-            <th style="padding:12px;text-align:right;color:#8b8aaa;font-size:0.72rem">Meta</th>
-            <th style="padding:12px;text-align:right;color:#8b8aaa;font-size:0.72rem">KPI</th>
-            {header_cols}
-          </tr>
-        </thead>
-        <tbody>
-        """
+            # ── BLOQUE 1: RECAUDO ──
+            h += fila_seccion("⚙️ Operación Logística", "#10b981", "rgba(16,185,129,0.05)")
+            h += fila_pg("SHOPIFY — Total Pedidos", shopifys_s, shopifys_s, destacar=True, color_label="#10b981", semanas_keys=semanas_keys)
+            h += fila_pg("  Deducciones (Cancel. + Dev. + Nov.)",
+                         {k: met[k]["cancelado"]+met[k]["devolucion"]+met[k]["novedad"] for k in semanas_keys},
+                         shopifys_s, invertir=True, semanas_keys=semanas_keys)
+            h += fila_pg("  En Reparto (Tránsito)", {k:met[k]["reparto"] for k in semanas_keys},
+                         shopifys_s, invertir=True, semanas_keys=semanas_keys)
+            h += fila_pg("RECAUDO NETO", recaudos_s, shopifys_s, destacar=True, color_label="#c9a84c", semanas_keys=semanas_keys)
 
-        # BLOQUE 1 — OPERACIÓN LOGÍSTICA
-        html_pg += fila_seccion("⚙️ Operación Logística", "#10b981", bg="rgba(16,185,129,0.06)")
-        html_pg += fila("SHOPIFY (Total Pedidos)",   {k:met[k]["shopify"]    for k in cols_hdr}, shopifys, destacar=True, color_label="#10b981")
-        html_pg += fila("  Cancelación",             {k:met[k]["cancelado"]  for k in cols_hdr}, shopifys, invertir=True)
-        html_pg += fila("  Devolución",              {k:met[k]["devolucion"] for k in cols_hdr}, shopifys, invertir=True)
-        html_pg += fila("  Novedades",               {k:met[k]["novedad"]    for k in cols_hdr}, shopifys, invertir=True)
-        html_pg += fila("  En Reparto",              {k:met[k]["reparto"]    for k in cols_hdr}, shopifys, invertir=True)
-        html_pg += fila("T. INGRESO x VENTAS",       recaudos,                                   shopifys, destacar=True, color_label="#c9a84c")
+            # ── BLOQUE 2: COSTO VENTA ──
+            h += fila_seccion("📦 Costo de Venta", "#ef4444", "rgba(239,68,68,0.04)")
+            h += fila_pg("  V/R Producto Entregado", {k:met[k]["c_proveedor"] for k in semanas_keys}, recaudos_s, invertir=True, semanas_keys=semanas_keys)
+            h += fila_pg("  Flete de Entrega",       {k:met[k]["flete_ent"]   for k in semanas_keys}, recaudos_s, invertir=True, semanas_keys=semanas_keys)
+            h += fila_pg("  Flete de Devolución",    {k:met[k]["flete_dev"]   for k in semanas_keys}, recaudos_s, invertir=True, semanas_keys=semanas_keys)
+            h += fila_pg("TOTAL COSTO",              {k:met[k]["costo_total"] for k in semanas_keys}, recaudos_s, invertir=True, destacar=True, color_label="#ef4444", semanas_keys=semanas_keys)
+            h += fila_pg("▶ MARGEN BRUTO / WALLET",  mbrutos_s, recaudos_s, destacar=True, color_label="#c9a84c", semanas_keys=semanas_keys)
 
-        # BLOQUE 2 — COSTO DE VENTA
-        html_pg += fila_seccion("📦 Costo de Venta", "#ef4444", bg="rgba(239,68,68,0.05)")
-        html_pg += fila("  V/R Producto Entregado",  {k:met[k]["c_proveedor"] for k in cols_hdr}, recaudos, invertir=True)
-        html_pg += fila("  Flete de Entrega",        {k:met[k]["flete_ent"]   for k in cols_hdr}, recaudos, invertir=True)
-        html_pg += fila("  Flete de Devolución",     {k:met[k]["flete_dev"]   for k in cols_hdr}, recaudos, invertir=True)
-        html_pg += fila("TOTAL COSTO",               {k:met[k]["costo_total"] for k in cols_hdr}, recaudos, invertir=True, destacar=True, color_label="#ef4444")
-        html_pg += fila("MARGEN BRUTO | WALLET",     mbrutos,                                     recaudos, destacar=True, color_label="#c9a84c")
+            # ── BLOQUE 3: MARKETING ──
+            h += fila_seccion("📣 Ret. Inversión Marketing", "#f59e0b", "rgba(245,158,11,0.04)")
+            for nm in ["Pauta","Lucid Bot","Open IA","Luci Voice","Contingencias","Plat. Spy","Dominios"]:
+                h += fila_pg(f"  {nm}", {k:manuales[k]["mkt_items"].get(nm,0) for k in semanas_keys}, recaudos_s, invertir=True, semanas_keys=semanas_keys)
+            h += fila_pg("TOTAL MARKETING", {k:manuales[k]["total_mkt"] for k in semanas_keys}, recaudos_s, invertir=True, destacar=True, color_label="#f59e0b", semanas_keys=semanas_keys)
+            h += fila_pg("▶ MARGEN OPERACIONAL", marg_ops_s, recaudos_s, destacar=True, color_label="#a5b4fc", semanas_keys=semanas_keys)
 
-        # BLOQUE 3 — MARKETING
-        html_pg += fila_seccion("📣 Ret. Inv. Marketing / Ingresos", "#f59e0b", bg="rgba(245,158,11,0.05)")
-        for nombre in ["Pauta","Lucid Bot","Open IA","Luci Voice","Contingencias","Plat. Spy","Dominios"]:
-            key_map = {"Pauta":"Pauta","Lucid Bot":"Lucid Bot","Open IA":"Open IA","Luci Voice":"Luci Voice","Contingencias":"Contingencias","Plat. Spy":"Plat. Spy","Dominios":"Dominios"}
-            html_pg += fila(f"  {nombre}", {k: manuales[k]["mkt_items"].get(key_map[nombre],0) for k in cols_hdr}, recaudos, invertir=True)
-        html_pg += fila("TOTAL MARKETING",           {k:manuales[k]["total_mkt"] for k in cols_hdr}, recaudos, invertir=True, destacar=True, color_label="#f59e0b")
-        html_pg += fila("MARGEN OPERACIONAL",        marg_ops, recaudos, destacar=True, color_label="#a5b4fc")
+            # ── BLOQUE 4: IMPORTS & ADMIN ──
+            h += fila_seccion("🌐 Importaciones & Costos Bancarios", "#06b6d4", "rgba(6,182,212,0.03)")
+            for nm in ["Importaciones","Sky Carga","Imp. 8x1000","C. Bancarios","Actividades"]:
+                h += fila_pg(f"  {nm}", {k:manuales[k]["imp_items"].get(nm,0) for k in semanas_keys}, recaudos_s, invertir=True, semanas_keys=semanas_keys)
+            h += fila_pg("TOTAL IMPORTS", {k:manuales[k]["total_imp"] for k in semanas_keys}, recaudos_s, invertir=True, destacar=True, color_label="#67e8f9", semanas_keys=semanas_keys)
 
-        # BLOQUE 4 — IMPORTS & ADMIN
-        html_pg += fila_seccion("🌐 Importaciones & Costos Bancarios", "#06b6d4", bg="rgba(6,182,212,0.04)")
-        for nombre in ["Importaciones","Sky Carga","Imp. 8x1000","C. Bancarios","Actividades"]:
-            html_pg += fila(f"  {nombre}", {k: manuales[k]["imp_items"].get(nombre,0) for k in cols_hdr}, recaudos, invertir=True)
-        html_pg += fila("TOTAL IMPORTS",             {k:manuales[k]["total_imp"] for k in cols_hdr}, recaudos, invertir=True, destacar=True, color_label="#67e8f9")
+            h += fila_seccion("🏢 Administrativos", "#8b5cf6", "rgba(139,92,246,0.03)")
+            for nm in ["Coord Leidy","Sam. Logística","S. Confirmación","Contador","C.E.O."]:
+                h += fila_pg(f"  {nm}", {k:manuales[k]["adm_items"].get(nm,0) for k in semanas_keys}, recaudos_s, invertir=True, semanas_keys=semanas_keys)
+            h += fila_pg("TOTAL ADMINISTRACIÓN", {k:manuales[k]["total_adm"] for k in semanas_keys}, recaudos_s, invertir=True, destacar=True, color_label="#a78bfa", semanas_keys=semanas_keys)
 
-        html_pg += fila_seccion("🏢 Administrativos", "#8b5cf6", bg="rgba(139,92,246,0.04)")
-        for nombre in ["Coord Leidy","Sam. Logística","S. Confirmación","Contador","C.E.O."]:
-            html_pg += fila(f"  {nombre}", {k: manuales[k]["adm_items"].get(nombre,0) for k in cols_hdr}, recaudos, invertir=True)
-        html_pg += fila("TOTAL ADMINISTRACIÓN",      {k:manuales[k]["total_adm"] for k in cols_hdr}, recaudos, invertir=True, destacar=True, color_label="#a78bfa")
+            # ── BLOQUE 5: RESULTADO FINAL ──
+            h += fila_seccion("📊 Resultado Final", "#c9a84c", "rgba(201,168,76,0.05)")
+            h += fila_pg("EBITDA", ebitdas_s, recaudos_s, destacar=True, color_label="#c9a84c", semanas_keys=semanas_keys)
+            h += fila_pg(f"  Impuestos ({imp_tasa:.1f}% configurable)", imptos_s, recaudos_s, invertir=True, semanas_keys=semanas_keys)
+            h += fila_pg(f"  Red de Inversión ({red_inv:.1f}%)", net_inv_s, recaudos_s, invertir=True, semanas_keys=semanas_keys)
+            h += fila_pg("▶ MARGEN NETO FINAL", netos_s, recaudos_s, destacar=True, color_label="#f0d080", semanas_keys=semanas_keys)
 
-        # BLOQUE 5 — EBITDA, IMPUESTOS, MARGEN NETO
-        html_pg += fila_seccion("📊 Resultado Final", "#c9a84c", bg="rgba(201,168,76,0.06)")
-        html_pg += fila("EBITDA",                    ebitdas, recaudos, destacar=True, color_label="#c9a84c")
-        html_pg += fila("  Impuestos Estimados 8%",  imptos,  recaudos, invertir=True)
-        html_pg += fila("MARGEN NETO",               netos,   recaudos, destacar=True, color_label="#f0d080")
+            h += "</tbody></table></div>"
+            return h
 
-        html_pg += "</tbody></table></div>"
-        st.markdown(html_pg, unsafe_allow_html=True)
+        # ── INPUTS ADICIONALES: Impuestos y Red de Inversión ──
+        # Defaults (se sobreescriben si el usuario abre el expander)
+        imp_tasa      = float(st.session_state.get('pg_imp_tasa', 8.0))
+        iva_excl      = float(st.session_state.get('pg_iva_excl', 80.0))
+        red_inv       = float(st.session_state.get('pg_red_inv', 0.0))
+        ing_adicional = 0
+        with st.expander("⚙️ Configurar Impuestos · Red de Inversión · Ingresos adicionales", expanded=False):
+            ci1,ci2,ci3 = st.columns(3)
+            with ci1:
+                st.markdown('<div style="font-size:0.7rem;color:#c9a84c;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">📊 IMPUESTOS</div>', unsafe_allow_html=True)
+                imp_tasa = st.number_input("% Impuesto aplicable", 0.0, 50.0,
+                                           float(st.session_state.get('pg_imp_tasa',8.0)), step=0.5, key="pg_imp_tasa",
+                                           help="Ej: 8% retención, 19% IVA, etc.")
+                iva_excl = st.number_input("% Base excluida de IVA", 0.0, 100.0,
+                                           float(st.session_state.get('pg_iva_excl',80.0)), step=5.0, key="pg_iva_excl",
+                                           help="Ej: 80% excluido → impuesto sobre el 20% restante")
+                st.caption(f"Impuesto efectivo: {imp_tasa * (1-iva_excl/100):.2f}% del total")
+            with ci2:
+                st.markdown('<div style="font-size:0.7rem;color:#6366f1;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">🌐 RED DE INVERSIÓN</div>', unsafe_allow_html=True)
+                red_inv = st.number_input("% Red de Inversión", 0.0, 50.0,
+                                          float(st.session_state.get('pg_red_inv',0.0)), step=0.5, key="pg_red_inv",
+                                          help="% del EBITDA destinado a red de inversión o socios")
+                st.caption(f"Se descuenta del EBITDA antes del margen neto")
+            with ci3:
+                st.markdown('<div style="font-size:0.7rem;color:#10b981;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">💵 INGRESOS ADICIONALES</div>', unsafe_allow_html=True)
+                ing_adicional = st.number_input("Ingresos adicionales (COP)", 0, 500_000_000, 0, 100_000, key="pg_ing_adicional", format="%d")
+                st.caption("Se suman al recaudo del mes completo")
+
+        # ── VISTA: TOTAL MES (siempre visible) ──
+        st.markdown('<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.9rem;margin:16px 0 8px">📊 Total del Mes</div>', unsafe_allow_html=True)
+        st.markdown(build_pg_html(["Total Mes"]), unsafe_allow_html=True)
+
+        # ── VISTA SEMANAL DESPLEGABLE ──
+        st.markdown('<div style="height:10px"></div>', unsafe_allow_html=True)
+        with st.expander("📅 Ver detalle por semanas (Sem I · II · III · IV)", expanded=False):
+            all_sems = [k for k in met.keys() if k != "Total Mes"]
+            st.markdown(build_pg_html(all_sems), unsafe_allow_html=True)
+
+            # Sub-pestañas por semana individual
+            st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+            st.markdown('<div style="font-size:0.68rem;color:#8b8aaa;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px">▸ Semana individual</div>', unsafe_allow_html=True)
+            sem_tabs = st.tabs([k.replace("\n"," ") for k in all_sems])
+            for ti, tk in zip(sem_tabs, all_sems):
+                with ti:
+                    n_sem = len(sem(df_pg, list(met.keys()).index(tk)+1))
+                    st.caption(f"{n_sem:,} pedidos · {COL_COLORS.get(tk,'#8b8aaa')} color de semana")
+                    st.markdown(build_pg_html([tk]), unsafe_allow_html=True)
 
         # ── Gráfica resumen ──
-        st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
-        fig_pg2 = go.Figure()
+        st.markdown('<div style="height:14px"></div>', unsafe_allow_html=True)
+        cols_hdr = list(met.keys())
+        shopifys  = {k:met[k]["shopify"]     for k in cols_hdr}
+        recaudos  = {k:met[k]["recaudo"]     for k in cols_hdr}
+        mbrutos   = {k:met[k]["margen_bruto"]for k in cols_hdr}
+        ebitdas   = {k:met[k]["margen_bruto"]-manuales[k]["total_mkt"]-manuales[k]["total_adm"]-manuales[k]["total_imp"] for k in cols_hdr}
+        imptos    = {k:met[k]["shopify"]*(imp_tasa/100) for k in cols_hdr}
+        netos     = {k:ebitdas[k]-imptos[k] for k in cols_hdr}
+
         xs = [k.replace("\n"," ") for k in cols_hdr]
-        fig_pg2.add_trace(go.Bar(x=xs, y=[met[k]["shopify"]/1e6    for k in cols_hdr], name="Shopify",      marker_color="#6366f1", opacity=0.85))
-        fig_pg2.add_trace(go.Bar(x=xs, y=[met[k]["recaudo"]/1e6    for k in cols_hdr], name="Recaudo",      marker_color="#06b6d4", opacity=0.85))
-        fig_pg2.add_trace(go.Bar(x=xs, y=[mbrutos[k]/1e6           for k in cols_hdr], name="Margen Bruto", marker_color="#10b981", opacity=0.85))
-        fig_pg2.add_trace(go.Bar(x=xs, y=[netos[k]/1e6             for k in cols_hdr], name="Margen Neto",  marker_color="#c9a84c", opacity=0.85))
-        fig_pg2.add_trace(go.Scatter(x=xs, y=[netos[k]/max(met[k]["shopify"],1)*100 for k in cols_hdr],
-                                     name="Margen Neto %", yaxis="y2",
-                                     line=dict(color="#f0d080",width=3), marker=dict(size=9)))
-        fig_pg2.update_layout(**PLOT_LAYOUT, barmode="group", height=400,
-                              title="Cascada P&G por Semana",
-                              xaxis=AXIS_STYLE,
-                              yaxis=dict(title="Millones COP", **AXIS_STYLE),
-                              yaxis2=dict(title="Margen %", overlaying="y", side="right",
-                                         gridcolor="rgba(0,0,0,0)", tickfont=dict(color="#f0d080"), ticksuffix="%"))
+        fig_pg2 = go.Figure()
+        fig_pg2.add_trace(go.Bar(x=xs, y=[met[k]["shopify"]/1e6     for k in cols_hdr], name="Shopify",      marker_color="#6366f1", opacity=0.85))
+        fig_pg2.add_trace(go.Bar(x=xs, y=[met[k]["recaudo"]/1e6     for k in cols_hdr], name="Recaudo",      marker_color="#06b6d4", opacity=0.85))
+        fig_pg2.add_trace(go.Bar(x=xs, y=[mbrutos[k]/1e6            for k in cols_hdr], name="Margen Bruto", marker_color="#10b981", opacity=0.85))
+        fig_pg2.add_trace(go.Bar(x=xs, y=[netos[k]/1e6              for k in cols_hdr], name="Margen Neto",  marker_color="#c9a84c", opacity=0.85))
+        fig_pg2.add_trace(go.Scatter(
+            x=xs, y=[netos[k]/max(met[k]["shopify"],1)*100 for k in cols_hdr],
+            name="Margen Neto %", yaxis="y2",
+            line=dict(color="#f0d080",width=3), marker=dict(size=8)
+        ))
+        fig_pg2.update_layout(
+            **PLOT_LAYOUT, barmode="group", height=380,
+            title="P&G por Período — Millones COP",
+            xaxis=AXIS_STYLE,
+            yaxis=dict(title="M COP", **AXIS_STYLE),
+            yaxis2=dict(title="Margen %", overlaying="y", side="right",
+                        gridcolor="rgba(0,0,0,0)",
+                        tickfont=dict(color="#f0d080"), ticksuffix="%")
+        )
         st.plotly_chart(fig_pg2, use_container_width=True)
 
 
@@ -869,237 +955,538 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         from datetime import date, timedelta
         import calendar
 
-        # ── Datos base ──
-        hoy        = date.today()
-        mes_actual = hoy.strftime("%Y-%m")
-        mes_ant    = (hoy.replace(day=1) - timedelta(days=1)).strftime("%Y-%m")
+        # ══════════════════════════════════════════════════════
+        # SELECTOR DE MES POR NOMBRE
+        # ══════════════════════════════════════════════════════
+        MESES_ES = {1:"Enero",2:"Febrero",3:"Marzo",4:"Abril",5:"Mayo",6:"Junio",
+                    7:"Julio",8:"Agosto",9:"Septiembre",10:"Octubre",11:"Noviembre",12:"Diciembre"}
 
-        df_act = df[df['_mes'] == mes_actual].copy() if '_mes' in df.columns else df.copy()
-        df_ant = df[df['_mes'] == mes_ant].copy()    if '_mes' in df.columns else pd.DataFrame()
+        meses_disp = sorted(df['_mes'].dropna().unique().tolist(), reverse=True) if '_mes' in df.columns else []
+        def _fmt_mes(m):
+            try:
+                y,mo = str(m).split('-'); return f"{MESES_ES[int(mo)]} {y}"
+            except: return str(m)
 
-        def pct_est(col, val):
-            return df_act[C_ESTATUS].astype(str).str.upper().str.contains(val, na=False).sum() if C_ESTATUS in df_act.columns else 0
+        opciones_mes = meses_disp if meses_disp else [date.today().strftime("%Y-%m")]
+        labels_mes   = [_fmt_mes(m) for m in opciones_mes]
 
-        n_tot   = len(df_act)
-        n_ent   = pct_est(C_ESTATUS,'ENTREGAD')
-        n_can   = pct_est(C_ESTATUS,'CANCELAD')
-        n_dev   = pct_est(C_ESTATUS,'DEVOLUCI')
-        n_nov   = pct_est(C_ESTATUS,'NOVEDAD')
-        n_proc  = n_tot - n_ent - n_can - n_dev
+        hdr_sel, _, _ = st.columns([1.4,2,2])
+        with hdr_sel:
+            idx_mes = st.selectbox("📅 Período analizado", range(len(opciones_mes)),
+                                   format_func=lambda i: labels_mes[i], key="pulso_mes_sel")
+        mes_sel = opciones_mes[idx_mes]
+        mes_ant = opciones_mes[idx_mes+1] if idx_mes+1 < len(opciones_mes) else None
 
-        ventas_act  = df_act[C_TOTAL].sum()    if C_TOTAL    in df_act.columns else 0
-        gan_act     = df_act[C_GANANCIA].sum()  if C_GANANCIA in df_act.columns else 0
-        flete_act   = df_act[C_FLETE].sum()     if C_FLETE    in df_act.columns else 0
-        ticket_act  = ventas_act / n_ent if n_ent else 0
+        df_act = df[df['_mes'] == mes_sel].copy() if '_mes' in df.columns else df.copy()
+        df_ant = df[df['_mes'] == mes_ant].copy() if mes_ant and '_mes' in df.columns else pd.DataFrame()
 
-        ventas_ant  = df_ant[C_TOTAL].sum()    if C_TOTAL    in df_ant.columns and len(df_ant) else 0
-        gan_ant     = df_ant[C_GANANCIA].sum()  if C_GANANCIA in df_ant.columns and len(df_ant) else 0
-        n_ent_ant   = df_ant[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD',na=False).sum() if C_ESTATUS in df_ant.columns and len(df_ant) else 0
+        def _cnt(dframe, kw):
+            return dframe[C_ESTATUS].astype(str).str.upper().str.contains(kw, na=False).sum() \
+                   if C_ESTATUS in dframe.columns else 0
 
-        tasa_ent    = n_ent / n_tot * 100  if n_tot else 0
-        tasa_dev    = n_dev / n_tot * 100  if n_tot else 0
-        tasa_can    = n_can / n_tot * 100  if n_tot else 0
-        margen      = gan_act / ventas_act * 100 if ventas_act else 0
+        n_tot  = len(df_act)
+        n_ent  = _cnt(df_act, 'ENTREGAD')
+        n_can  = _cnt(df_act, 'CANCELAD')
+        n_dev  = _cnt(df_act, 'DEVOLUCI')
+        n_proc = max(0, n_tot - n_ent - n_can - n_dev)
 
-        # ══════════════════════════════════════════
-        # 🫀 COMPONENTE 1 — SCORE DE SALUD
-        # ══════════════════════════════════════════
+        ventas_act = df_act[C_TOTAL].sum()    if C_TOTAL    in df_act.columns else 0
+        gan_act    = df_act[C_GANANCIA].sum() if C_GANANCIA in df_act.columns else 0
+        flete_act  = df_act[C_FLETE].sum()    if C_FLETE    in df_act.columns else 0
+        pauta_act  = sum(st.session_state.get('pauta_dict', {}).values())
 
-        # Calcular score 0-100
-        score_ent   = min(tasa_ent / 80 * 35, 35)          # 35 pts: entrega >= 80%
-        score_mrgn  = min(margen / 30 * 25, 25)            # 25 pts: margen >= 30%
-        score_dev   = max(0, 20 - tasa_dev * 1.5)          # 20 pts: devolución < 10%
-        score_can   = max(0, 20 - tasa_can * 1.0)          # 20 pts: cancelación < 10%
-        score_total = int(score_ent + score_mrgn + score_dev + score_can)
+        # Mes anterior
+        n_tot_ant  = len(df_ant)
+        n_ent_ant  = _cnt(df_ant, 'ENTREGAD') if len(df_ant) else 0
+        n_can_ant  = _cnt(df_ant, 'CANCELAD') if len(df_ant) else 0
+        n_dev_ant  = _cnt(df_ant, 'DEVOLUCI') if len(df_ant) else 0
+        ventas_ant = df_ant[C_TOTAL].sum() if C_TOTAL in df_ant.columns and len(df_ant) else 0
+        gan_ant    = df_ant[C_GANANCIA].sum() if C_GANANCIA in df_ant.columns and len(df_ant) else 0
 
-        if score_total >= 75:
-            score_color, score_label, score_emoji = "#10b981", "EXCELENTE", "🟢"
-        elif score_total >= 50:
-            score_color, score_label, score_emoji = "#f59e0b", "ATENCIÓN", "🟡"
-        else:
-            score_color, score_label, score_emoji = "#ef4444", "CRÍTICO", "🔴"
+        tasa_ent     = n_ent / n_tot * 100 if n_tot else 0
+        tasa_dev     = n_dev / n_tot * 100 if n_tot else 0
+        tasa_can     = n_can / n_tot * 100 if n_tot else 0
+        tasa_ent_ant = n_ent_ant / n_tot_ant * 100 if n_tot_ant else 0
+        tasa_dev_ant = n_dev_ant / n_tot_ant * 100 if n_tot_ant else 0
+        tasa_can_ant = n_can_ant / n_tot_ant * 100 if n_tot_ant else 0
+        margen       = gan_act / ventas_act * 100 if ventas_act else 0
+        margen_ant   = gan_ant / ventas_ant * 100 if ventas_ant else 0
 
-        # Velocímetro
-        fig_gauge = go.Figure(go.Indicator(
-            mode="gauge+number+delta",
-            value=score_total,
-            number={'font':{'size':52,'color':score_color,'family':'Syne'},'suffix':''},
-            delta={'reference':70,'increasing':{'color':'#10b981'},'decreasing':{'color':'#ef4444'},
-                   'font':{'size':16}},
-            gauge={
-                'axis':{'range':[0,100],'tickwidth':1,'tickcolor':'#2d2b45',
-                        'tickvals':[0,25,50,75,100],'tickfont':{'color':'#8b8aaa','size':11}},
-                'bar':{'color':score_color,'thickness':0.22},
-                'bgcolor':'#1a1829',
-                'borderwidth':0,
-                'steps':[
-                    {'range':[0,33],  'color':'rgba(239,68,68,0.15)'},
-                    {'range':[33,66], 'color':'rgba(245,158,11,0.15)'},
-                    {'range':[66,100],'color':'rgba(16,185,129,0.15)'},
-                ],
-                'threshold':{'line':{'color':'white','width':3},'thickness':0.8,'value':score_total}
-            },
-            title={'text':f"<b>SALUD DEL NEGOCIO</b><br><span style='font-size:13px;color:{score_color}'>{score_emoji} {score_label}</span>",
-                   'font':{'color':'#f0ede8','size':14,'family':'Syne'}}
-        ))
-        _gauge_layout = {k:v for k,v in PLOT_LAYOUT.items() if k != 'margin'}
-        fig_gauge.update_layout(
-            **_gauge_layout, height=280,
-            margin=dict(t=60,b=10,l=30,r=30)
-        )
+        # ══════════════════════════════════════════════════════
+        # METAS DEL P&G — configurables
+        # ══════════════════════════════════════════════════════
+        with st.expander("⚙️ Configurar metas del P&G", expanded=False):
+            pg1,pg2,pg3,pg4,pg5 = st.columns(5)
+            with pg1: meta_ent      = st.number_input("🎯 Meta entrega %",     0.0,100.0, float(st.session_state.get('pg_meta_ent',65.0)),  step=1.0, key="pg_meta_ent")
+            with pg2: meta_dev      = st.number_input("🎯 Meta devolución %",  0.0,100.0, float(st.session_state.get('pg_meta_dev',12.0)),  step=1.0, key="pg_meta_dev")
+            with pg3: meta_can      = st.number_input("🎯 Meta cancelación %", 0.0,100.0, float(st.session_state.get('pg_meta_can',10.0)),  step=1.0, key="pg_meta_can")
+            with pg4: meta_mrgn     = st.number_input("🎯 Meta margen bruto %",0.0,100.0, float(st.session_state.get('pg_meta_mrgn',55.0)), step=1.0, key="pg_meta_mrgn")
+            with pg5: meta_pauta_mm = st.number_input("📣 Presupuesto máx pauta ($M)", 0.0, 500.0, float(st.session_state.get('pg_pauta_max',50.0)), step=1.0, key="pg_pauta_max")
+        meta_pauta_max = meta_pauta_mm * 1_000_000
 
-        # Layout: velocímetro a la izquierda, breakdown a la derecha
-        col_gauge, col_break = st.columns([1, 1.4])
+        # ══════════════════════════════════════════════════════
+        # 🧮 SCORE vs METAS P&G — EXPLICACIÓN MATEMÁTICA
+        #
+        # Cada métrica se convierte en un logro (0→1) respecto a su meta P&G:
+        #   Entrega:    logro = real / meta        (mayor = mejor) → peso 30 pts
+        #   Margen:     logro = real / meta        (mayor = mejor) → peso 30 pts
+        #   Devolución: logro = meta / real        (menor = mejor; si real≤meta → logro=1) → peso 20 pts
+        #   Cancelación:logro = meta / real        (menor = mejor; si real≤meta → logro=1) → peso 20 pts
+        #
+        # Score = Σ min(logro, 1.0) × peso_pts  →  rango 0–100
+        # Clasificación: ≥80 Excelente · ≥55 Atención · <55 Crítico
+        # ══════════════════════════════════════════════════════
+        logro_ent  = min(tasa_ent / meta_ent,  1.0) if meta_ent  else 0.0
+        logro_mrgn = min(margen   / meta_mrgn, 1.0) if meta_mrgn else 0.0
+        logro_dev  = min(meta_dev / tasa_dev,  1.0) if tasa_dev  else 1.0
+        logro_can  = min(meta_can / tasa_can,  1.0) if tasa_can  else 1.0
+
+        pts_ent  = logro_ent  * 30
+        pts_mrgn = logro_mrgn * 30
+        pts_dev  = logro_dev  * 20
+        pts_can  = logro_can  * 20
+        score_total = int(pts_ent + pts_mrgn + pts_dev + pts_can)
+
+        score_color = "#10b981" if score_total >= 80 else "#f59e0b" if score_total >= 55 else "#ef4444"
+        score_label = "EXCELENTE" if score_total >= 80 else "ATENCIÓN" if score_total >= 55 else "CRÍTICO"
+        score_emoji = "🟢" if score_total >= 80 else "🟡" if score_total >= 55 else "🔴"
+
+        # ── Layout: Velocímetro + Desglose con fórmulas ──
+        col_gauge, col_break = st.columns([1, 1.7])
+
         with col_gauge:
+            fig_gauge = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=score_total,
+                number={'font':{'size':54,'color':score_color,'family':'Syne'}},
+                gauge={
+                    'axis':{'range':[0,100],'tickwidth':1,'tickcolor':'#2d2b45',
+                            'tickvals':[0,25,50,75,100],'tickfont':{'color':'#8b8aaa','size':10}},
+                    'bar':{'color':score_color,'thickness':0.2},
+                    'bgcolor':'#1a1829','borderwidth':0,
+                    'steps':[
+                        {'range':[0,40],  'color':'rgba(239,68,68,0.12)'},
+                        {'range':[40,70], 'color':'rgba(245,158,11,0.12)'},
+                        {'range':[70,100],'color':'rgba(16,185,129,0.12)'},
+                    ],
+                    'threshold':{'line':{'color':'white','width':3},'thickness':0.8,'value':score_total}
+                },
+                title={'text':f"<b>SALUD DEL NEGOCIO</b><br><span style='font-size:11px;color:{score_color}'>"
+                             f"{score_emoji} {score_label} · vs Metas P&G</span>",
+                       'font':{'color':'#f0ede8','size':12,'family':'Syne'}}
+            ))
+            _gl = {k:v for k,v in PLOT_LAYOUT.items() if k != 'margin'}
+            fig_gauge.update_layout(**_gl, height=260, margin=dict(t=50,b=5,l=15,r=15))
             st.plotly_chart(fig_gauge, use_container_width=True)
 
         with col_break:
-            st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
-            st.markdown('<div style="font-family:Syne,sans-serif;font-weight:700;color:#8b8aaa;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Desglose del score</div>', unsafe_allow_html=True)
-
-            componentes_score = [
-                ("🚚 Tasa de Entrega",  score_ent,  35, f"{tasa_ent:.1f}%"),
-                ("💰 Margen Bruto",     score_mrgn, 25, f"{margen:.1f}%"),
-                ("↩️ Devoluciones",     score_dev,  20, f"{tasa_dev:.1f}%"),
-                ("❌ Cancelaciones",    score_can,  20, f"{tasa_can:.1f}%"),
+            # Cabecera con explicación
+            st.markdown(
+                '<div style="background:#0f0e1d;border:1px solid #2d2b45;border-radius:12px;'
+                'padding:14px 18px;margin-bottom:12px;margin-top:8px">'
+                '<div style="font-size:0.65rem;color:#c9a84c;font-weight:800;text-transform:uppercase;'
+                'letter-spacing:0.07em;margin-bottom:10px">🧮 Metodología matemática del Score de Salud</div>'
+                '<div style="font-size:0.7rem;color:#b0aec8;line-height:1.7;margin-bottom:10px">'
+                'El score mide <b style="color:#f0ede8">qué tan cerca estás de cumplir cada meta del P&G</b>, '
+                'no el valor absoluto. Para métricas donde mayor es mejor '
+                '(entrega, margen): <code style="background:#1a1829;color:#6366f1;padding:1px 5px;border-radius:3px">Logro = Real ÷ Meta</code>. '
+                'Para métricas donde menor es mejor '
+                '(devolución, cancelación): <code style="background:#1a1829;color:#f59e0b;padding:1px 5px;border-radius:3px">Logro = Meta ÷ Real</code>. '
+                'En ambos casos el logro se <b style="color:#c9a84c">limita a máximo 1.0</b>.</div>'
+                '<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:8px;'
+                'padding:10px 14px;margin-bottom:10px;font-size:0.68rem;color:#8b8aaa;line-height:1.9">'
+                '<b style="color:#c9a84c">Fórmula:</b><br>'
+                '<code style="color:#06b6d4">Score = min(Ent/MetaEnt,1)×30 + min(Mrg/MetaMrg,1)×30 '
+                '+ min(MetaDev/Dev,1)×20 + min(MetaCan/Can,1)×20</code><br>'
+                '<span style="color:#5a5878">Rango 0-100 · </span>'
+                '<span style="color:#10b981">≥80 EXCELENTE</span>'
+                '<span style="color:#5a5878"> · </span>'
+                '<span style="color:#f59e0b">≥55 ATENCIÓN</span>'
+                '<span style="color:#5a5878"> · </span>'
+                '<span style="color:#ef4444">&lt;55 CRÍTICO</span></div>'
+                '<div style="font-size:0.67rem;color:#8b8aaa;line-height:1.6">'
+                '⚖️ <b style="color:#d4d0ea">Pesos:</b> '
+                '<span style="color:#6366f1">Entrega 30pts</span> — cumplimiento logístico · '
+                '<span style="color:#10b981">Margen 30pts</span> — salud financiera · '
+                '<span style="color:#f59e0b">Devolución 20pts</span> — calidad producto/proceso · '
+                '<span style="color:#ef4444">Cancelación 20pts</span> — intención de compra vs operación. '
+                'Los 3 indicadores logísticos suman 70pts; el financiero 30pts.'
+                '</div></div>',
+                unsafe_allow_html=True
+            )
+            # Barras de desglose
+            componentes = [
+                ("🚚 Entrega",     pts_ent,  30, tasa_ent, meta_ent,  False, "#6366f1"),
+                ("💰 Margen",      pts_mrgn, 30, margen,   meta_mrgn, False, "#10b981"),
+                ("↩️ Devolución",  pts_dev,  20, tasa_dev, meta_dev,  True,  "#f59e0b"),
+                ("❌ Cancelación", pts_can,  20, tasa_can, meta_can,  True,  "#ef4444"),
             ]
-            for lbl, pts, maximo, valor in componentes_score:
-                pct_comp = pts / maximo * 100 if maximo else 0
-                c_comp   = "#10b981" if pct_comp >= 75 else "#f59e0b" if pct_comp >= 40 else "#ef4444"
+            for lbl, pts, maxpts, real, meta, invert, col_c in componentes:
+                pct_b  = pts / maxpts * 100
+                c_b    = "#10b981" if pct_b >= 80 else "#f59e0b" if pct_b >= 50 else "#ef4444"
+                cumple = (real <= meta) if invert else (real >= meta)
+                formula_str = f"= {meta:.1f}÷{real:.1f}" if invert else f"= {real:.1f}÷{meta:.1f}"
                 st.markdown(
-                    f'<div style="margin-bottom:10px">'
-                    f'<div style="display:flex;justify-content:space-between;font-size:0.77rem;margin-bottom:4px">'
-                    f'<span style="color:#d4d0ea">{lbl}</span>'
-                    f'<span style="color:{c_comp};font-weight:700">{pts:.0f}/{maximo} pts &nbsp;·&nbsp; {valor}</span>'
+                    f'<div style="margin-bottom:8px">'
+                    f'<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;margin-bottom:2px">'
+                    f'<span style="color:#d4d0ea;font-weight:600">{lbl}</span>'
+                    f'<span style="color:{c_b};font-weight:800">{pts:.1f}/{maxpts} pts</span>'
                     f'</div>'
-                    f'<div style="background:#2d2b45;border-radius:100px;height:8px;overflow:hidden">'
-                    f'<div style="background:{c_comp};width:{pct_comp:.0f}%;height:100%;border-radius:100px"></div>'
+                    f'<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">'
+                    f'<code style="background:#1a1829;color:{col_c};font-size:0.62rem;padding:1px 6px;border-radius:4px">'
+                    f'Real {real:.1f}% · Meta {meta:.1f}% · Logro {formula_str} = {min(pts/maxpts,1):.2f}</code>'
+                    f'<span style="font-size:0.65rem;{"color:#10b981" if cumple else "color:#ef4444"};font-weight:700">'
+                    f'{"✓ META" if cumple else "✗ BAJO"}</span>'
+                    f'</div>'
+                    f'<div style="background:#2d2b45;border-radius:100px;height:7px;overflow:hidden">'
+                    f'<div style="background:{c_b};width:{pct_b:.0f}%;height:100%;border-radius:100px"></div>'
                     f'</div></div>',
                     unsafe_allow_html=True
                 )
 
-        st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
+        st.markdown("<hr style='border-color:#2d2b45;margin:12px 0'>", unsafe_allow_html=True)
 
-        # ══════════════════════════════════════════
+        # ══════════════════════════════════════════════════════
+        # KPIs PRINCIPALES — Pedidos Totales es el protagonista
+        # ══════════════════════════════════════════════════════
+        k1,k2,k3,k4,k5,k6 = st.columns(6)
+        with k1:
+            # Pedidos totales — protagonista con estilo especial
+            delta_tot = n_tot - n_tot_ant
+            delta_col = "#10b981" if delta_tot >= 0 else "#ef4444"
+            delta_sym = "▲" if delta_tot >= 0 else "▼"
+            st.markdown(
+                f'<div style="background:linear-gradient(135deg,#6366f125,#6366f108);'
+                f'border:2px solid #6366f1;border-radius:14px;padding:14px 10px;text-align:center">'
+                f'<div style="font-size:0.62rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;'
+                f'letter-spacing:0.06em;margin-bottom:4px">📦 PEDIDOS TOTALES</div>'
+                f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#6366f1;font-size:1.7rem;'
+                f'margin:2px 0;line-height:1">{n_tot:,}</div>'
+                f'<div style="font-size:0.7rem;color:{delta_col};font-weight:700;margin-top:4px">'
+                f'{delta_sym} {abs(delta_tot):,} vs mes ant.</div>'
+                f'</div>', unsafe_allow_html=True
+            )
+        with k2: st.markdown(kpi("green","✅ Entregados",  f"{n_ent:,}",        f"{tasa_ent:.1f}% · meta {meta_ent:.0f}%"), unsafe_allow_html=True)
+        with k3: st.markdown(kpi("red",  "❌ Cancelados",  f"{n_can:,}",        f"{tasa_can:.1f}% · meta {meta_can:.0f}%"), unsafe_allow_html=True)
+        with k4: st.markdown(kpi("gold", "↩️ Devueltos",  f"{n_dev:,}",        f"{tasa_dev:.1f}% · meta {meta_dev:.0f}%"), unsafe_allow_html=True)
+        with k5: st.markdown(kpi("cyan", "⏳ En Proceso",  f"{n_proc:,}",       "pedidos activos"),                         unsafe_allow_html=True)
+        with k6: st.markdown(kpi("blue", "💰 Ventas",      fmt_money(ventas_act),f"Margen {margen:.1f}%"),                  unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ══════════════════════════════════════════════════════
+        # BARRA DE PAUTA — Presupuesto P&G vs Inversión Real
+        # Alerta si pauta > 18% de facturación
+        # ══════════════════════════════════════════════════════
+        st.markdown(
+            '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:10px">'
+            '📣 Control de Presupuesto de Pauta Publicitaria</div>',
+            unsafe_allow_html=True
+        )
+        pauta_pct_ing  = pauta_act / ventas_act * 100 if ventas_act else 0
+        pauta_pct_ppto = pauta_act / meta_pauta_max * 100 if meta_pauta_max else 0
+        excede_18      = pauta_pct_ing > 18
+        c_pauta        = "#ef4444" if excede_18 else "#10b981"
+        estado_pauta   = "🔴 EXCEDE el 18% de la facturación — presupuesto en riesgo" if excede_18 \
+                         else "🟢 Dentro del límite saludable (≤18% de facturación)"
+        st.markdown(
+            f'<div style="background:#1a1829;border:1px solid {c_pauta}44;border-radius:14px;padding:18px 22px;margin-bottom:14px">'
+            f'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">'
+            f'<div>'
+            f'<div style="font-size:0.68rem;color:#8b8aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Inversión real en pauta</div>'
+            f'<div style="font-family:Syne,sans-serif;font-weight:800;color:{c_pauta};font-size:1.25rem">{fmt_money(pauta_act)}</div>'
+            f'</div>'
+            f'<div style="text-align:right">'
+            f'<div style="font-size:0.68rem;color:#8b8aaa;margin-bottom:4px">Presupuesto máx. P&G</div>'
+            f'<div style="font-size:1rem;font-weight:700;color:#c9a84c">{fmt_money(meta_pauta_max)}</div>'
+            f'</div>'
+            f'</div>'
+            f'<div style="font-size:0.68rem;color:#8b8aaa;margin-bottom:4px">Utilizado del presupuesto P&G ({pauta_pct_ppto:.1f}%)</div>'
+            f'<div style="background:#2d2b45;border-radius:100px;height:16px;overflow:hidden;margin-bottom:10px;position:relative">'
+            f'<div style="background:linear-gradient(90deg,{c_pauta}dd,{c_pauta}88);'
+            f'width:{min(pauta_pct_ppto,100):.1f}%;height:100%;border-radius:100px"></div>'
+            f'<span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);'
+            f'font-size:0.65rem;font-weight:800;color:white">{min(pauta_pct_ppto,100):.1f}%</span>'
+            f'</div>'
+            f'<div style="font-size:0.68rem;color:#8b8aaa;margin-bottom:4px">% sobre facturación — límite máximo 18%</div>'
+            f'<div style="background:#2d2b45;border-radius:100px;height:16px;overflow:hidden;margin-bottom:10px;position:relative">'
+            f'<div style="background:linear-gradient(90deg,{c_pauta}dd,{c_pauta}88);'
+            f'width:{min(pauta_pct_ing/18*100,100):.1f}%;height:100%;border-radius:100px"></div>'
+            f'<span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);'
+            f'font-size:0.65rem;font-weight:800;color:white">{pauta_pct_ing:.1f}%</span>'
+            f'</div>'
+            f'<div style="display:flex;justify-content:space-between;align-items:center">'
+            f'<span style="font-size:0.75rem;color:{c_pauta};font-weight:700">{estado_pauta}</span>'
+            f'<span style="font-size:0.7rem;color:#5a5878">{fmt_money(pauta_act)} de {fmt_money(meta_pauta_max)}</span>'
+            f'</div></div>',
+            unsafe_allow_html=True
+        )
+
+        # ══════════════════════════════════════════════════════
+        # CUADRO DE EFICIENCIA PUBLICITARIA
+        # Pérdidas por cancelación y devolución + CPA + ROAS
+        # Fórmula pérdida: (pauta_total / n_tot) × n_problematicos
+        # ══════════════════════════════════════════════════════
+        st.markdown(
+            '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:10px">'
+            '💸 Eficiencia Publicitaria — Pérdidas e Indicadores</div>',
+            unsafe_allow_html=True
+        )
+        cpm_unitario  = pauta_act / n_tot  if n_tot  else 0   # Costo por pedido (todos)
+        cpa_unitario  = pauta_act / n_ent  if n_ent  else 0   # CPA real (solo entregados)
+        perdida_can   = cpm_unitario * n_can                   # Pauta quemada en cancelados
+        perdida_dev   = cpm_unitario * n_dev                   # Pauta quemada en devueltos
+        total_perdido = perdida_can + perdida_dev
+        roas          = ventas_act / pauta_act if pauta_act else 0
+        c_roas        = "#10b981" if roas >= 3 else "#f59e0b" if roas >= 1.5 else "#ef4444"
+
+        pub1,pub2,pub3,pub4 = st.columns(4)
+        def pub_card(titulo, subtitulo, valor_str, formula_str, color_top, nota=""):
+            nota_html = f'<div style="font-size:0.65rem;color:{color_top};font-weight:700;margin-top:4px">{nota}</div>' if nota else ''
+            return (
+                f'<div style="background:#1a1829;border:1px solid {color_top}44;'
+                f'border-top:3px solid {color_top};border-radius:12px;padding:14px;text-align:center">'
+                f'<div style="font-size:0.62rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;'
+                f'letter-spacing:0.05em;margin-bottom:4px;line-height:1.3">{titulo}</div>'
+                f'<div style="font-size:0.6rem;color:#5a5878;margin-bottom:6px;line-height:1.3">{subtitulo}</div>'
+                f'<div style="font-family:Syne,sans-serif;font-weight:800;color:{color_top};font-size:1.1rem">{valor_str}</div>'
+                f'<div style="font-size:0.62rem;color:#5a5878;margin-top:5px;line-height:1.4">{formula_str}</div>'
+                f'{nota_html}'
+                f'</div>'
+            )
+        with pub1:
+            st.markdown(pub_card(
+                "CPA", "Costo por pedido entregado",
+                fmt_money(cpa_unitario),
+                f"Pauta ÷ {n_ent:,} entregados", "#06b6d4"
+            ), unsafe_allow_html=True)
+        with pub2:
+            st.markdown(pub_card(
+                "💸 Pérdida — Cancelaciones",
+                f"({fmt_money(cpm_unitario)}/ped) × {n_can:,} cancelados",
+                fmt_money(perdida_can),
+                f"Pauta({fmt_money(pauta_act)}) ÷ {n_tot:,} × {n_can:,}", "#ef4444",
+                f"= {perdida_can/pauta_act*100:.1f}% de la pauta" if pauta_act else ""
+            ), unsafe_allow_html=True)
+        with pub3:
+            st.markdown(pub_card(
+                "💸 Pérdida — Devoluciones",
+                f"({fmt_money(cpm_unitario)}/ped) × {n_dev:,} devueltos",
+                fmt_money(perdida_dev),
+                f"Pauta({fmt_money(pauta_act)}) ÷ {n_tot:,} × {n_dev:,}", "#f59e0b",
+                f"= {perdida_dev/pauta_act*100:.1f}% de la pauta" if pauta_act else ""
+            ), unsafe_allow_html=True)
+        with pub4:
+            st.markdown(pub_card(
+                "ROAS", "Retorno sobre inversión publicitaria",
+                f"{roas:.1f}x",
+                f"Ventas ÷ Pauta", c_roas,
+                "✓ Óptimo ≥ 3x" if roas >= 3 else "⚠ Revisar < 3x"
+            ), unsafe_allow_html=True)
+
+        if total_perdido > 0 and pauta_act > 0:
+            pct_perdido = total_perdido / pauta_act * 100
+            st.markdown(
+                f'<div style="background:rgba(239,68,68,0.07);border:1px dashed #ef444466;'
+                f'border-radius:10px;padding:10px 16px;margin-top:10px;'
+                f'display:flex;justify-content:space-between;align-items:center">'
+                f'<div><span style="font-size:0.78rem;color:#ef4444;font-weight:700">'
+                f'💸 Total pauta perdida (cancelaciones + devoluciones)</span>'
+                f'<div style="font-size:0.65rem;color:#8b8aaa;margin-top:2px">'
+                f'= (Pauta total ÷ Pedidos totales) × (Cancelados + Devueltos) · '
+                f'= ({fmt_money(cpm_unitario)}/ped) × {n_can+n_dev:,} pedidos</div></div>'
+                f'<div style="text-align:right">'
+                f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#ef4444;font-size:1.1rem">{fmt_money(total_perdido)}</div>'
+                f'<div style="font-size:0.65rem;color:#ef4444">{pct_perdido:.1f}% de la pauta total</div>'
+                f'</div></div>',
+                unsafe_allow_html=True
+            )
+
+        st.markdown("<hr style='border-color:#2d2b45;margin:14px 0'>", unsafe_allow_html=True)
+
+
 
     elif "El Marcador" in nav:
         from datetime import date, timedelta
-        hoy = date.today()
-        mes_actual = hoy.strftime("%Y-%m")
-        mes_ant = (hoy.replace(day=1) - timedelta(days=1)).strftime("%Y-%m")
-        df_act = df[df['_mes'] == mes_actual].copy() if '_mes' in df.columns else df.copy()
-        df_ant = df[df['_mes'] == mes_ant].copy() if '_mes' in df.columns else pd.DataFrame()
-        def pct_est2(col, val):
-            return df_act[C_ESTATUS].astype(str).str.upper().str.contains(val, na=False).sum() if C_ESTATUS in df_act.columns else 0
-        n_tot = len(df_act); n_ent = pct_est2(C_ESTATUS,'ENTREGAD'); n_dev = pct_est2(C_ESTATUS,'DEVOLUCI'); n_can = pct_est2(C_ESTATUS,'CANCELAD')
-        ventas_act = df_act[C_TOTAL].sum() if C_TOTAL in df_act.columns else 0
-        gan_act = df_act[C_GANANCIA].sum() if C_GANANCIA in df_act.columns else 0
-        ventas_ant = df_ant[C_TOTAL].sum() if C_TOTAL in df_ant.columns and len(df_ant) else 0
-        gan_ant = df_ant[C_GANANCIA].sum() if C_GANANCIA in df_ant.columns and len(df_ant) else 0
-        n_ent_ant = df_ant[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD',na=False).sum() if C_ESTATUS in df_ant.columns and len(df_ant) else 0
-        tasa_dev = n_dev/n_tot*100 if n_tot else 0; tasa_can = n_can/n_tot*100 if n_tot else 0
-        tasa_dev_ant = df_ant[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI',na=False).sum()/len(df_ant)*100 if len(df_ant) else 0
-        tasa_can_ant = df_ant[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD',na=False).sum()/len(df_ant)*100 if len(df_ant) else 0
-        st.markdown('<div class="seccion-titulo">🎯 El Marcador — Este Mes vs Mes Anterior</div>', unsafe_allow_html=True)
-        # ══════════════════════════════════════════
-        # 🎯 COMPONENTE 3 — EL MARCADOR
-        # ══════════════════════════════════════════
-        st.markdown('<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:1rem;margin-bottom:14px">🎯 El Marcador — Este Mes vs Mes Anterior</div>', unsafe_allow_html=True)
 
-        def delta_card(titulo, val_act, val_ant, fmt_fn, icono, color_base):
-            delta     = val_act - val_ant
-            pct_delta = delta / val_ant * 100 if val_ant else 0
-            sube      = delta >= 0
-            # Para devoluciones/cancelaciones, subir es malo
-            es_malo   = "Dev" in titulo or "Can" in titulo
-            color_d   = ("#10b981" if sube else "#ef4444") if not es_malo else ("#ef4444" if sube else "#10b981")
-            flecha    = "▲" if sube else "▼"
+        # ══════════════════════════════════════════════════════
+        # SELECTOR DE MES POR NOMBRE (igual que Pulso)
+        # ══════════════════════════════════════════════════════
+        _MESES_MK = {1:"Enero",2:"Febrero",3:"Marzo",4:"Abril",5:"Mayo",6:"Junio",
+                     7:"Julio",8:"Agosto",9:"Septiembre",10:"Octubre",11:"Noviembre",12:"Diciembre"}
+        def _fmt_m(m):
+            try: y,mo=str(m).split('-'); return f"{_MESES_MK[int(mo)]} {y}"
+            except: return str(m)
+
+        _meses_mk = sorted(df['_mes'].dropna().unique().tolist(), reverse=True) if '_mes' in df.columns else []
+        _opciones_mk = _meses_mk if _meses_mk else [date.today().strftime("%Y-%m")]
+        _labels_mk   = [_fmt_m(m) for m in _opciones_mk]
+
+        _hdr_mk, _, _ = st.columns([1.5,2,2])
+        with _hdr_mk:
+            _idx_mk = st.selectbox("📅 Comparar mes", range(len(_opciones_mk)),
+                                   format_func=lambda i: _labels_mk[i], key="marcador_mes_sel")
+        _mes_mk  = _opciones_mk[_idx_mk]
+        _mes_ant = _opciones_mk[_idx_mk+1] if _idx_mk+1 < len(_opciones_mk) else None
+
+        df_act = df[df['_mes'] == _mes_mk].copy()  if '_mes' in df.columns else df.copy()
+        df_ant = df[df['_mes'] == _mes_ant].copy() if _mes_ant and '_mes' in df.columns else pd.DataFrame()
+
+        def _ce(dframe, kw):
+            return dframe[C_ESTATUS].astype(str).str.upper().str.contains(kw,na=False).sum() \
+                   if C_ESTATUS in dframe.columns else 0
+
+        n_tot    = len(df_act);   n_tot_ant  = len(df_ant)
+        n_ent    = _ce(df_act,'ENTREGAD'); n_ent_ant = _ce(df_ant,'ENTREGAD') if len(df_ant) else 0
+        n_dev    = _ce(df_act,'DEVOLUCI'); n_dev_ant = _ce(df_ant,'DEVOLUCI') if len(df_ant) else 0
+        n_can    = _ce(df_act,'CANCELAD'); n_can_ant = _ce(df_ant,'CANCELAD') if len(df_ant) else 0
+
+        ventas_act = df_act[C_TOTAL].sum()    if C_TOTAL    in df_act.columns else 0
+        gan_act    = df_act[C_GANANCIA].sum() if C_GANANCIA in df_act.columns else 0
+        ventas_ant = df_ant[C_TOTAL].sum()    if C_TOTAL    in df_ant.columns and len(df_ant) else 0
+        gan_ant    = df_ant[C_GANANCIA].sum() if C_GANANCIA in df_ant.columns and len(df_ant) else 0
+
+        # Tasas (%)
+        tasa_ent_act = n_ent / n_tot * 100     if n_tot     else 0
+        tasa_dev_act = n_dev / n_tot * 100     if n_tot     else 0
+        tasa_can_act = n_can / n_tot * 100     if n_tot     else 0
+        margen_act   = gan_act / ventas_act * 100 if ventas_act else 0
+
+        tasa_ent_ant = n_ent_ant / n_tot_ant * 100 if n_tot_ant else 0
+        tasa_dev_ant = n_dev_ant / n_tot_ant * 100 if n_tot_ant else 0
+        tasa_can_ant = n_can_ant / n_tot_ant * 100 if n_tot_ant else 0
+        margen_ant   = gan_ant   / ventas_ant * 100 if ventas_ant else 0
+
+        st.markdown('<div class="seccion-titulo">🎯 El Marcador</div>', unsafe_allow_html=True)
+
+        label_ant = _fmt_m(_mes_ant) if _mes_ant else "mes ant."
+
+        # ══════════════════════════════════════════════════════
+        # FUNCIÓN DE TARJETA — DOS TIPOS DE VARIACIÓN:
+        #
+        #  modo="pct_relativa"  → Variación relativa %
+        #     Δ% = (act - ant) / ant × 100
+        #     Uso: ventas, ganancia, pedidos (valores absolutos)
+        #     Ejemplo: ventas subieron 23.5%
+        #
+        #  modo="pp"  → Diferencia en Puntos Porcentuales
+        #     Δpp = tasa_act - tasa_ant   (ambas ya en %)
+        #     Uso: % entrega, % devolución, % cancelación, % margen
+        #     Ejemplo: devolución pasó de 8% a 10% → "subimos 2 pp"
+        #     Regla: para métricas "malo si sube" se invierte el color
+        # ══════════════════════════════════════════════════════
+        def marcador_card(titulo, val_act, val_ant, fmt_fn, icono, color_base,
+                          modo="pct_relativa", malo_si_sube=False, unidad=""):
+            sin_ant = val_ant == 0 or _mes_ant is None
+
+            if modo == "pp":
+                # ── Puntos Porcentuales ──
+                # El DELTA es el protagonista: si dev pasó de 8% a 10% → mostramos "+2 pp"
+                delta_pp = val_act - val_ant
+                sube     = delta_pp > 0
+                c_delta  = ("#ef4444" if sube else "#10b981") if malo_si_sube \
+                           else ("#10b981" if sube else "#ef4444")
+                if abs(delta_pp) < 0.05:
+                    delta_hero = "= 0 pp"
+                    txt_accion = "sin cambio"
+                    c_delta    = "#8b8aaa"
+                elif sube:
+                    delta_hero = f"+{abs(delta_pp):.1f} pp"
+                    txt_accion = f"aumentamos {abs(delta_pp):.1f} pp"
+                else:
+                    delta_hero = f"−{abs(delta_pp):.1f} pp"
+                    txt_accion = f"bajamos {abs(delta_pp):.1f} pp"
+                txt_comparativo = f"{label_ant}: {fmt_fn(val_ant)}  →  ahora: {fmt_fn(val_act)}"
+
+            else:
+                # ── Variación relativa % ──
+                # El DELTA es el protagonista: si ventas subieron de 10M a 12M → mostramos "+20%"
+                delta_pct = (val_act - val_ant) / val_ant * 100 if not sin_ant else 0
+                sube      = delta_pct > 0
+                c_delta   = ("#ef4444" if sube else "#10b981") if malo_si_sube \
+                            else ("#10b981" if sube else "#ef4444")
+                if sin_ant:
+                    delta_hero = "—"
+                    txt_accion = "sin datos del mes anterior"
+                    txt_comparativo = f"ahora: {fmt_fn(val_act)}"
+                    c_delta    = "#8b8aaa"
+                elif abs(delta_pct) < 0.1:
+                    delta_hero = "= 0%"
+                    txt_accion = "sin cambio"
+                    txt_comparativo = f"{label_ant}: {fmt_fn(val_ant)}  →  ahora: {fmt_fn(val_act)}"
+                    c_delta    = "#8b8aaa"
+                elif sube:
+                    delta_hero = f"+{abs(delta_pct):.1f}%"
+                    txt_accion = f"subimos {abs(delta_pct):.1f}%"
+                    txt_comparativo = f"{label_ant}: {fmt_fn(val_ant)}  →  ahora: {fmt_fn(val_act)}"
+                else:
+                    delta_hero = f"−{abs(delta_pct):.1f}%"
+                    txt_accion = f"bajamos {abs(delta_pct):.1f}%"
+                    txt_comparativo = f"{label_ant}: {fmt_fn(val_ant)}  →  ahora: {fmt_fn(val_act)}"
+
+            # ── HTML: DELTA como número grande, valor actual pequeño ──
             return (
                 f'<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:14px;'
-                f'padding:16px 18px;border-top:3px solid {color_base};text-align:center">'
+                f'padding:16px 12px;border-top:3px solid {color_base};text-align:center;height:100%">'
+                # Icono + título
                 f'<div style="font-size:1.3rem;margin-bottom:4px">{icono}</div>'
-                f'<div style="font-size:0.68rem;color:#8b8aaa;font-weight:700;text-transform:uppercase;'
-                f'letter-spacing:0.06em;margin-bottom:8px">{titulo}</div>'
-                f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:1.15rem">{fmt_fn(val_act)}</div>'
-                f'<div style="margin-top:6px;font-size:0.8rem;color:{color_d};font-weight:700">'
-                f'{flecha} {abs(pct_delta):.1f}% vs mes ant.</div>'
-                f'<div style="font-size:0.72rem;color:#5a5878;margin-top:3px">Anterior: {fmt_fn(val_ant)}</div>'
-                f'</div>'
+                f'<div style="font-size:0.62rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;'
+                f'letter-spacing:0.07em;margin-bottom:10px;line-height:1.3">{titulo}</div>'
+                # DELTA — protagonista
+                f'<div style="font-family:Syne,sans-serif;font-weight:900;color:{c_delta};'
+                f'font-size:1.6rem;margin-bottom:4px;line-height:1">{delta_hero}</div>'
+                # Texto acción natural
+                f'<div style="font-size:0.72rem;color:{c_delta};font-weight:600;margin-bottom:10px">'
+                f'{txt_accion}</div>'
+                # Barra divisora sutil
+                f'<div style="border-top:1px solid #2d2b45;padding-top:8px">'
+                # Comparativo → fila pequeña
+                f'<div style="font-size:0.63rem;color:#5a5878;line-height:1.5">{txt_comparativo}</div>'
+                f'</div></div>'
             )
 
-        mc1,mc2,mc3,mc4,mc5 = st.columns(5)
-        with mc1: st.markdown(delta_card("Ventas", ventas_act, ventas_ant, fmt_money, "💰", "#6366f1"), unsafe_allow_html=True)
-        with mc2: st.markdown(delta_card("Ganancia", gan_act, gan_ant, fmt_money, "📈", "#10b981"), unsafe_allow_html=True)
-        with mc3: st.markdown(delta_card("Pedidos Entregados", n_ent, n_ent_ant, lambda x: f"{int(x):,}", "📦", "#06b6d4"), unsafe_allow_html=True)
-        tasa_dev_ant = df_ant[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI',na=False).sum()/len(df_ant)*100 if len(df_ant) else 0
-        tasa_can_ant = df_ant[C_ESTATUS].astype(str).str.upper().str.contains('CANCELAD',na=False).sum()/len(df_ant)*100 if len(df_ant) else 0
-        with mc4: st.markdown(delta_card("% Devolución", tasa_dev, tasa_dev_ant, lambda x: f"{x:.1f}%", "↩️", "#f59e0b"), unsafe_allow_html=True)
-        with mc5: st.markdown(delta_card("% Cancelación", tasa_can, tasa_can_ant, lambda x: f"{x:.1f}%", "❌", "#ef4444"), unsafe_allow_html=True)
+        # ── Fila 1: Métricas monetarias/conteo (variación relativa %) ──
+        st.markdown(
+            '<div style="font-size:0.65rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;'
+            'letter-spacing:0.08em;margin-bottom:8px">'
+            '📊 Variación relativa — ¿cuánto % subió o bajó el valor?</div>',
+            unsafe_allow_html=True
+        )
+        mc1,mc2,mc3,mc4 = st.columns(4)
+        with mc1: st.markdown(marcador_card("Ventas brutas",  ventas_act, ventas_ant, fmt_money,         "💰","#6366f1"), unsafe_allow_html=True)
+        with mc2: st.markdown(marcador_card("Ganancia neta",  gan_act,    gan_ant,    fmt_money,         "📈","#10b981"), unsafe_allow_html=True)
+        with mc3: st.markdown(marcador_card("Pedidos totales",n_tot,      n_tot_ant,  lambda x:f"{int(x):,}","📦","#06b6d4"), unsafe_allow_html=True)
+        with mc4: st.markdown(marcador_card("Entregados",     n_ent,      n_ent_ant,  lambda x:f"{int(x):,}","✅","#10b981"), unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── Fila 2: Tasas porcentuales (diferencia en Puntos Porcentuales) ──
+        st.markdown(
+            '<div style="font-size:0.65rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;'
+            'letter-spacing:0.08em;margin-bottom:8px">'
+            '📐 Variación en puntos porcentuales — ¿cuánto pp subió o bajó la tasa?</div>',
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            '<div style="background:#161525;border:1px solid #2d2b45;border-radius:8px;padding:8px 14px;'
+            'margin-bottom:10px;font-size:0.68rem;color:#8b8aaa;line-height:1.6">'
+            '💡 <b style="color:#c9a84c">¿Qué son los puntos porcentuales (pp)?</b> '
+            'Si la devolución era <b>8%</b> el mes anterior y ahora es <b>10%</b>, '
+            'el delta es <b style="color:#ef4444">+2 pp</b> — no un "25% de aumento". '
+            'Los pp miden la diferencia directa entre dos tasas. '
+            'Aquí mostramos únicamente esa variación, no el porcentaje actual.</div>',
+            unsafe_allow_html=True
+        )
+        pp1,pp2,pp3,pp4 = st.columns(4)
+        with pp1: st.markdown(marcador_card("% Entrega",    tasa_ent_act, tasa_ent_ant, lambda x:f"{x:.1f}%","🚚","#06b6d4", modo="pp", malo_si_sube=False), unsafe_allow_html=True)
+        with pp2: st.markdown(marcador_card("% Devolución", tasa_dev_act, tasa_dev_ant, lambda x:f"{x:.1f}%","↩️","#f59e0b", modo="pp", malo_si_sube=True),  unsafe_allow_html=True)
+        with pp3: st.markdown(marcador_card("% Cancelación",tasa_can_act, tasa_can_ant, lambda x:f"{x:.1f}%","❌","#ef4444", modo="pp", malo_si_sube=True),  unsafe_allow_html=True)
+        with pp4: st.markdown(marcador_card("% Margen",     margen_act,   margen_ant,   lambda x:f"{x:.1f}%","💰","#10b981", modo="pp", malo_si_sube=False), unsafe_allow_html=True)
 
         st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
 
         # FIN EL MARCADOR
 
-    elif "Río" in nav or "Rio" in nav:
-        from datetime import date, timedelta
-        hoy = date.today()
-        mes_actual = hoy.strftime('%Y-%m')
-        df_act = df[df['_mes'] == mes_actual].copy() if '_mes' in df.columns else df.copy()
-        gan_act = df_act[C_GANANCIA].sum() if C_GANANCIA in df_act.columns else 0
-        st.markdown('<div class="seccion-titulo">🌊 El Río del Dinero — ¿Dónde está tu plata?</div>', unsafe_allow_html=True)
-        # ══════════════════════════════════════════
-        # 🌊 COMPONENTE 2 — RÍO DEL DINERO
-        # ══════════════════════════════════════════
-        st.markdown('<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:1rem;margin-bottom:14px">🌊 El Río del Dinero — ¿Dónde está tu plata?</div>', unsafe_allow_html=True)
-
-        ventas_bruta = df_act[C_TOTAL].sum() if C_TOTAL in df_act.columns else 0
-        costo_prod_r = df_act["PRECIO PROVEEDOR X CANTIDAD"].sum() if "PRECIO PROVEEDOR X CANTIDAD" in df_act.columns else 0
-        flete_ent_r  = df_act[df_act[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD',na=False)][C_FLETE].sum() if C_FLETE in df_act.columns and C_ESTATUS in df_act.columns else 0
-        flete_dev_r  = df_act[df_act[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI',na=False)][C_FLETE].sum() if C_FLETE in df_act.columns and C_ESTATUS in df_act.columns else 0
-        pauta_r      = sum(st.session_state.get('pauta_dict',{}).values())
-        nomina_r     = st.session_state.get('nomina_total', 0)
-        en_transito  = df_act[~df_act[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD|CANCELAD|DEVOLUCI',na=False)][C_TOTAL].sum() if C_TOTAL in df_act.columns and C_ESTATUS in df_act.columns else 0
-        dinero_tuyo  = gan_act - pauta_r - nomina_r
-
-        bloques_rio = [
-            ("💳 Ventas Brutas",      ventas_bruta, "#6366f1", "Total facturado este mes"),
-            ("📦 Costo Productos",    -costo_prod_r, "#ef4444", "Lo que le pagas al proveedor"),
-            ("🚚 Flete Entrega",      -flete_ent_r, "#f59e0b", "Costo envíos exitosos"),
-            ("↩️ Flete Devoluciones", -flete_dev_r, "#ef4444", "Pérdida en devoluciones"),
-            ("📣 Pauta",              -pauta_r,     "#8b5cf6", "Inversión publicitaria"),
-            ("👥 Nómina",             -nomina_r,    "#ec4899", "Equipo de trabajo"),
-            ("⏳ En Tránsito",         en_transito,  "#06b6d4", "Dinero amarrado en pedidos activos"),
-            ("✅ Es Tuyo",            dinero_tuyo,  "#10b981", "Lo que realmente queda en tu bolsillo"),
-        ]
-
-        rio_html = '<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;margin-bottom:8px">'
-        max_val = max(abs(b[1]) for b in bloques_rio if b[1] != 0) or 1
-        for nombre, valor, color, desc in bloques_rio:
-            altura = max(40, int(abs(valor) / max_val * 140))
-            positivo = valor >= 0
-            bg_color  = f"{color}22"
-            border_col= color
-            signo     = "+" if positivo else "-"
-            rio_html += (
-                f'<div style="flex:1;min-width:100px;display:flex;flex-direction:column;align-items:center;gap:6px">'
-                f'<div style="font-size:0.68rem;color:#8b8aaa;text-align:center;font-weight:600;'
-                f'text-transform:uppercase;letter-spacing:0.04em;line-height:1.3">{nombre}</div>'
-                f'<div style="width:100%;height:{altura}px;background:{bg_color};'
-                f'border:1.5px solid {border_col};border-radius:10px;'
-                f'display:flex;flex-direction:column;align-items:center;justify-content:center;'
-                f'transition:all 0.3s">'
-                f'<div style="font-family:Syne,sans-serif;font-weight:800;color:{color};font-size:0.78rem">'
-                f'{signo}{fmt_money(abs(valor))}</div>'
-                f'</div>'
-                f'<div style="font-size:0.62rem;color:#5a5878;text-align:center;line-height:1.3">{desc}</div>'
-                f'</div>'
-            )
-        rio_html += '</div>'
-        st.markdown(rio_html, unsafe_allow_html=True)
-
-        st.markdown("<hr style='border-color:#2d2b45;margin:16px 0'>", unsafe_allow_html=True)
-
-        # FIN RÍO DEL DINERO
 
     elif "Centro" in nav or "Mando" in nav:
         from datetime import date, timedelta
@@ -2077,6 +2464,50 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                                   title="Cascada de Flujo de Caja",
                                   yaxis={**AXIS_STYLE, "tickprefix":"$"})
             st.plotly_chart(fig_wf, use_container_width=True)
+
+            # ══════════════════════════════════════════════════════
+            # 🌊 RÍO DEL DINERO — dentro de Flujo de Caja
+            # ══════════════════════════════════════════════════════
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown('<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.92rem;margin-bottom:12px">🌊 El Río del Dinero — Flujo Visual</div>', unsafe_allow_html=True)
+            _rio_ventas   = ingresos
+            _rio_cprod    = costo_prod
+            _rio_fent     = flete_ent
+            _rio_fdev     = flete_dev
+            _rio_pauta    = pauta_fin
+            _rio_nom      = nomina_total
+            _rio_transito = df_fin[~df_fin[C_ESTATUS].astype(str).str.upper().str.contains('ENTREGAD|CANCELAD|DEVOLUCI',na=False)][C_TOTAL].sum() if C_TOTAL in df_fin.columns and C_ESTATUS in df_fin.columns else 0
+            _rio_tuyo     = _rio_ventas - _rio_cprod - _rio_fent - _rio_fdev - _rio_pauta - _rio_nom
+            _bloques_rio  = [
+                ("💳 Ventas",        _rio_ventas,  "#6366f1","Total facturado"),
+                ("📦 Costo Prod.",   -_rio_cprod,  "#ef4444","Pago al proveedor"),
+                ("🚚 Flete Entrega", -_rio_fent,   "#f59e0b","Envíos exitosos"),
+                ("↩️ Flete Dev.",    -_rio_fdev,   "#ef4444","Pérdida devoluciones"),
+                ("📣 Pauta",         -_rio_pauta,  "#8b5cf6","Inversión marketing"),
+                ("👥 Nómina",        -_rio_nom,    "#ec4899","Equipo"),
+                ("⏳ En Tránsito",    _rio_transito,"#06b6d4","Pedidos activos"),
+                ("✅ Es Tuyo",       _rio_tuyo,    "#10b981","Ganancia neta"),
+            ]
+            _max_rio = max(abs(b[1]) for b in _bloques_rio if b[1] != 0) or 1
+            _rio_html = '<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:12px">'
+            for _nm, _vl, _cl, _ds in _bloques_rio:
+                _alt = max(40, int(abs(_vl) / _max_rio * 140))
+                _sg  = "+" if _vl >= 0 else "-"
+                _rio_html += (
+                    f'<div style="flex:1;min-width:90px;display:flex;flex-direction:column;align-items:center;gap:5px">'
+                    f'<div style="font-size:0.65rem;color:#8b8aaa;text-align:center;font-weight:700;'
+                    f'text-transform:uppercase;letter-spacing:0.03em;line-height:1.3">{_nm}</div>'
+                    f'<div style="width:100%;height:{_alt}px;background:{_cl}22;'
+                    f'border:1.5px solid {_cl};border-radius:10px;'
+                    f'display:flex;align-items:center;justify-content:center">'
+                    f'<div style="font-family:Syne,sans-serif;font-weight:800;color:{_cl};font-size:0.72rem">'
+                    f'{_sg}{fmt_money(abs(_vl))}</div></div>'
+                    f'<div style="font-size:0.6rem;color:#5a5878;text-align:center;line-height:1.2">{_ds}</div>'
+                    f'</div>'
+                )
+            _rio_html += '</div>'
+            st.markdown(_rio_html, unsafe_allow_html=True)
+            st.markdown("<hr style='border-color:#2d2b45;margin:14px 0'>", unsafe_allow_html=True)
 
         elif "Costos" in fin_nav:
             st.markdown('<div class="seccion-titulo">📉 Análisis de Costos</div>', unsafe_allow_html=True)
