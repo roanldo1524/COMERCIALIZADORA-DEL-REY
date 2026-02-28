@@ -275,6 +275,7 @@ with st.sidebar:
         "💹  Finanzas",
         "🔮  Proyecciones",
         "🧠  Asesor Financiero",
+        "📡  Tendencias & Clima",
     ], label_visibility="collapsed")
 
     st.markdown('<div style="font-size:0.58rem;color:#3d3b55;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 4px;margin:14px 0 6px">OPERACIONAL</div>', unsafe_allow_html=True)
@@ -1016,336 +1017,594 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
     elif nav == "🔮 Proyecciones":
         st.markdown('<div class="seccion-titulo">🔮 Motor de Proyecciones</div>', unsafe_allow_html=True)
 
-        if '_mes' not in df.columns or C_TOTAL not in df.columns or len(df['_mes'].unique()) < 2:
-            st.info("⬆️ Se necesitan al menos 2 meses de datos para generar proyecciones.")
-        else:
-            # ── Calcular histórico ──
-            MESES_ES_P = {1:"Ene",2:"Feb",3:"Mar",4:"Abr",5:"May",6:"Jun",
-                          7:"Jul",8:"Ago",9:"Sep",10:"Oct",11:"Nov",12:"Dic"}
-            def fmt_mes_p(m):
-                try: y,mo = str(m).split('-'); return f"{MESES_ES_P[int(mo)]} {y[-2:]}"
-                except: return str(m)
+        _proy_c1, _proy_c2 = st.tabs([
+            "🟣 Capa 1 — Proyección Autónoma (sin Excel)",
+            "🔵 Capa 2 — Meta vs Real (con Excel)"
+        ])
 
-            v_mes_p = df.groupby('_mes').agg(
-                Ventas    = (C_TOTAL,   'sum'),
-                Pedidos   = (C_TOTAL,   'count'),
-                Ganancia  = (C_GANANCIA,'sum') if C_GANANCIA in df.columns else (C_TOTAL,'count'),
-            ).reset_index().sort_values('_mes')
-            v_mes_p['Mes_Label'] = v_mes_p['_mes'].apply(fmt_mes_p)
+        # ════════════════════════════════════════════════════════════════
+        # 🟣 CAPA 1 — PROYECCIÓN AUTÓNOMA
+        # Basada en temporadas, clima, problemas del consumidor e histórico mínimo
+        # No depende de un Excel actualizado
+        # ════════════════════════════════════════════════════════════════
+        with _proy_c1:
+            from datetime import date as _dc1
+            _hoy_c1 = _dc1.today()
+            _mes_c1 = _hoy_c1.month
+            _anio_c1 = _hoy_c1.year
 
-            # Últimos 3 y 6 meses
-            ult1  = v_mes_p['Ventas'].iloc[-1]
-            ult3  = v_mes_p['Ventas'].tail(3).mean()
-            ult6  = v_mes_p['Ventas'].tail(6).mean()
-            ult3_min = v_mes_p['Ventas'].tail(3).min()
-            ult3_max = v_mes_p['Ventas'].tail(3).max()
-            gan_pct_hist = (v_mes_p['Ganancia'].tail(3).mean() / ult3 * 100) if ult3 else 0
-            mes_actual_p  = v_mes_p['Mes_Label'].iloc[-1]
+            MESES_ES_C1 = {1:"Enero",2:"Febrero",3:"Marzo",4:"Abril",5:"Mayo",6:"Junio",
+                           7:"Julio",8:"Agosto",9:"Septiembre",10:"Octubre",11:"Noviembre",12:"Diciembre"}
 
-            # ── BLOQUE: PUNTO DE PARTIDA ──
+            # ── Factores de estacionalidad por mes (multiplicadores sobre promedio base) ──
+            ESTACIONALIDAD_CO = {
+                1: 0.85,  # Enero — post-navidad, caída
+                2: 0.90,  # Febrero — San Valentín leve
+                3: 1.10,  # Marzo — Día Mujer, pico
+                4: 0.95,  # Abril — Semana Santa
+                5: 1.35,  # Mayo — Día de la Madre 🔴 pico máximo
+                6: 0.90,  # Junio — vacaciones escolares
+                7: 0.85,  # Julio — vacaciones
+                8: 1.05,  # Agosto — regreso clases, Feria Flores
+                9: 1.25,  # Septiembre — Amor y Amistad 🔴
+                10: 1.00, # Octubre — Halloween creciendo
+                11: 1.40, # Noviembre — Black Friday 🔴 pico máximo
+                12: 1.50, # Diciembre — Navidad 🔴 pico absoluto
+            }
+            ESTACIONALIDAD_CL = {
+                1: 1.30,  # Enero — verano chileno
+                2: 1.20,  # Febrero — verano
+                3: 1.05,  # Marzo — regreso escolar
+                4: 0.90,  # Abril — otoño
+                5: 1.30,  # Mayo — Día Madre Chile 🔴
+                6: 1.20,  # Junio — CyberDay + Día Padre 🔴
+                7: 0.85,  # Julio — vacaciones invierno
+                8: 0.80,  # Agosto
+                9: 1.40,  # Septiembre — Fiestas Patrias 🔴
+                10: 1.00,
+                11: 1.35, # Noviembre — Black Friday 🔴
+                12: 1.45, # Diciembre — Navidad 🔴
+            }
+
+            # ── Usar histórico real si existe, o estimado manual ──
+            _tiene_hist = ('_mes' in df.columns and C_TOTAL in df.columns and len(df['_mes'].unique()) >= 1)
+
             st.markdown(
-                '<div style="background:linear-gradient(135deg,#1a1829,#1f1d35);border:1px solid #2d2b45;'
-                'border-radius:14px;padding:20px 24px;margin-bottom:20px">'
-                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.92rem;margin-bottom:14px">'
-                '📍 Punto de Partida — ¿desde dónde proyectamos?</div>',
+                '<div style="background:rgba(139,92,246,0.08);border:1px solid #8b5cf633;'
+                'border-radius:14px;padding:18px 22px;margin-bottom:18px">'
+                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#8b5cf6;font-size:0.92rem;margin-bottom:6px">'
+                '🟣 Proyección Autónoma — No depende de tu Excel</div>'
+                '<div style="color:#8b8aaa;font-size:0.78rem">Calculada con estacionalidad del mercado colombiano/chileno, '
+                'eventos comerciales del año y el promedio base que configures. '
+                'Si el Excel cambia, esta proyección NO cambia — es tu brújula estratégica estable.</div>'
+                '</div>',
                 unsafe_allow_html=True
             )
 
-            bp1, bp2, bp3, bp4 = st.columns(4)
-            with bp1:
-                st.markdown(
-                    f'<div style="text-align:center">'
-                    f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;margin-bottom:4px">Último mes ({mes_actual_p})</div>'
-                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#6366f1;font-size:1.2rem">{fmt_money(ult1)}</div>'
-                    f'</div>', unsafe_allow_html=True
+            # ── Configuración base ──
+            _cc1a, _cc1b, _cc1c, _cc1d = st.columns(4)
+            with _cc1a:
+                _pais_c1 = st.radio("🌍 Mercado", ["🇨🇴 Colombia", "🇨🇱 Chile"],
+                                    horizontal=True, key="c1_pais", label_visibility="collapsed")
+            with _cc1b:
+                _base_manual_c1 = st.number_input(
+                    "💵 Venta base promedio mensual (COP)",
+                    min_value=0, max_value=5_000_000_000,
+                    value=int(df[C_TOTAL].mean() * len(df[df['_mes'] == df['_mes'].iloc[-1]]) if _tiene_hist and C_TOTAL in df.columns else 50_000_000),
+                    step=1_000_000,
+                    key="c1_base_manual",
+                    label_visibility="collapsed"
                 )
-            with bp2:
-                st.markdown(
-                    f'<div style="text-align:center">'
-                    f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;margin-bottom:4px">Promedio 3 meses</div>'
-                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#06b6d4;font-size:1.2rem">{fmt_money(ult3)}</div>'
-                    f'<div style="font-size:0.62rem;color:#5a5878;margin-top:2px">entre {fmt_money(ult3_min)} y {fmt_money(ult3_max)}</div>'
-                    f'</div>', unsafe_allow_html=True
-                )
-            with bp3:
-                st.markdown(
-                    f'<div style="text-align:center">'
-                    f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;margin-bottom:4px">Promedio 6 meses</div>'
-                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#10b981;font-size:1.2rem">{fmt_money(ult6)}</div>'
-                    f'</div>', unsafe_allow_html=True
-                )
-            with bp4:
-                st.markdown(
-                    f'<div style="text-align:center">'
-                    f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;margin-bottom:4px">Margen promedio</div>'
-                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#c9a84c;font-size:1.2rem">{gan_pct_hist:.1f}%</div>'
-                    f'<div style="font-size:0.62rem;color:#5a5878;margin-top:2px">últimos 3 meses</div>'
-                    f'</div>', unsafe_allow_html=True
-                )
-            st.markdown('</div>', unsafe_allow_html=True)
+                st.caption("Base mensual promedio de ventas")
+            with _cc1c:
+                _n_meses_c1 = st.selectbox("📅 Meses a proyectar", [3,6,9,12], index=1,
+                                            key="c1_nmeses", label_visibility="collapsed")
+                st.caption("Meses a proyectar")
+            with _cc1d:
+                _ajuste_c1 = st.slider("⚡ Ajuste estratégico %", -30, 50, 0, step=5,
+                                        key="c1_ajuste", label_visibility="collapsed")
+                st.caption(f"Ajuste manual: {'+' if _ajuste_c1>=0 else ''}{_ajuste_c1}%")
 
-            # ── CONFIGURADOR ──
-            st.markdown(
-                '<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:14px;'
-                'padding:20px 24px;margin-bottom:20px">',
-                unsafe_allow_html=True
-            )
-            st.markdown(
-                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:16px">'
-                '⚙️ Configurar Proyección</div>',
-                unsafe_allow_html=True
-            )
+            _estac = ESTACIONALIDAD_CO if "Colombia" in _pais_c1 else ESTACIONALIDAD_CL
+            _base_c1 = _base_manual_c1 * (1 + _ajuste_c1 / 100)
 
-            cfg1, cfg2, cfg3, cfg4 = st.columns(4)
-            with cfg1:
-                base_proy = st.radio(
-                    "📍 Punto de partida",
-                    ["Último mes", "Promedio 3 meses", "Promedio 6 meses", "Manual"],
-                    key="proy_base", horizontal=False
-                )
-            with cfg2:
-                n_meses_proy = st.selectbox(
-                    "📅 Meses a proyectar",
-                    [3, 6, 9, 12], index=1, key="proy_nmeses"
-                )
-                fecha_inicio_ref = pd.Timestamp.now()
-                meses_label_proy = []
-                for mi in range(1, n_meses_proy + 1):
-                    m_fut = fecha_inicio_ref + pd.DateOffset(months=mi)
-                    meses_label_proy.append(m_fut.strftime("%b %Y"))
+            # ── Calcular proyección mes a mes ──
+            _filas_c1 = []
+            for _i in range(1, _n_meses_c1 + 1):
+                import calendar as _cal_mod
+                _mes_fut = ((_mes_c1 - 1 + _i) % 12) + 1
+                _anio_fut = _anio_c1 + ((_mes_c1 - 1 + _i) // 12)
+                _factor   = _estac.get(_mes_fut, 1.0)
+                _venta_c1 = _base_c1 * _factor
 
-            with cfg3:
-                crecimiento_proy = st.number_input(
-                    "📈 Crecimiento mensual %", -50.0, 200.0,
-                    float(st.session_state.get('proy_crec', 10.0)),
-                    step=5.0, key="proy_crec"
-                )
-                # Sugerencia automática
-                if len(v_mes_p) >= 2:
-                    crec_real = (v_mes_p['Ventas'].iloc[-1] / v_mes_p['Ventas'].iloc[-2] - 1) * 100
-                else:
-                    crec_real = 0
-                st.caption(f"Tu crecimiento real último mes: {crec_real:+.1f}%")
+                # Eventos del mes
+                EVENTOS_CLAVE = {
+                    (5, "CO"): ("💐 Día de la Madre", "#ef4444"),
+                    (9, "CO"): ("🤝 Amor y Amistad", "#ef4444"),
+                    (11, "CO"): ("🖤 Black Friday", "#ef4444"),
+                    (12, "CO"): ("🎄 Navidad", "#ef4444"),
+                    (3, "CO"): ("🌸 Día de la Mujer", "#f59e0b"),
+                    (5, "CL"): ("💐 Día Madre Chile", "#ef4444"),
+                    (6, "CL"): ("💻 CyberDay", "#ef4444"),
+                    (9, "CL"): ("🇨🇱 Fiestas Patrias", "#ef4444"),
+                    (11, "CL"): ("🖤 Black Friday", "#ef4444"),
+                    (12, "CL"): ("🎄 Navidad", "#ef4444"),
+                }
+                _pais_key_c1 = "CO" if "Colombia" in _pais_c1 else "CL"
+                _evento = EVENTOS_CLAVE.get((_mes_fut, _pais_key_c1), None)
 
-            with cfg4:
-                if base_proy == "Manual":
-                    base_val_proy = st.number_input(
-                        "💵 Base manual (COP)", 0, 5_000_000_000,
-                        int(ult3), 1_000_000, key="proy_manual", format="%d"
-                    )
-                else:
-                    base_val_proy = {"Último mes": ult1,
-                                     "Promedio 3 meses": ult3,
-                                     "Promedio 6 meses": ult6}[base_proy]
-                    st.metric("Base seleccionada", fmt_money(base_val_proy))
-
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            # ── CALCULAR PROYECCIONES ──
-            # Gastos estimados como % histórico
-            gastos_op_hist = st.session_state.get('nomina_total', 0) + \
-                             sum(st.session_state.get('costos_fijos', {}).values()) + \
-                             sum(st.session_state.get('pauta_dict', {}).values())
-            pct_gastos_hist = gastos_op_hist / ult3 if ult3 else 0.35
-            tasa_imp_proy   = float(st.session_state.get('diag_imp', 8.0)) * \
-                              (1 - float(st.session_state.get('diag_iva_excl', 80.0)) / 100)
-
-            filas_proy = []
-            for i in range(1, n_meses_proy + 1):
-                ventas_i   = base_val_proy * ((1 + crecimiento_proy / 100) ** i)
-                gan_i      = ventas_i * (gan_pct_hist / 100)
-                gastos_i   = ventas_i * pct_gastos_hist
-                imp_i      = (ventas_i - gastos_i) * (tasa_imp_proy / 100)
-                util_i     = gan_i - gastos_i - imp_i
-                pedidos_i  = int(ventas_i / (ult1 / len(df[df['_mes'] == v_mes_p['_mes'].iloc[-1]])) ) if len(df[df['_mes'] == v_mes_p['_mes'].iloc[-1]]) else 0
-                filas_proy.append({
-                    'Mes': meses_label_proy[i - 1],
-                    'Ventas': ventas_i, 'Ganancia': gan_i,
-                    'Gastos': gastos_i, 'Impuesto': imp_i,
-                    'Utilidad': util_i, 'Pedidos_est': pedidos_i,
+                _filas_c1.append({
+                    "mes_n": _mes_fut,
+                    "anio_n": _anio_fut,
+                    "label": f"{MESES_ES_C1[_mes_fut][:3]} {_anio_fut}",
+                    "factor": _factor,
+                    "venta": _venta_c1,
+                    "evento": _evento,
+                    "pct_vs_base": (_factor - 1) * 100,
                 })
 
-            # ── CUADRO RESUMEN MENSUAL ──
+            # ── Tabla visual de proyección ──
             st.markdown(
-                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:10px">'
-                '📋 Proyección Detallada — mes a mes</div>',
+                '<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.85rem;margin-bottom:12px">'
+                '📋 Proyección mes a mes — basada en estacionalidad del mercado</div>',
                 unsafe_allow_html=True
             )
 
-            # Header tabla
-            col_widths = [1.2] + [1]*n_meses_proy
-            th_cols = st.columns(col_widths)
-            with th_cols[0]:
+            _col_w_c1 = [1.2] + [1] * _n_meses_c1
+            _th_c1 = st.columns(_col_w_c1)
+            with _th_c1[0]:
                 st.markdown('<div style="font-size:0.65rem;color:#8b8aaa;font-weight:800;text-transform:uppercase">Concepto</div>', unsafe_allow_html=True)
-            for ci, fp in enumerate(filas_proy):
-                with th_cols[ci+1]:
-                    crec_i = (fp['Ventas'] / filas_proy[ci-1]['Ventas'] - 1)*100 if ci > 0 else crecimiento_proy
+            for _ci, _fila in enumerate(_filas_c1):
+                _col_ev = _fila["evento"][1] if _fila["evento"] else "#2d2b45"
+                _ev_lbl = _fila["evento"][0] if _fila["evento"] else ""
+                with _th_c1[_ci + 1]:
                     st.markdown(
-                        f'<div style="text-align:center;background:#1a1829;border-radius:8px;padding:6px 4px;border:1px solid #2d2b45">'
-                        f'<div style="font-family:Syne,sans-serif;font-size:0.72rem;color:#f0ede8;font-weight:800">{fp["Mes"]}</div>'
-                        f'<div style="font-size:0.6rem;color:{"#10b981" if crec_i>=0 else "#ef4444"}">'
-                        f'{"+" if crec_i>=0 else ""}{crec_i:.0f}% vs ant.</div>'
+                        f'<div style="text-align:center;background:#1a1829;border-radius:8px;padding:6px 4px;'
+                        f'border:1px solid {_col_ev}55">'
+                        f'<div style="font-family:Syne,sans-serif;font-size:0.72rem;color:#f0ede8;font-weight:800">{_fila["label"]}</div>'
+                        f'<div style="font-size:0.58rem;color:{"#ef4444" if _fila["pct_vs_base"]>15 else "#10b981" if _fila["pct_vs_base"]>0 else "#8b8aaa"}">'
+                        f'{"+" if _fila["pct_vs_base"]>=0 else ""}{_fila["pct_vs_base"]:.0f}% vs base</div>'
+                        f'{"<div style=font-size:0.58rem;color:" + _col_ev + ">" + _ev_lbl + "</div>" if _ev_lbl else ""}'
                         f'</div>',
                         unsafe_allow_html=True
                     )
 
             st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
 
-            # Filas de datos
-            conceptos_proy = [
-                ("💰 Ingresos proyectados",   "Ventas",    "#6366f1"),
-                ("📈 Ganancia bruta est.",     "Ganancia",  "#10b981"),
-                ("🏢 Gastos operativos est.", "Gastos",    "#ef4444"),
-                ("🏛️ Impuesto estimado",      "Impuesto",  "#c9a84c"),
-                ("✅ Utilidad neta est.",      "Utilidad",  "#f0ede8"),
-            ]
-            for lbl_c, key_c, col_c in conceptos_proy:
-                row_cols = st.columns(col_widths)
-                es_util = key_c == "Utilidad"
-                with row_cols[0]:
+            # Fila: ventas proyectadas
+            _row_c1 = st.columns(_col_w_c1)
+            with _row_c1[0]:
+                st.markdown('<div style="font-size:0.72rem;color:#8b5cf6;font-weight:700;padding:4px 0">💰 Ventas proyectadas</div>', unsafe_allow_html=True)
+            for _ci, _fila in enumerate(_filas_c1):
+                with _row_c1[_ci + 1]:
                     st.markdown(
-                        f'<div style="font-size:0.72rem;color:{col_c};font-weight:700;padding:4px 0">{lbl_c}</div>',
+                        f'<div style="text-align:center;padding:4px 2px">'
+                        f'<div style="font-size:0.76rem;color:#8b5cf6;font-weight:800">{fmt_money(_fila["venta"])}</div>'
+                        f'</div>', unsafe_allow_html=True
+                    )
+
+            # Fila: factor estacional
+            _row_c1b = st.columns(_col_w_c1)
+            with _row_c1b[0]:
+                st.markdown('<div style="font-size:0.72rem;color:#c9a84c;font-weight:700;padding:4px 0">📊 Factor estacional</div>', unsafe_allow_html=True)
+            for _ci, _fila in enumerate(_filas_c1):
+                _fc = "#ef4444" if _fila["factor"] >= 1.3 else "#f59e0b" if _fila["factor"] >= 1.1 else "#10b981" if _fila["factor"] >= 1.0 else "#8b8aaa"
+                with _row_c1b[_ci + 1]:
+                    st.markdown(
+                        f'<div style="text-align:center;padding:4px 2px">'
+                        f'<div style="font-size:0.76rem;color:{_fc};font-weight:800">×{_fila["factor"]:.2f}</div>'
+                        f'</div>', unsafe_allow_html=True
+                    )
+
+            # ── Gráfica de proyección autónoma ──
+            _xs_c1 = [f["label"] for f in _filas_c1]
+            _ys_c1 = [f["venta"] / 1e6 for f in _filas_c1]
+            _facs_c1 = [f["factor"] for f in _filas_c1]
+
+            _fig_c1 = go.Figure()
+            _fig_c1.add_trace(go.Bar(
+                x=_xs_c1, y=_ys_c1,
+                marker_color=[
+                    "#ef4444" if f >= 1.3 else "#f59e0b" if f >= 1.1 else "#6366f1" if f >= 1.0 else "#3d3b55"
+                    for f in _facs_c1
+                ],
+                name="Venta proyectada",
+                hovertemplate='%{x}<br>$%{y:.1f}M COP<extra></extra>',
+                opacity=0.85
+            ))
+            # Línea base
+            _fig_c1.add_hline(
+                y=_base_c1 / 1e6, line_dash="dot", line_color="#8b5cf6",
+                annotation_text=f"Base: {fmt_money(_base_c1)}", annotation_font_color="#8b5cf6"
+            )
+            _fig_c1.update_layout(
+                **PLOT_LAYOUT, height=340,
+                title=f"Proyección Autónoma {_n_meses_c1} meses · {_pais_c1.split()[-1]}",
+                xaxis=AXIS_STYLE, yaxis=dict(title="Millones COP", **AXIS_STYLE)
+            )
+            st.plotly_chart(_fig_c1, use_container_width=True)
+
+            # ── KPIs resumen ──
+            _tot_c1 = sum(f["venta"] for f in _filas_c1)
+            _mes_pico_c1 = max(_filas_c1, key=lambda x: x["venta"])
+            _mes_bajo_c1 = min(_filas_c1, key=lambda x: x["venta"])
+            _eventos_c1  = [f for f in _filas_c1 if f["evento"]]
+
+            _kc1, _kc2, _kc3, _kc4 = st.columns(4)
+            with _kc1: st.markdown(kpi("purple", f"💰 Total {_n_meses_c1} meses", fmt_money(_tot_c1), "proyección autónoma"), unsafe_allow_html=True)
+            with _kc2: st.markdown(kpi("red", "📈 Mes pico", fmt_money(_mes_pico_c1["venta"]), _mes_pico_c1["label"]), unsafe_allow_html=True)
+            with _kc3: st.markdown(kpi("blue", "📉 Mes bajo", fmt_money(_mes_bajo_c1["venta"]), _mes_bajo_c1["label"]), unsafe_allow_html=True)
+            with _kc4: st.markdown(kpi("gold", "🎯 Eventos clave", str(len(_eventos_c1)), "en el período"), unsafe_allow_html=True)
+
+            # ── Alertas de eventos próximos ──
+            if _eventos_c1:
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.markdown(
+                    '<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.85rem;margin-bottom:10px">'
+                    '🚨 Eventos Comerciales Clave en el Período</div>',
+                    unsafe_allow_html=True
+                )
+                for _ev_f in _eventos_c1:
+                    _ev_col = _ev_f["evento"][1]
+                    st.markdown(
+                        f'<div style="background:{_ev_col}10;border:1px solid {_ev_col}33;border-radius:10px;'
+                        f'padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px">'
+                        f'<span style="font-size:1.2rem">{_ev_f["evento"][0].split()[0]}</span>'
+                        f'<div style="flex:1">'
+                        f'<span style="color:#f0ede8;font-weight:700;font-size:0.84rem">{_ev_f["evento"][0]}</span>'
+                        f'<span style="color:#8b8aaa;font-size:0.74rem;margin-left:8px">— {_ev_f["label"]}</span>'
+                        f'</div>'
+                        f'<div style="text-align:right">'
+                        f'<div style="color:{_ev_col};font-weight:800;font-size:0.9rem">{fmt_money(_ev_f["venta"])}</div>'
+                        f'<div style="color:#8b8aaa;font-size:0.7rem">×{_ev_f["factor"]:.2f} vs base</div>'
+                        f'</div></div>',
                         unsafe_allow_html=True
                     )
+
+            st.markdown(
+                '<div style="background:rgba(139,92,246,0.05);border:1px dashed #8b5cf644;border-radius:10px;'
+                'padding:14px 18px;margin-top:14px;font-size:0.76rem;color:#b0aec8;line-height:1.7">'
+                '🟣 <b style="color:#8b5cf6">Esta proyección es estable y estratégica.</b> '
+                'No importa si mañana cambias el Excel — los factores estacionales del mercado no cambian. '
+                'Úsala para planificar importaciones, pauta y personal con 2-3 meses de anticipación.</div>',
+                unsafe_allow_html=True
+            )
+
+        # ════════════════════════════════════════════════════════════════
+        # 🔵 CAPA 2 — META VS REAL (DEPENDIENTE DE EXCEL)
+        # ════════════════════════════════════════════════════════════════
+        with _proy_c2:
+
+            if '_mes' not in df.columns or C_TOTAL not in df.columns or len(df['_mes'].unique()) < 2:
+                st.info("⬆️ Se necesitan al menos 2 meses de datos para generar proyecciones.")
+            else:
+                # ── Calcular histórico ──
+                MESES_ES_P = {1:"Ene",2:"Feb",3:"Mar",4:"Abr",5:"May",6:"Jun",
+                              7:"Jul",8:"Ago",9:"Sep",10:"Oct",11:"Nov",12:"Dic"}
+                def fmt_mes_p(m):
+                    try: y,mo = str(m).split('-'); return f"{MESES_ES_P[int(mo)]} {y[-2:]}"
+                    except: return str(m)
+
+                v_mes_p = df.groupby('_mes').agg(
+                    Ventas    = (C_TOTAL,   'sum'),
+                    Pedidos   = (C_TOTAL,   'count'),
+                    Ganancia  = (C_GANANCIA,'sum') if C_GANANCIA in df.columns else (C_TOTAL,'count'),
+                ).reset_index().sort_values('_mes')
+                v_mes_p['Mes_Label'] = v_mes_p['_mes'].apply(fmt_mes_p)
+
+                # Últimos 3 y 6 meses
+                ult1  = v_mes_p['Ventas'].iloc[-1]
+                ult3  = v_mes_p['Ventas'].tail(3).mean()
+                ult6  = v_mes_p['Ventas'].tail(6).mean()
+                ult3_min = v_mes_p['Ventas'].tail(3).min()
+                ult3_max = v_mes_p['Ventas'].tail(3).max()
+                gan_pct_hist = (v_mes_p['Ganancia'].tail(3).mean() / ult3 * 100) if ult3 else 0
+                mes_actual_p  = v_mes_p['Mes_Label'].iloc[-1]
+
+                # ── BLOQUE: PUNTO DE PARTIDA ──
+                st.markdown(
+                    '<div style="background:linear-gradient(135deg,#1a1829,#1f1d35);border:1px solid #2d2b45;'
+                    'border-radius:14px;padding:20px 24px;margin-bottom:20px">'
+                    '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.92rem;margin-bottom:14px">'
+                    '📍 Punto de Partida — ¿desde dónde proyectamos?</div>',
+                    unsafe_allow_html=True
+                )
+
+                bp1, bp2, bp3, bp4 = st.columns(4)
+                with bp1:
+                    st.markdown(
+                        f'<div style="text-align:center">'
+                        f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;margin-bottom:4px">Último mes ({mes_actual_p})</div>'
+                        f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#6366f1;font-size:1.2rem">{fmt_money(ult1)}</div>'
+                        f'</div>', unsafe_allow_html=True
+                    )
+                with bp2:
+                    st.markdown(
+                        f'<div style="text-align:center">'
+                        f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;margin-bottom:4px">Promedio 3 meses</div>'
+                        f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#06b6d4;font-size:1.2rem">{fmt_money(ult3)}</div>'
+                        f'<div style="font-size:0.62rem;color:#5a5878;margin-top:2px">entre {fmt_money(ult3_min)} y {fmt_money(ult3_max)}</div>'
+                        f'</div>', unsafe_allow_html=True
+                    )
+                with bp3:
+                    st.markdown(
+                        f'<div style="text-align:center">'
+                        f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;margin-bottom:4px">Promedio 6 meses</div>'
+                        f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#10b981;font-size:1.2rem">{fmt_money(ult6)}</div>'
+                        f'</div>', unsafe_allow_html=True
+                    )
+                with bp4:
+                    st.markdown(
+                        f'<div style="text-align:center">'
+                        f'<div style="font-size:0.6rem;color:#8b8aaa;font-weight:800;text-transform:uppercase;margin-bottom:4px">Margen promedio</div>'
+                        f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#c9a84c;font-size:1.2rem">{gan_pct_hist:.1f}%</div>'
+                        f'<div style="font-size:0.62rem;color:#5a5878;margin-top:2px">últimos 3 meses</div>'
+                        f'</div>', unsafe_allow_html=True
+                    )
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                # ── CONFIGURADOR ──
+                st.markdown(
+                    '<div style="background:#1a1829;border:1px solid #2d2b45;border-radius:14px;'
+                    'padding:20px 24px;margin-bottom:20px">',
+                    unsafe_allow_html=True
+                )
+                st.markdown(
+                    '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:16px">'
+                    '⚙️ Configurar Proyección</div>',
+                    unsafe_allow_html=True
+                )
+
+                cfg1, cfg2, cfg3, cfg4 = st.columns(4)
+                with cfg1:
+                    base_proy = st.radio(
+                        "📍 Punto de partida",
+                        ["Último mes", "Promedio 3 meses", "Promedio 6 meses", "Manual"],
+                        key="proy_base", horizontal=False
+                    )
+                with cfg2:
+                    n_meses_proy = st.selectbox(
+                        "📅 Meses a proyectar",
+                        [3, 6, 9, 12], index=1, key="proy_nmeses"
+                    )
+                    fecha_inicio_ref = pd.Timestamp.now()
+                    meses_label_proy = []
+                    for mi in range(1, n_meses_proy + 1):
+                        m_fut = fecha_inicio_ref + pd.DateOffset(months=mi)
+                        meses_label_proy.append(m_fut.strftime("%b %Y"))
+
+                with cfg3:
+                    crecimiento_proy = st.number_input(
+                        "📈 Crecimiento mensual %", -50.0, 200.0,
+                        float(st.session_state.get('proy_crec', 10.0)),
+                        step=5.0, key="proy_crec"
+                    )
+                    # Sugerencia automática
+                    if len(v_mes_p) >= 2:
+                        crec_real = (v_mes_p['Ventas'].iloc[-1] / v_mes_p['Ventas'].iloc[-2] - 1) * 100
+                    else:
+                        crec_real = 0
+                    st.caption(f"Tu crecimiento real último mes: {crec_real:+.1f}%")
+
+                with cfg4:
+                    if base_proy == "Manual":
+                        base_val_proy = st.number_input(
+                            "💵 Base manual (COP)", 0, 5_000_000_000,
+                            int(ult3), 1_000_000, key="proy_manual", format="%d"
+                        )
+                    else:
+                        base_val_proy = {"Último mes": ult1,
+                                         "Promedio 3 meses": ult3,
+                                         "Promedio 6 meses": ult6}[base_proy]
+                        st.metric("Base seleccionada", fmt_money(base_val_proy))
+
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                # ── CALCULAR PROYECCIONES ──
+                # Gastos estimados como % histórico
+                gastos_op_hist = st.session_state.get('nomina_total', 0) + \
+                                 sum(st.session_state.get('costos_fijos', {}).values()) + \
+                                 sum(st.session_state.get('pauta_dict', {}).values())
+                pct_gastos_hist = gastos_op_hist / ult3 if ult3 else 0.35
+                tasa_imp_proy   = float(st.session_state.get('diag_imp', 8.0)) * \
+                                  (1 - float(st.session_state.get('diag_iva_excl', 80.0)) / 100)
+
+                filas_proy = []
+                for i in range(1, n_meses_proy + 1):
+                    ventas_i   = base_val_proy * ((1 + crecimiento_proy / 100) ** i)
+                    gan_i      = ventas_i * (gan_pct_hist / 100)
+                    gastos_i   = ventas_i * pct_gastos_hist
+                    imp_i      = (ventas_i - gastos_i) * (tasa_imp_proy / 100)
+                    util_i     = gan_i - gastos_i - imp_i
+                    pedidos_i  = int(ventas_i / (ult1 / len(df[df['_mes'] == v_mes_p['_mes'].iloc[-1]])) ) if len(df[df['_mes'] == v_mes_p['_mes'].iloc[-1]]) else 0
+                    filas_proy.append({
+                        'Mes': meses_label_proy[i - 1],
+                        'Ventas': ventas_i, 'Ganancia': gan_i,
+                        'Gastos': gastos_i, 'Impuesto': imp_i,
+                        'Utilidad': util_i, 'Pedidos_est': pedidos_i,
+                    })
+
+                # ── CUADRO RESUMEN MENSUAL ──
+                st.markdown(
+                    '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.88rem;margin-bottom:10px">'
+                    '📋 Proyección Detallada — mes a mes</div>',
+                    unsafe_allow_html=True
+                )
+
+                # Header tabla
+                col_widths = [1.2] + [1]*n_meses_proy
+                th_cols = st.columns(col_widths)
+                with th_cols[0]:
+                    st.markdown('<div style="font-size:0.65rem;color:#8b8aaa;font-weight:800;text-transform:uppercase">Concepto</div>', unsafe_allow_html=True)
                 for ci, fp in enumerate(filas_proy):
-                    val_c = fp[key_c]
-                    c_val = ("#10b981" if val_c >= 0 else "#ef4444") if es_util else col_c
-                    with row_cols[ci+1]:
+                    with th_cols[ci+1]:
+                        crec_i = (fp['Ventas'] / filas_proy[ci-1]['Ventas'] - 1)*100 if ci > 0 else crecimiento_proy
                         st.markdown(
-                            f'<div style="text-align:center;padding:4px 2px;'
-                            f'background:{"rgba(16,185,129,0.05)" if es_util and val_c>0 else "rgba(239,68,68,0.05)" if es_util and val_c<0 else "transparent"};'
-                            f'border-radius:6px">'
-                            f'<div style="font-size:0.75rem;color:{c_val};font-weight:{"800" if es_util else "600"}">'
-                            f'{fmt_money(abs(val_c))}</div>'
-                            f'<div style="font-size:0.6rem;color:#5a5878">'
-                            f'{val_c/fp["Ventas"]*100:.0f}%</div>'
+                            f'<div style="text-align:center;background:#1a1829;border-radius:8px;padding:6px 4px;border:1px solid #2d2b45">'
+                            f'<div style="font-family:Syne,sans-serif;font-size:0.72rem;color:#f0ede8;font-weight:800">{fp["Mes"]}</div>'
+                            f'<div style="font-size:0.6rem;color:{"#10b981" if crec_i>=0 else "#ef4444"}">'
+                            f'{"+" if crec_i>=0 else ""}{crec_i:.0f}% vs ant.</div>'
                             f'</div>',
                             unsafe_allow_html=True
                         )
 
-            # ── GRÁFICA COMBINADA ──
-            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-            hist_xs  = list(v_mes_p['Mes_Label'])
-            hist_ys  = list(v_mes_p['Ventas'] / 1e6)
-            proy_xs  = [hist_xs[-1]] + [fp['Mes'] for fp in filas_proy]
-            proy_ys  = [hist_ys[-1]] + [fp['Ventas'] / 1e6 for fp in filas_proy]
-            proy_gan = [hist_ys[-1] * gan_pct_hist / 100] + [fp['Ganancia'] / 1e6 for fp in filas_proy]
-            proy_ut  = [0] + [fp['Utilidad'] / 1e6 for fp in filas_proy]
+                st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
 
-            fig_proy = go.Figure()
-            fig_proy.add_trace(go.Scatter(
-                x=hist_xs, y=hist_ys, name='Ventas Históricas',
-                line=dict(color=op_color, width=3), marker=dict(size=7),
-                hovertemplate='%{x}<br>%{y:.2f}M COP<extra></extra>'
-            ))
-            fig_proy.add_trace(go.Scatter(
-                x=proy_xs, y=proy_ys, name='Ventas Proyectadas',
-                line=dict(color='#c9a84c', width=3, dash='dash'),
-                marker=dict(size=8, symbol='diamond'),
-                hovertemplate='%{x}<br>%{y:.2f}M COP<extra></extra>'
-            ))
-            fig_proy.add_trace(go.Scatter(
-                x=proy_xs, y=proy_gan, name='Ganancia Proy.',
-                line=dict(color='#10b981', width=2, dash='dot'),
-                marker=dict(size=6),
-            ))
-            fig_proy.add_trace(go.Bar(
-                x=[fp['Mes'] for fp in filas_proy],
-                y=[fp['Utilidad'] / 1e6 for fp in filas_proy],
-                name='Utilidad Neta Proy.',
-                marker_color=['#10b981' if fp['Utilidad'] >= 0 else '#ef4444' for fp in filas_proy],
-                opacity=0.6, yaxis='y'
-            ))
-            fig_proy.update_layout(
-                **PLOT_LAYOUT, height=420,
-                title=f"Proyección {n_meses_proy} meses · Base: {base_proy} · +{crecimiento_proy:.0f}%/mes",
-                xaxis=AXIS_STYLE,
-                yaxis=dict(title='Millones COP', **AXIS_STYLE),
-                barmode='overlay'
-            )
-            st.plotly_chart(fig_proy, use_container_width=True)
+                # Filas de datos
+                conceptos_proy = [
+                    ("💰 Ingresos proyectados",   "Ventas",    "#6366f1"),
+                    ("📈 Ganancia bruta est.",     "Ganancia",  "#10b981"),
+                    ("🏢 Gastos operativos est.", "Gastos",    "#ef4444"),
+                    ("🏛️ Impuesto estimado",      "Impuesto",  "#c9a84c"),
+                    ("✅ Utilidad neta est.",      "Utilidad",  "#f0ede8"),
+                ]
+                for lbl_c, key_c, col_c in conceptos_proy:
+                    row_cols = st.columns(col_widths)
+                    es_util = key_c == "Utilidad"
+                    with row_cols[0]:
+                        st.markdown(
+                            f'<div style="font-size:0.72rem;color:{col_c};font-weight:700;padding:4px 0">{lbl_c}</div>',
+                            unsafe_allow_html=True
+                        )
+                    for ci, fp in enumerate(filas_proy):
+                        val_c = fp[key_c]
+                        c_val = ("#10b981" if val_c >= 0 else "#ef4444") if es_util else col_c
+                        with row_cols[ci+1]:
+                            st.markdown(
+                                f'<div style="text-align:center;padding:4px 2px;'
+                                f'background:{"rgba(16,185,129,0.05)" if es_util and val_c>0 else "rgba(239,68,68,0.05)" if es_util and val_c<0 else "transparent"};'
+                                f'border-radius:6px">'
+                                f'<div style="font-size:0.75rem;color:{c_val};font-weight:{"800" if es_util else "600"}">'
+                                f'{fmt_money(abs(val_c))}</div>'
+                                f'<div style="font-size:0.6rem;color:#5a5878">'
+                                f'{val_c/fp["Ventas"]*100:.0f}%</div>'
+                                f'</div>',
+                                unsafe_allow_html=True
+                            )
 
-            # ── KPIs RESUMEN ──
-            total_v   = sum(fp['Ventas']   for fp in filas_proy)
-            total_g   = sum(fp['Ganancia'] for fp in filas_proy)
-            total_u   = sum(fp['Utilidad'] for fp in filas_proy)
-            mejor_mes = max(filas_proy, key=lambda x: x['Ventas'])
+                # ── GRÁFICA COMBINADA ──
+                st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+                hist_xs  = list(v_mes_p['Mes_Label'])
+                hist_ys  = list(v_mes_p['Ventas'] / 1e6)
+                proy_xs  = [hist_xs[-1]] + [fp['Mes'] for fp in filas_proy]
+                proy_ys  = [hist_ys[-1]] + [fp['Ventas'] / 1e6 for fp in filas_proy]
+                proy_gan = [hist_ys[-1] * gan_pct_hist / 100] + [fp['Ganancia'] / 1e6 for fp in filas_proy]
+                proy_ut  = [0] + [fp['Utilidad'] / 1e6 for fp in filas_proy]
 
-            pk1,pk2,pk3,pk4 = st.columns(4)
-            with pk1: st.markdown(kpi("cyan",  "💰 Ingresos totales",  fmt_money(total_v),    f"{n_meses_proy} meses"), unsafe_allow_html=True)
-            with pk2: st.markdown(kpi("green", "📈 Ganancia total est.",fmt_money(total_g),    f"{total_g/total_v*100:.1f}% margen"), unsafe_allow_html=True)
-            with pk3: st.markdown(kpi("gold",  "📅 Mejor mes proy.",   fmt_money(mejor_mes['Ventas']), mejor_mes['Mes']), unsafe_allow_html=True)
-            with pk4:
-                c_u = "green" if total_u >= 0 else "red"
-                st.markdown(kpi(c_u, "✅ Utilidad neta total", fmt_money(total_u), f"{total_u/total_v*100:.1f}% del ingreso"), unsafe_allow_html=True)
-
-            # ── CAPACIDAD FINANCIERA ──
-            st.markdown("<hr style='border-color:#2d2b45;margin:20px 0'>", unsafe_allow_html=True)
-            st.markdown(
-                '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.92rem;margin-bottom:6px">'
-                '🏋️ Capacidad Financiera — ¿Tienes el músculo para este crecimiento?</div>'
-                '<div style="font-size:0.72rem;color:#8b8aaa;margin-bottom:14px">'
-                'Cuánto capital necesitas para sostener este ritmo de crecimiento sin presión</div>',
-                unsafe_allow_html=True
-            )
-
-            # Capital requerido = gastos fijos × 3 meses (reserva) + pauta próximo mes
-            capital_reserva   = gastos_op_hist * 3
-            capital_pauta_mes = sum(st.session_state.get('pauta_dict', {}).values())
-            capital_inv_prod  = filas_proy[0]['Ventas'] * 0.40  # ~40% de las ventas en inventario
-            capital_total_req = capital_reserva + capital_pauta_mes + capital_inv_prod
-
-            cf1, cf2, cf3, cf4 = st.columns(4)
-            with cf1:
-                st.markdown(
-                    f'<div style="background:rgba(6,182,212,0.07);border:1px solid #06b6d444;'
-                    f'border-radius:12px;padding:14px;text-align:center">'
-                    f'<div style="font-size:0.6rem;color:#06b6d4;font-weight:800;text-transform:uppercase;margin-bottom:4px">🏦 Reserva operativa</div>'
-                    f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">3 meses de costos fijos</div>'
-                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#06b6d4;font-size:1rem">{fmt_money(capital_reserva)}</div>'
-                    f'</div>', unsafe_allow_html=True
+                fig_proy = go.Figure()
+                fig_proy.add_trace(go.Scatter(
+                    x=hist_xs, y=hist_ys, name='Ventas Históricas',
+                    line=dict(color=op_color, width=3), marker=dict(size=7),
+                    hovertemplate='%{x}<br>%{y:.2f}M COP<extra></extra>'
+                ))
+                fig_proy.add_trace(go.Scatter(
+                    x=proy_xs, y=proy_ys, name='Ventas Proyectadas',
+                    line=dict(color='#c9a84c', width=3, dash='dash'),
+                    marker=dict(size=8, symbol='diamond'),
+                    hovertemplate='%{x}<br>%{y:.2f}M COP<extra></extra>'
+                ))
+                fig_proy.add_trace(go.Scatter(
+                    x=proy_xs, y=proy_gan, name='Ganancia Proy.',
+                    line=dict(color='#10b981', width=2, dash='dot'),
+                    marker=dict(size=6),
+                ))
+                fig_proy.add_trace(go.Bar(
+                    x=[fp['Mes'] for fp in filas_proy],
+                    y=[fp['Utilidad'] / 1e6 for fp in filas_proy],
+                    name='Utilidad Neta Proy.',
+                    marker_color=['#10b981' if fp['Utilidad'] >= 0 else '#ef4444' for fp in filas_proy],
+                    opacity=0.6, yaxis='y'
+                ))
+                fig_proy.update_layout(
+                    **PLOT_LAYOUT, height=420,
+                    title=f"Proyección {n_meses_proy} meses · Base: {base_proy} · +{crecimiento_proy:.0f}%/mes",
+                    xaxis=AXIS_STYLE,
+                    yaxis=dict(title='Millones COP', **AXIS_STYLE),
+                    barmode='overlay'
                 )
-            with cf2:
+                st.plotly_chart(fig_proy, use_container_width=True)
+
+                # ── KPIs RESUMEN ──
+                total_v   = sum(fp['Ventas']   for fp in filas_proy)
+                total_g   = sum(fp['Ganancia'] for fp in filas_proy)
+                total_u   = sum(fp['Utilidad'] for fp in filas_proy)
+                mejor_mes = max(filas_proy, key=lambda x: x['Ventas'])
+
+                pk1,pk2,pk3,pk4 = st.columns(4)
+                with pk1: st.markdown(kpi("cyan",  "💰 Ingresos totales",  fmt_money(total_v),    f"{n_meses_proy} meses"), unsafe_allow_html=True)
+                with pk2: st.markdown(kpi("green", "📈 Ganancia total est.",fmt_money(total_g),    f"{total_g/total_v*100:.1f}% margen"), unsafe_allow_html=True)
+                with pk3: st.markdown(kpi("gold",  "📅 Mejor mes proy.",   fmt_money(mejor_mes['Ventas']), mejor_mes['Mes']), unsafe_allow_html=True)
+                with pk4:
+                    c_u = "green" if total_u >= 0 else "red"
+                    st.markdown(kpi(c_u, "✅ Utilidad neta total", fmt_money(total_u), f"{total_u/total_v*100:.1f}% del ingreso"), unsafe_allow_html=True)
+
+                # ── CAPACIDAD FINANCIERA ──
+                st.markdown("<hr style='border-color:#2d2b45;margin:20px 0'>", unsafe_allow_html=True)
                 st.markdown(
-                    f'<div style="background:rgba(139,92,246,0.07);border:1px solid #8b5cf644;'
-                    f'border-radius:12px;padding:14px;text-align:center">'
-                    f'<div style="font-size:0.6rem;color:#8b5cf6;font-weight:800;text-transform:uppercase;margin-bottom:4px">📣 Capital pauta</div>'
-                    f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">Inversión publicidad mes 1</div>'
-                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#8b5cf6;font-size:1rem">{fmt_money(capital_pauta_mes)}</div>'
-                    f'</div>', unsafe_allow_html=True
-                )
-            with cf3:
-                st.markdown(
-                    f'<div style="background:rgba(201,168,76,0.07);border:1px solid #c9a84c44;'
-                    f'border-radius:12px;padding:14px;text-align:center">'
-                    f'<div style="font-size:0.6rem;color:#c9a84c;font-weight:800;text-transform:uppercase;margin-bottom:4px">📦 Capital inventario</div>'
-                    f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">~40% ventas mes 1</div>'
-                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#c9a84c;font-size:1rem">{fmt_money(capital_inv_prod)}</div>'
-                    f'</div>', unsafe_allow_html=True
-                )
-            with cf4:
-                st.markdown(
-                    f'<div style="background:rgba(99,102,241,0.12);border:2px solid #6366f1;'
-                    f'border-radius:12px;padding:14px;text-align:center">'
-                    f'<div style="font-size:0.6rem;color:#6366f1;font-weight:800;text-transform:uppercase;margin-bottom:4px">💪 CAPITAL TOTAL REQ.</div>'
-                    f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">para operar sin presión</div>'
-                    f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#6366f1;font-size:1.1rem">{fmt_money(capital_total_req)}</div>'
-                    f'</div>', unsafe_allow_html=True
+                    '<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:0.92rem;margin-bottom:6px">'
+                    '🏋️ Capacidad Financiera — ¿Tienes el músculo para este crecimiento?</div>'
+                    '<div style="font-size:0.72rem;color:#8b8aaa;margin-bottom:14px">'
+                    'Cuánto capital necesitas para sostener este ritmo de crecimiento sin presión</div>',
+                    unsafe_allow_html=True
                 )
 
-            # Frase cierre
-            st.markdown(
-                f'<div style="background:rgba(99,102,241,0.05);border:1px dashed #6366f144;'
-                f'border-radius:10px;padding:14px 18px;margin-top:14px;font-size:0.76rem;color:#b0aec8;line-height:1.7">'
-                f'💡 <b style="color:#c9a84c">Diagnóstico de capacidad:</b> '
-                f'Para sostener un crecimiento del <b style="color:#6366f1">{crecimiento_proy:.0f}% mensual</b> '
-                f'durante <b style="color:#6366f1">{n_meses_proy} meses</b>, necesitas un músculo financiero mínimo de '
-                f'<b style="color:#10b981">{fmt_money(capital_total_req)}</b>. '
-                f'Si la utilidad neta proyectada es <b style="color:{"#10b981" if total_u>=0 else "#ef4444"}">{fmt_money(total_u)}</b>, '
-                f'{"el negocio puede autofinanciarse parcialmente." if total_u > 0 else "necesitarás capital externo o reducir la tasa de crecimiento."}'
-                f'</div>',
-                unsafe_allow_html=True
-            )
+                # Capital requerido = gastos fijos × 3 meses (reserva) + pauta próximo mes
+                capital_reserva   = gastos_op_hist * 3
+                capital_pauta_mes = sum(st.session_state.get('pauta_dict', {}).values())
+                capital_inv_prod  = filas_proy[0]['Ventas'] * 0.40  # ~40% de las ventas en inventario
+                capital_total_req = capital_reserva + capital_pauta_mes + capital_inv_prod
+
+                cf1, cf2, cf3, cf4 = st.columns(4)
+                with cf1:
+                    st.markdown(
+                        f'<div style="background:rgba(6,182,212,0.07);border:1px solid #06b6d444;'
+                        f'border-radius:12px;padding:14px;text-align:center">'
+                        f'<div style="font-size:0.6rem;color:#06b6d4;font-weight:800;text-transform:uppercase;margin-bottom:4px">🏦 Reserva operativa</div>'
+                        f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">3 meses de costos fijos</div>'
+                        f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#06b6d4;font-size:1rem">{fmt_money(capital_reserva)}</div>'
+                        f'</div>', unsafe_allow_html=True
+                    )
+                with cf2:
+                    st.markdown(
+                        f'<div style="background:rgba(139,92,246,0.07);border:1px solid #8b5cf644;'
+                        f'border-radius:12px;padding:14px;text-align:center">'
+                        f'<div style="font-size:0.6rem;color:#8b5cf6;font-weight:800;text-transform:uppercase;margin-bottom:4px">📣 Capital pauta</div>'
+                        f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">Inversión publicidad mes 1</div>'
+                        f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#8b5cf6;font-size:1rem">{fmt_money(capital_pauta_mes)}</div>'
+                        f'</div>', unsafe_allow_html=True
+                    )
+                with cf3:
+                    st.markdown(
+                        f'<div style="background:rgba(201,168,76,0.07);border:1px solid #c9a84c44;'
+                        f'border-radius:12px;padding:14px;text-align:center">'
+                        f'<div style="font-size:0.6rem;color:#c9a84c;font-weight:800;text-transform:uppercase;margin-bottom:4px">📦 Capital inventario</div>'
+                        f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">~40% ventas mes 1</div>'
+                        f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#c9a84c;font-size:1rem">{fmt_money(capital_inv_prod)}</div>'
+                        f'</div>', unsafe_allow_html=True
+                    )
+                with cf4:
+                    st.markdown(
+                        f'<div style="background:rgba(99,102,241,0.12);border:2px solid #6366f1;'
+                        f'border-radius:12px;padding:14px;text-align:center">'
+                        f'<div style="font-size:0.6rem;color:#6366f1;font-weight:800;text-transform:uppercase;margin-bottom:4px">💪 CAPITAL TOTAL REQ.</div>'
+                        f'<div style="font-size:0.58rem;color:#5a5878;margin-bottom:6px">para operar sin presión</div>'
+                        f'<div style="font-family:Syne,sans-serif;font-weight:900;color:#6366f1;font-size:1.1rem">{fmt_money(capital_total_req)}</div>'
+                        f'</div>', unsafe_allow_html=True
+                    )
+
+                # Frase cierre
+                st.markdown(
+                    f'<div style="background:rgba(99,102,241,0.05);border:1px dashed #6366f144;'
+                    f'border-radius:10px;padding:14px 18px;margin-top:14px;font-size:0.76rem;color:#b0aec8;line-height:1.7">'
+                    f'💡 <b style="color:#c9a84c">Diagnóstico de capacidad:</b> '
+                    f'Para sostener un crecimiento del <b style="color:#6366f1">{crecimiento_proy:.0f}% mensual</b> '
+                    f'durante <b style="color:#6366f1">{n_meses_proy} meses</b>, necesitas un músculo financiero mínimo de '
+                    f'<b style="color:#10b981">{fmt_money(capital_total_req)}</b>. '
+                    f'Si la utilidad neta proyectada es <b style="color:{"#10b981" if total_u>=0 else "#ef4444"}">{fmt_money(total_u)}</b>, '
+                    f'{"el negocio puede autofinanciarse parcialmente." if total_u > 0 else "necesitarás capital externo o reducir la tasa de crecimiento."}'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
 
     # ══════════════════════════════════════════════════════════════════
     # 🫀 PULSO DEL NEGOCIO — PANEL EJECUTIVO REVOLUCIONARIO
@@ -5030,6 +5289,512 @@ elif "Asesor" in vista_activa:
             '</tbody></table></div>'
         )
         st.markdown(tbl_html, unsafe_allow_html=True)
+
+
+
+
+# ═══════════════════════════════════════════════════════════
+# ██████  TENDENCIAS & CLIMA — INTELIGENCIA COMERCIAL
+# ═══════════════════════════════════════════════════════════
+elif "Tendencias" in vista_activa:
+    from datetime import date as _dt_tend
+    _hoy_tend = _dt_tend.today()
+
+    st.markdown(
+        '<div style="margin-bottom:20px;background:linear-gradient(135deg,#1a1829,#1f1d35);'
+        'border:1px solid #2d2b45;border-radius:16px;padding:22px 26px">'
+        '<div style="font-family:Syne,sans-serif;font-size:1.7rem;font-weight:800;color:#f0ede8">📡 Tendencias & Clima</div>'
+        '<div style="color:#8b8aaa;font-size:0.82rem;margin-top:4px">Inteligencia comercial basada en problemas, regiones y estacionalidad</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+    # ── Tabs del módulo ──
+    _tend_tab1, _tend_tab2, _tend_tab3 = st.tabs([
+        "🔎 Problemas → Productos",
+        "🌦️ Clima → Productos",
+        "📊 Análisis Inteligente"
+    ])
+
+    # ════════════════════════════════════════
+    # TAB 1 — PROBLEMAS → PRODUCTOS
+    # ════════════════════════════════════════
+    with _tend_tab1:
+        st.markdown('<div class="seccion-titulo">🔎 Detección de Problemas del Consumidor</div>', unsafe_allow_html=True)
+
+        # Base de conocimiento: problema → solución → región → temporada
+        PROBLEMAS_COMERCIALES = {
+            "Arrugas / Envejecimiento facial": {
+                "ico": "👁️",
+                "categoria": "Belleza & Skincare",
+                "productos_sugeridos": ["Crema antiarrugas", "Sérum vitamina C", "Ácido hialurónico", "Protector solar", "Mascarilla rejuvenecedora"],
+                "regiones_top": {"Bogotá": "muy_alto", "Medellín": "muy_alto", "Cali": "alto", "Barranquilla": "medio"},
+                "regiones_chile": {"Santiago": "muy_alto", "Valparaíso": "alto", "Concepción": "alto"},
+                "temporada_pico": [3, 4, 9, 10],  # meses
+                "temporada_lbl": "Mar-Abr y Sep-Oct (pre-temporada social)",
+                "insight": "En Medellín hay alta cultura estética y mayor inversión en belleza. Búsquedas elevadas de antiarrugas antes de ferias y eventos sociales.",
+                "nicho": "Mujeres 30-55 años, NSE medio-alto, urbanas"
+            },
+            "Caída del cabello": {
+                "ico": "💆",
+                "categoria": "Cuidado Capilar",
+                "productos_sugeridos": ["Shampoo anticaída", "Biotina suplemento", "Sérum capilar", "Minoxidil", "Keratina"],
+                "regiones_top": {"Bogotá": "muy_alto", "Medellín": "alto", "Cali": "alto", "Bucaramanga": "medio"},
+                "regiones_chile": {"Santiago": "muy_alto", "Antofagasta": "alto"},
+                "temporada_pico": [1, 2, 7, 8],
+                "temporada_lbl": "Ene-Feb y Jul-Ago (estrés post-vacaciones y cambio de estación)",
+                "insight": "El estrés laboral y cambios hormonales disparan búsquedas. Mayor volumen en ciudades de alta presión laboral.",
+                "nicho": "Hombres y mujeres 25-50 años, profesionales"
+            },
+            "Sudor excesivo / Mal olor": {
+                "ico": "💧",
+                "categoria": "Higiene Personal",
+                "productos_sugeridos": ["Desodorante clínico", "Antitranspirante 48h", "Talco medicado", "Ropa técnica antibacterial"],
+                "regiones_top": {"Barranquilla": "muy_alto", "Cartagena": "muy_alto", "Santa Marta": "alto", "Cali": "alto"},
+                "regiones_chile": {"Antofagasta": "muy_alto", "Arica": "alto", "Iquique": "muy_alto"},
+                "temporada_pico": [4, 5, 6, 7, 8],
+                "temporada_lbl": "Abr-Ago (verano y calor extremo en costas)",
+                "insight": "Costa Caribe colombiana y norte de Chile son mercados ideales. Temperatura > 30°C activa búsquedas masivas.",
+                "nicho": "Hombres y mujeres 18-45 años, clima cálido"
+            },
+            "Sobrepeso / Control de peso": {
+                "ico": "⚖️",
+                "categoria": "Salud & Bienestar",
+                "productos_sugeridos": ["Suplementos quemadores", "Proteína whey", "Fajas reductoras", "Té detox", "Colágeno hidrolizado"],
+                "regiones_top": {"Bogotá": "muy_alto", "Medellín": "muy_alto", "Cali": "muy_alto", "Todas": "alto"},
+                "regiones_chile": {"Santiago": "muy_alto", "Todas": "alto"},
+                "temporada_pico": [1, 2, 3, 11, 12],
+                "temporada_lbl": "Ene-Mar (año nuevo) y Nov-Dic (pre-navidad)",
+                "insight": "Enero es el mes #1 de búsquedas de pérdida de peso globalmente. 'Propósitos de año nuevo' generan pico masivo.",
+                "nicho": "Mujeres 25-45 años (principal), hombres secundario"
+            },
+            "Estrés / Ansiedad": {
+                "ico": "🧠",
+                "categoria": "Salud Mental & Bienestar",
+                "productos_sugeridos": ["Magnesio suplemento", "Melatonina", "Ashwagandha", "CBD tópico", "Aromáticas relajantes", "Diarios de bienestar"],
+                "regiones_top": {"Bogotá": "muy_alto", "Medellín": "alto", "Cali": "alto"},
+                "regiones_chile": {"Santiago": "muy_alto", "Valparaíso": "alto"},
+                "temporada_pico": [4, 5, 10, 11],
+                "temporada_lbl": "Abr-May (mitad de año) y Oct-Nov (fin de año laboral)",
+                "insight": "Grandes ciudades con alta presión laboral. Pandemia post-covid disparó búsquedas de bienestar mental permanentemente.",
+                "nicho": "Profesionales 28-45 años, urbanos, NSE medio-alto"
+            },
+            "Dolor muscular / Articular": {
+                "ico": "💪",
+                "categoria": "Salud & Deportes",
+                "productos_sugeridos": ["Crema analgésica", "Colágeno articular", "Vendas deportivas", "Aceite CBD tópico", "Suplemento articular"],
+                "regiones_top": {"Bogotá": "alto", "Medellín": "alto", "Todas": "medio"},
+                "regiones_chile": {"Todas": "alto"},
+                "temporada_pico": [6, 7, 8, 1, 2],
+                "temporada_lbl": "Jun-Ago (temporada deportiva) y Ene-Feb (resoluciones ejercicio)",
+                "insight": "Adultos mayores de 40 años son el segmento principal. Deportistas amateur en aumento post-pandemia.",
+                "nicho": "35-65 años, deportistas recreativos y adultos mayores activos"
+            },
+            "Piel grasa / Acné": {
+                "ico": "🌿",
+                "categoria": "Skincare",
+                "productos_sugeridos": ["Limpiador facial poros", "Sérum niacinamida", "Hidratante oil-free", "Protector solar libre de aceite", "Mascarilla arcilla"],
+                "regiones_top": {"Costa Caribe": "muy_alto", "Cali": "muy_alto", "Medellín": "alto", "Bogotá": "alto"},
+                "regiones_chile": {"Norte Chile": "muy_alto", "Santiago": "alto"},
+                "temporada_pico": [3, 4, 5, 6, 7, 8],
+                "temporada_lbl": "Todo el año, pico en meses calurosos",
+                "insight": "Climas húmedos y calurosos disparan el acné. Costa caribe y zona pacífica cálida son mercados prioritarios.",
+                "nicho": "Jóvenes 15-30 años, ambos géneros"
+            },
+            "Insomnio / Mal dormir": {
+                "ico": "🌙",
+                "categoria": "Bienestar & Sueño",
+                "productos_sugeridos": ["Melatonina", "Valerian root", "Antifaces sueño", "Almohadas ergonómicas", "Spray relajante"],
+                "regiones_top": {"Bogotá": "muy_alto", "Medellín": "alto", "Todas": "medio"},
+                "regiones_chile": {"Santiago": "muy_alto", "Todas": "alto"},
+                "temporada_pico": [11, 12, 1, 5, 6],
+                "temporada_lbl": "Nov-Ene (estrés navideño) y May-Jun (mitad de año laboral)",
+                "insight": "Ciudades con alto ritmo laboral. Teletrabajo post-pandemia alteró ciclos del sueño masivamente.",
+                "nicho": "Adultos 30-55 años, trabajadores con alta carga laboral"
+            },
+        }
+
+        # ── Selector de problema ──
+        _prob_sel = st.selectbox(
+            "🔎 Selecciona el problema del consumidor:",
+            list(PROBLEMAS_COMERCIALES.keys()),
+            format_func=lambda x: f"{PROBLEMAS_COMERCIALES[x]['ico']} {x}",
+            key="tend_problema_sel"
+        )
+
+        _prob = PROBLEMAS_COMERCIALES[_prob_sel]
+        _mes_actual = _hoy_tend.month
+        _es_temporada = _mes_actual in _prob["temporada_pico"]
+
+        # ── Card principal del problema ──
+        _color_prob = "#ef4444" if _es_temporada else "#6366f1"
+        st.markdown(
+            f'<div style="background:linear-gradient(135deg,{_color_prob}15,transparent);'
+            f'border:1px solid {_color_prob}33;border-radius:14px;padding:20px 22px;margin:14px 0">'
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">'
+            f'<span style="font-size:2rem">{_prob["ico"]}</span>'
+            f'<div>'
+            f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8;font-size:1.1rem">{_prob_sel}</div>'
+            f'<div style="color:#8b8aaa;font-size:0.78rem">{_prob["categoria"]}</div>'
+            f'</div>'
+            f'<div style="margin-left:auto;background:{"#ef444420" if _es_temporada else "#6366f120"};'
+            f'color:{"#ef4444" if _es_temporada else "#6366f1"};padding:6px 14px;border-radius:20px;'
+            f'font-size:0.78rem;font-weight:700">'
+            f'{"🔴 TEMPORADA ACTIVA AHORA" if _es_temporada else "📅 Fuera de pico"}</div>'
+            f'</div>'
+            f'<div style="color:#d4d0ea;font-size:0.82rem;margin-bottom:12px">💡 {_prob["insight"]}</div>'
+            f'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+            f'<span style="background:#2d2b45;color:#8b8aaa;padding:4px 10px;border-radius:12px;font-size:0.72rem">👥 {_prob["nicho"]}</span>'
+            f'<span style="background:#2d2b45;color:#8b8aaa;padding:4px 10px;border-radius:12px;font-size:0.72rem">📅 Pico: {_prob["temporada_lbl"]}</span>'
+            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+        _pc1, _pc2 = st.columns(2)
+
+        with _pc1:
+            st.markdown('<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.85rem;margin-bottom:10px">🛍️ Productos Recomendados</div>', unsafe_allow_html=True)
+            for _pr in _prob["productos_sugeridos"]:
+                st.markdown(f'<div style="background:#1f1d35;border:1px solid #2d2b45;border-radius:8px;padding:8px 12px;margin-bottom:6px;color:#d4d0ea;font-size:0.8rem">✅ {_pr}</div>', unsafe_allow_html=True)
+
+            # Cruce con catálogo real si hay datos
+            if C_PRODUCTO in df.columns:
+                _prods_reales = df[C_PRODUCTO].dropna().unique()
+                _match = [p for p in _prob["productos_sugeridos"] if any(p.lower() in str(r).lower() or str(r).lower() in p.lower() for r in _prods_reales)]
+                if _match:
+                    st.markdown(f'<div style="background:rgba(16,185,129,0.08);border:1px solid #10b981;border-radius:8px;padding:10px 12px;margin-top:8px;font-size:0.78rem;color:#10b981">✅ Tienes {len(_match)} producto(s) de este nicho en tu catálogo</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown(f'<div style="background:rgba(245,158,11,0.08);border:1px solid #f59e0b;border-radius:8px;padding:10px 12px;margin-top:8px;font-size:0.78rem;color:#f59e0b">💡 Oportunidad: no tienes productos de este nicho aún</div>', unsafe_allow_html=True)
+
+        with _pc2:
+            st.markdown('<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.85rem;margin-bottom:10px">🗺️ Regiones con mayor demanda</div>', unsafe_allow_html=True)
+            _RCOL = {"muy_alto": "#ef4444", "alto": "#f59e0b", "medio": "#6366f1", "bajo": "#8b8aaa"}
+            _pais_tend = "Colombia" if (operacion and "Colombia" in operacion) else "Colombia"
+            _regiones_mostrar = _prob["regiones_top"]
+            for _reg, _niv in _regiones_mostrar.items():
+                _cc = _RCOL.get(_niv, "#8b8aaa")
+                st.markdown(
+                    f'<div style="display:flex;justify-content:space-between;align-items:center;'
+                    f'background:#1f1d35;border:1px solid #2d2b45;border-radius:8px;padding:8px 12px;margin-bottom:6px">'
+                    f'<span style="color:#d4d0ea;font-size:0.8rem">📍 {_reg}</span>'
+                    f'<span style="background:{_cc}20;color:{_cc};padding:3px 10px;border-radius:12px;font-size:0.7rem;font-weight:700">'
+                    f'{"🔴 Muy Alta" if _niv=="muy_alto" else "🟡 Alta" if _niv=="alto" else "🔵 Media"}</span>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+            # Cruce con datos reales por departamento
+            if C_DEPTO in df.columns:
+                st.markdown('<div style="font-size:0.75rem;color:#8b8aaa;margin-top:10px;margin-bottom:6px">📊 Tu volumen actual por región:</div>', unsafe_allow_html=True)
+                _dep_vol = df.groupby(C_DEPTO).size().sort_values(ascending=False).head(5)
+                for _dep, _cnt in _dep_vol.items():
+                    st.markdown(f'<div style="color:#6366f1;font-size:0.76rem;padding:4px 0">• {_dep}: {_cnt:,} pedidos</div>', unsafe_allow_html=True)
+
+        # ── Resumen estratégico ──
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(
+            f'<div style="background:rgba(201,168,76,0.08);border:1px solid #c9a84c44;border-radius:12px;padding:16px 18px">'
+            f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#c9a84c;margin-bottom:10px">📌 Resumen Estratégico</div>'
+            f'<div style="display:flex;gap:16px;flex-wrap:wrap">'
+            f'<div><span style="color:#8b8aaa;font-size:0.75rem">Problema a explotar</span><br>'
+            f'<span style="color:#f0ede8;font-weight:700;font-size:0.85rem">{_prob_sel}</span></div>'
+            f'<div><span style="color:#8b8aaa;font-size:0.75rem">Producto estrella</span><br>'
+            f'<span style="color:#f0ede8;font-weight:700;font-size:0.85rem">{_prob["productos_sugeridos"][0]}</span></div>'
+            f'<div><span style="color:#8b8aaa;font-size:0.75rem">Región prioritaria</span><br>'
+            f'<span style="color:#f0ede8;font-weight:700;font-size:0.85rem">{list(_prob["regiones_top"].keys())[0]}</span></div>'
+            f'<div><span style="color:#8b8aaa;font-size:0.75rem">Temporada pico</span><br>'
+            f'<span style="color:{"#ef4444" if _es_temporada else "#f59e0b"};font-weight:700;font-size:0.85rem">'
+            f'{"⚡ AHORA" if _es_temporada else _prob["temporada_lbl"]}</span></div>'
+            f'</div></div>',
+            unsafe_allow_html=True
+        )
+
+    # ════════════════════════════════════════
+    # TAB 2 — CLIMA → PRODUCTOS
+    # ════════════════════════════════════════
+    with _tend_tab2:
+        st.markdown('<div class="seccion-titulo">🌦️ Predicción por Clima</div>', unsafe_allow_html=True)
+
+        ZONAS_CLIMA = {
+            "🔥 Costa Caribe (Barranquilla, Cartagena, Santa Marta)": {
+                "tipo": "calor", "temp": "28-35°C", "pais": "CO",
+                "regiones": ["Barranquilla", "Cartagena", "Santa Marta", "Montería", "Valledupar"],
+                "descripcion": "Calor extremo todo el año. Humedad muy alta.",
+                "productos": [
+                    ("Desodorante clínico 48h", "muy_alto"),
+                    ("Protector solar SPF 50+", "muy_alto"),
+                    ("Ropa ligera transpirable", "muy_alto"),
+                    ("Ventiladores / enfriadores", "alto"),
+                    ("Bebidas isotónicas", "alto"),
+                    ("Chanclas y calzado abierto", "alto"),
+                    ("Antifrizz capilar", "medio"),
+                ],
+                "evitar": ["Abrigos", "Thermos", "Calefacción"],
+                "pico_mes": [3,4,5,6,7,8]
+            },
+            "🌡️ Zona Andina templada (Medellín, Cali, Pereira)": {
+                "tipo": "templado", "temp": "18-26°C", "pais": "CO",
+                "regiones": ["Medellín", "Cali", "Pereira", "Manizales", "Armenia"],
+                "descripcion": "Clima primaveral permanente. Lluvias en abr-may y oct-nov.",
+                "productos": [
+                    ("Ropa casual versátil", "muy_alto"),
+                    ("Accesorios de moda", "muy_alto"),
+                    ("Cosméticos y maquillaje", "alto"),
+                    ("Calzado casual", "alto"),
+                    ("Paraguas compacto", "medio"),
+                    ("Chaqueta liviana", "medio"),
+                ],
+                "evitar": ["Abrigos gruesos", "Calzado de invierno"],
+                "pico_mes": [1,2,3,4,5,6,7,8,9,10,11,12]
+            },
+            "❄️ Zona Fría (Bogotá, Tunja, Pasto, Manizales altas)": {
+                "tipo": "frio", "temp": "7-18°C", "pais": "CO",
+                "regiones": ["Bogotá", "Tunja", "Pasto", "Ipiales"],
+                "descripcion": "Frío constante. Temporada de lluvias marcada.",
+                "productos": [
+                    ("Buzos y chaquetas", "muy_alto"),
+                    ("Thermos y mugs térmicos", "muy_alto"),
+                    ("Cremas corporales hidratantes", "muy_alto"),
+                    ("Vitaminas C y D", "alto"),
+                    ("Cobijas y ropa de cama", "alto"),
+                    ("Calzado cerrado impermeable", "alto"),
+                    ("Humidificadores", "medio"),
+                ],
+                "evitar": ["Ropa de playa", "Ventiladores", "Ropa liviana"],
+                "pico_mes": [6,7,8,9,10,11,12,1]
+            },
+            "🌧️ Zona Pacífica (Chocó, Buenaventura)": {
+                "tipo": "lluvia", "temp": "24-30°C", "pais": "CO",
+                "regiones": ["Quibdó", "Buenaventura", "Tumaco"],
+                "descripcion": "La zona más lluviosa del mundo. Humedad extrema.",
+                "productos": [
+                    ("Impermeables y capas de lluvia", "muy_alto"),
+                    ("Calzado impermeable", "muy_alto"),
+                    ("Antifrizz capilar anti-humedad", "muy_alto"),
+                    ("Paraguas resistentes", "alto"),
+                    ("Antihongos", "alto"),
+                    ("Ropa rápido secado", "alto"),
+                ],
+                "evitar": ["Ropa delicada", "Suede", "Cuero sin tratar"],
+                "pico_mes": [1,2,3,4,5,6,7,8,9,10,11,12]
+            },
+            "🌨️ Sur de Chile (Valdivia, Puerto Montt, Punta Arenas)": {
+                "tipo": "frio_lluvia", "temp": "3-14°C", "pais": "CL",
+                "regiones": ["Valdivia", "Puerto Montt", "Osorno", "Punta Arenas"],
+                "descripcion": "Frío intenso y lluvias todo el año. Vientos fuertes.",
+                "productos": [
+                    ("Abrigos y parkas", "muy_alto"),
+                    ("Botas impermeables", "muy_alto"),
+                    ("Calefactores portátiles", "alto"),
+                    ("Ropa interior térmica", "muy_alto"),
+                    ("Cremas hidratantes intensivas", "alto"),
+                    ("Gorros y guantes", "alto"),
+                ],
+                "evitar": ["Ropa de verano", "Sandalias", "Telas delgadas"],
+                "pico_mes": [4,5,6,7,8,9]
+            },
+            "☀️ Norte de Chile (Atacama, Antofagasta, Arica)": {
+                "tipo": "desierto", "temp": "15-28°C", "pais": "CL",
+                "regiones": ["Arica", "Antofagasta", "Iquique", "Copiapó"],
+                "descripcion": "Desierto. Días calurosos, noches frías. Radiación UV muy alta.",
+                "productos": [
+                    ("Protector solar SPF 70+", "muy_alto"),
+                    ("Ropa UV protection", "muy_alto"),
+                    ("Gafas de sol polarizadas", "muy_alto"),
+                    ("Hidratación corporal intensa", "alto"),
+                    ("Ropa ligera de secado rápido", "alto"),
+                ],
+                "evitar": ["Ropa negra", "Abrigos pesados en temporada"],
+                "pico_mes": [10,11,12,1,2,3]
+            },
+        }
+
+        _zona_sel = st.selectbox(
+            "🌍 Selecciona la zona climática:",
+            list(ZONAS_CLIMA.keys()),
+            key="tend_zona_sel",
+            label_visibility="collapsed"
+        )
+
+        _zona = ZONAS_CLIMA[_zona_sel]
+        _mes_act = _hoy_tend.month
+        _es_pico_z = _mes_act in _zona["pico_mes"]
+
+        _TIPO_COLOR = {"calor": "#ef4444", "templado": "#10b981", "frio": "#06b6d4", "lluvia": "#6366f1", "frio_lluvia": "#8b5cf6", "desierto": "#f59e0b"}
+        _TIPO_ICO   = {"calor": "🔥", "templado": "🌤️", "frio": "❄️", "lluvia": "🌧️", "frio_lluvia": "🌨️", "desierto": "☀️"}
+        _color_z = _TIPO_COLOR.get(_zona["tipo"], "#6366f1")
+        _ico_z   = _TIPO_ICO.get(_zona["tipo"], "🌍")
+
+        # Header zona
+        st.markdown(
+            f'<div style="background:{_color_z}10;border:1px solid {_color_z}33;border-radius:12px;padding:16px 18px;margin:12px 0">'
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">'
+            f'<span style="font-size:1.8rem">{_ico_z}</span>'
+            f'<div>'
+            f'<div style="font-family:Syne,sans-serif;font-weight:800;color:#f0ede8">{_zona_sel}</div>'
+            f'<div style="color:#8b8aaa;font-size:0.78rem">{_zona["descripcion"]} · Temp: {_zona["temp"]}</div>'
+            f'</div>'
+            f'<div style="margin-left:auto;background:{"#ef444420" if _es_pico_z else "#2d2b45"};'
+            f'color:{"#ef4444" if _es_pico_z else "#8b8aaa"};padding:5px 12px;border-radius:20px;font-size:0.75rem;font-weight:700">'
+            f'{"⚡ Temporada activa AHORA" if _es_pico_z else "Fuera de temporada pico"}</div>'
+            f'</div>'
+            f'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+            + "".join(f'<span style="background:#2d2b45;color:#8b8aaa;padding:3px 8px;border-radius:10px;font-size:0.7rem">📍 {r}</span>' for r in _zona["regiones"][:4]) +
+            f'</div></div>',
+            unsafe_allow_html=True
+        )
+
+        _zc1, _zc2 = st.columns([3, 2])
+
+        with _zc1:
+            st.markdown('<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.85rem;margin-bottom:10px">🛍️ Productos recomendados para esta zona</div>', unsafe_allow_html=True)
+            _NIVEL_C = {"muy_alto": "#ef4444", "alto": "#f59e0b", "medio": "#6366f1"}
+            for _prod_z, _niv_z in _zona["productos"]:
+                _cc_z = _NIVEL_C.get(_niv_z, "#8b8aaa")
+                st.markdown(
+                    f'<div style="display:flex;justify-content:space-between;align-items:center;'
+                    f'background:#1f1d35;border:1px solid {_cc_z}22;border-radius:8px;padding:9px 12px;margin-bottom:5px">'
+                    f'<span style="color:#d4d0ea;font-size:0.8rem">✅ {_prod_z}</span>'
+                    f'<span style="background:{_cc_z}20;color:{_cc_z};padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:700">'
+                    f'{"Alta demanda" if _niv_z=="muy_alto" else "Buena demanda" if _niv_z=="alto" else "Moderada"}</span>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+        with _zc2:
+            st.markdown('<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.85rem;margin-bottom:10px">❌ Evitar en esta zona</div>', unsafe_allow_html=True)
+            for _ev in _zona["evitar"]:
+                st.markdown(f'<div style="background:rgba(239,68,68,0.06);border:1px solid #ef444422;border-radius:8px;padding:8px 12px;margin-bottom:5px;color:#ef4444;font-size:0.78rem">❌ {_ev}</div>', unsafe_allow_html=True)
+
+            # Cruce con pedidos reales por depto
+            if C_DEPTO in df.columns:
+                st.markdown("<br>", unsafe_allow_html=True)
+                _pedidos_zona = df[df[C_DEPTO].astype(str).str.upper().isin([r.upper() for r in _zona["regiones"]])]
+                if len(_pedidos_zona) > 0:
+                    _ing_zona = _pedidos_zona[C_TOTAL].sum() if C_TOTAL in _pedidos_zona.columns else 0
+                    st.markdown(
+                        f'<div style="background:rgba(16,185,129,0.08);border:1px solid #10b981;border-radius:10px;padding:12px">'
+                        f'<div style="color:#10b981;font-size:0.78rem;font-weight:700">📊 Tus datos en esta zona</div>'
+                        f'<div style="color:#f0ede8;font-size:1.1rem;font-weight:800;margin-top:4px">{len(_pedidos_zona):,} pedidos</div>'
+                        f'<div style="color:#8b8aaa;font-size:0.72rem">{fmt_money(_ing_zona)} en ventas</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+                else:
+                    st.markdown('<div style="background:rgba(245,158,11,0.08);border:1px solid #f59e0b;border-radius:10px;padding:12px;color:#f59e0b;font-size:0.78rem">💡 Sin pedidos registrados en esta zona — oportunidad de expansión</div>', unsafe_allow_html=True)
+
+    # ════════════════════════════════════════
+    # TAB 3 — ANÁLISIS INTELIGENTE PRODUCTOS
+    # ════════════════════════════════════════
+    with _tend_tab3:
+        st.markdown('<div class="seccion-titulo">📊 Análisis Inteligente de Productos</div>', unsafe_allow_html=True)
+
+        if C_PRODUCTO not in df.columns:
+            st.warning("Sube tu Excel con columna de productos para activar este análisis.")
+        else:
+            # Calcular métricas por producto
+            _df_prod = df.copy()
+            _grp_cols = {C_PRODUCTO: "Pedidos"}
+            if C_TOTAL in df.columns:    _grp_cols[C_TOTAL] = "Ingresos"
+            if C_GANANCIA in df.columns: _grp_cols[C_GANANCIA] = "Ganancia"
+
+            _prod_stats = _df_prod.groupby(C_PRODUCTO).agg(
+                Pedidos=(C_PRODUCTO, "count"),
+                **({} if C_TOTAL not in df.columns else {"Ingresos": (C_TOTAL, "sum")}),
+                **({} if C_GANANCIA not in df.columns else {"Ganancia": (C_GANANCIA, "sum")}),
+            ).reset_index()
+
+            _total_ped = _prod_stats["Pedidos"].sum()
+            _prod_stats["% Participación"] = (_prod_stats["Pedidos"] / _total_ped * 100).round(1)
+            _prod_stats = _prod_stats.sort_values("Pedidos", ascending=False)
+
+            _top_n = min(10, len(_prod_stats))
+            _prod_top    = _prod_stats.head(_top_n)
+            _prod_bottom = _prod_stats.tail(min(5, len(_prod_stats)))
+
+            # KPIs rápidos
+            _k1, _k2, _k3, _k4 = st.columns(4)
+            with _k1: st.markdown(kpi("blue", "🏷️ Productos únicos", f"{len(_prod_stats):,}"), unsafe_allow_html=True)
+            with _k2: st.markdown(kpi("green", "🏆 Producto estrella", str(_prod_top.iloc[0][C_PRODUCTO])[:22]), unsafe_allow_html=True)
+            with _k3:
+                _prod_low = str(_prod_bottom.iloc[0][C_PRODUCTO])[:22]
+                st.markdown(kpi("red", "📉 Menor rotación", _prod_low), unsafe_allow_html=True)
+            with _k4:
+                _conc = round(_prod_top.head(3)["% Participación"].sum(), 1)
+                st.markdown(kpi("gold", "🎯 Concentración Top 3", f"{_conc}%", "del total de pedidos"), unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            _ai1, _ai2 = st.columns([3, 2])
+
+            with _ai1:
+                # Gráfico top productos
+                if C_GANANCIA in _prod_stats.columns:
+                    fig_ai = px.bar(
+                        _prod_top, x="Ganancia", y=C_PRODUCTO,
+                        orientation="h",
+                        color="% Participación",
+                        color_continuous_scale=["#1a1829","#6366f1","#c9a84c"],
+                        title="Top Productos por Ganancia"
+                    )
+                else:
+                    fig_ai = px.bar(
+                        _prod_top, x="Pedidos", y=C_PRODUCTO,
+                        orientation="h",
+                        color="% Participación",
+                        color_continuous_scale=["#1a1829","#6366f1","#c9a84c"],
+                        title="Top Productos por Volumen"
+                    )
+                fig_ai.update_layout(**PLOT_LAYOUT, height=380, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                st.plotly_chart(fig_ai, use_container_width=True)
+
+            with _ai2:
+                st.markdown('<div style="font-family:Syne,sans-serif;font-weight:700;color:#f0ede8;font-size:0.85rem;margin-bottom:12px">🤖 Recomendaciones IA</div>', unsafe_allow_html=True)
+
+                # Qué escalar
+                _escalar = _prod_top.head(3)[C_PRODUCTO].tolist()
+                st.markdown(
+                    '<div style="background:rgba(16,185,129,0.08);border:1px solid #10b981;border-radius:10px;padding:12px;margin-bottom:8px">'
+                    '<div style="color:#10b981;font-size:0.78rem;font-weight:700;margin-bottom:6px">📈 Escalar (más pauta)</div>'
+                    + "".join(f'<div style="color:#d4d0ea;font-size:0.76rem;margin-bottom:3px">• {p}</div>' for p in _escalar) +
+                    '</div>',
+                    unsafe_allow_html=True
+                )
+
+                # Qué revisar / eliminar
+                _eliminar = _prod_bottom.head(3)[C_PRODUCTO].tolist()
+                st.markdown(
+                    '<div style="background:rgba(239,68,68,0.08);border:1px solid #ef4444;border-radius:10px;padding:12px;margin-bottom:8px">'
+                    '<div style="color:#ef4444;font-size:0.78rem;font-weight:700;margin-bottom:6px">📉 Revisar / Liquidar</div>'
+                    + "".join(f'<div style="color:#d4d0ea;font-size:0.76rem;margin-bottom:3px">• {p}</div>' for p in _eliminar) +
+                    '</div>',
+                    unsafe_allow_html=True
+                )
+
+                # Oportunidad: productos de temporada no en catálogo
+                _mes_actual2 = _hoy_tend.month
+                TEMP_SUGERIDOS = {
+                    (12,1,2): ["Cobijas", "Thermos", "Cremas hidratantes", "Ropa abrigo"],
+                    (3,4,5): ["Perfumes", "Accesorios moda", "Joyería", "Flores artificiales"],
+                    (6,7,8): ["Protector solar", "Ropa ligera", "Artículos playa", "Gafas de sol"],
+                    (9,10,11): ["Disfraces Halloween", "Electrónicos", "Regalos navidad", "Gadgets"]
+                }
+                _sugs = []
+                for _meses_t, _prods_t in TEMP_SUGERIDOS.items():
+                    if _mes_actual2 in _meses_t:
+                        _prods_reales2 = df[C_PRODUCTO].dropna().str.lower().tolist()
+                        _sugs = [p for p in _prods_t if not any(p.lower() in r for r in _prods_reales2)]
+                        break
+
+                if _sugs:
+                    st.markdown(
+                        '<div style="background:rgba(245,158,11,0.08);border:1px solid #f59e0b;border-radius:10px;padding:12px">'
+                        '<div style="color:#f59e0b;font-size:0.78rem;font-weight:700;margin-bottom:6px">💡 Probar (temporada actual)</div>'
+                        + "".join(f'<div style="color:#d4d0ea;font-size:0.76rem;margin-bottom:3px">• {p}</div>' for p in _sugs[:4]) +
+                        '</div>',
+                        unsafe_allow_html=True
+                    )
 
 
 # ═══════════════════════════════════════════════════════════
