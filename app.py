@@ -613,7 +613,6 @@ with st.sidebar:
             st.markdown('</div>', unsafe_allow_html=True)
         if clicked:
             st.session_state.nav_activa = item
-            st.rerun()
 
     st.markdown('<div class="nav-sep"></div>', unsafe_allow_html=True)
 
@@ -629,7 +628,6 @@ with st.sidebar:
             st.markdown('</div>', unsafe_allow_html=True)
         if clicked:
             st.session_state.nav_activa = item
-            st.rerun()
 
     st.markdown('<div class="nav-sep"></div>', unsafe_allow_html=True)
 
@@ -655,7 +653,6 @@ with st.sidebar:
         if st.button(f"→ {op_key.split(' ',1)[1]}", key=f"op_{op_key}",
                      use_container_width=True):
             st.session_state.op_activa = op_key
-            st.rerun()
 
     # ── Derivar variables de sesión ──
     vista_activa = st.session_state.nav_activa
@@ -671,12 +668,16 @@ with st.sidebar:
         st.markdown('<span class="nav-section-lbl">💱 CLP → COP</span>', unsafe_allow_html=True)
         trm_clp_cop = st.number_input("1 CLP = ? COP", min_value=1.0, max_value=20.0,
                                        value=4.2, step=0.1)
+        st.session_state["_trm_global"] = trm_clp_cop
 
     st.markdown('<div class="nav-sep"></div>', unsafe_allow_html=True)
 
     # ── Importar datos ──
     st.markdown('<span class="nav-section-lbl">Importar Datos</span>', unsafe_allow_html=True)
     archivo = st.file_uploader(f"📁 {operacion.split(' ',1)[1]}", type=["xlsx","xls"])
+    if archivo is not None:
+        st.session_state["_archivo_guardado"] = archivo
+    archivo = st.session_state.get("_archivo_guardado", None)
     if archivo:
         st.markdown(
             f'<div style="padding:8px 12px;border-radius:10px;text-align:center;margin-top:6px;'
@@ -698,6 +699,20 @@ with st.sidebar:
         <div style="font-size:0.7rem;color:#6b7a9e">VisióN360 · v2.0 · Colombia</div>
     </div>
     """, unsafe_allow_html=True)
+
+# ─── Variables globales derivadas del session_state (disponibles en todo el app) ───
+vista_activa = st.session_state.get("nav_activa", "📊 Panel Ejecutivo")
+_op_key      = st.session_state.get("op_activa",  "🤖 LUCID BOT")
+OPERACIONES_GLOBAL = {
+    "🤖 LUCID BOT":      {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#a78bfa","dot":"#7c3aed","bg":"rgba(124,58,237,0.15)","border":"rgba(124,58,237,0.45)"},
+    "✨ ESSENTYA":        {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#f9a8d4","dot":"#ec4899","bg":"rgba(236,72,153,0.12)","border":"rgba(236,72,153,0.4)"},
+    "🐂 EL TORO":         {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#fca5a5","dot":"#ef4444","bg":"rgba(239,68,68,0.12)","border":"rgba(239,68,68,0.4)"},
+    "🛒 Carrito Naranja": {"pais":"🇨🇱 Chile",   "moneda":"CLP","color":"#fdba74","dot":"#f97316","bg":"rgba(249,115,22,0.12)","border":"rgba(249,115,22,0.4)"},
+}
+operacion = _op_key
+op_info   = OPERACIONES_GLOBAL.get(_op_key, list(OPERACIONES_GLOBAL.values())[0])
+es_clp    = op_info["moneda"] == "CLP"
+trm_clp_cop = st.session_state.get("_trm_global", 4.2)
 
 # ═══════════════════════════════════════════════════════════
 # SIN ARCHIVO
