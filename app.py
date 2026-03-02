@@ -842,142 +842,243 @@ pct_gan    = round(tot_gan/tot_venta*100,1) if tot_venta else 0
 # ═══════════════════════════════════════════════════════════
 if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" in vista_activa or "Finanzas" in vista_activa or "Marketing" in vista_activa or "Catálogo" in vista_activa:
 
-    # Header
+    # ─── Variables Header ───
     op_nombre = operacion.split(" ", 1)[1]
     op_color  = op_info["color"]
     op_pais   = op_info["pais"]
     op_moneda = op_info["moneda"]
-
     modulo_nombre = vista_activa.split(" ", 1)[1] if " " in vista_activa else vista_activa.strip()
-    clp_badge = (f"&nbsp;&nbsp;&middot;&nbsp;&nbsp;<span style='color:#f97316;font-size:0.78rem'>"
-                 f"&#x1F4B1; CLP&#8594;COP @ {trm_clp_cop}</span>") if es_clp else ""
+    clp_badge = (f"&nbsp;&middot;&nbsp;<span style='color:#fb923c;font-size:0.75rem'>💱 CLP→COP @{trm_clp_cop}</span>") if es_clp else ""
 
+    # ═══════════════════════════════════════════════════════════
+    # HEADER PREMIUM + FILTRO INTEGRADO
+    # ═══════════════════════════════════════════════════════════
+    st.markdown("""
+    <style>
+    /* Header card */
+    .hdr-card {
+        background: linear-gradient(135deg, #1a1535 0%, #13102a 100%);
+        border: 1px solid rgba(168,85,247,0.2);
+        border-radius: 20px;
+        padding: 20px 24px 0;
+        margin-bottom: 0;
+        position: relative;
+        overflow: hidden;
+    }
+    .hdr-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+        background-size: 20px 20px;
+        pointer-events: none;
+    }
+    /* Tabs filtro */
+    .ftab-wrap {
+        display: flex;
+        gap: 6px;
+        background: rgba(0,0,0,0.25);
+        border-radius: 14px;
+        padding: 5px;
+        width: fit-content;
+        border: 1px solid rgba(168,85,247,0.15);
+    }
+    .ftab {
+        display: flex; align-items: center; gap: 7px;
+        padding: 9px 20px;
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.84rem; font-weight: 600;
+        cursor: pointer;
+        color: rgba(210,190,255,0.55);
+        border: 1px solid transparent;
+        transition: all 0.18s;
+        white-space: nowrap;
+    }
+    .ftab.active {
+        background: linear-gradient(135deg, #7c3aed, #a855f7);
+        color: #fff;
+        border-color: rgba(168,85,247,0.5);
+        box-shadow: 0 4px 18px rgba(124,58,237,0.45);
+        font-weight: 700;
+    }
+    .ftab .ficon {
+        font-size: 1rem;
+        display: flex; align-items: center; justify-content: center;
+        width: 26px; height: 26px;
+        border-radius: 7px;
+        background: rgba(255,255,255,0.08);
+    }
+    .ftab.active .ficon { background: rgba(255,255,255,0.18); }
+    /* Pills de mes */
+    .mes-pills { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
+    .mes-pill {
+        padding: 5px 14px; border-radius: 20px;
+        font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 600;
+        background: rgba(255,255,255,0.04); color: rgba(210,190,255,0.5);
+        border: 1px solid rgba(168,85,247,0.15); cursor: pointer;
+        transition: all 0.15s;
+    }
+    .mes-pill.active {
+        background: linear-gradient(135deg, rgba(124,58,237,0.6), rgba(168,85,247,0.4));
+        color: #fff; border-color: rgba(168,85,247,0.5);
+        box-shadow: 0 2px 12px rgba(124,58,237,0.3);
+    }
+    /* Sem pills */
+    .sem-pill {
+        padding: 5px 14px; border-radius: 20px;
+        font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 600;
+        border: 1px solid; cursor: pointer; transition: all 0.15s;
+    }
+    /* Badge resultado */
+    .periodo-badge {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 6px 14px; border-radius: 20px;
+        font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 700;
+        background: rgba(124,58,237,0.15); color: #c4b5fd;
+        border: 1px solid rgba(168,85,247,0.3);
+        margin-top: 10px; margin-bottom: 14px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # ── Render Header ──
     st.markdown(
-        f'<div style="margin-bottom:28px;background:linear-gradient(135deg,#12151f,#161929);'
-        f'border:1px solid #2e2558;border-radius:16px;padding:24px 28px">'
-        f'<div style="display:flex;align-items:center;gap:16px">'
-        f'<div style="width:4px;height:54px;background:{op_color};border-radius:4px"></div>'
-        f'<div>'
-        f'<div style="font-size:0.68rem;color:#7a8aaa;font-weight:700;letter-spacing:0.12em;'
-        f'text-transform:uppercase;margin-bottom:5px">{op_pais} &nbsp;·&nbsp; {op_moneda}</div>'
-        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-size:1.9rem;font-weight:800;'
-        f'color:#e8ecf7;line-height:1;margin-bottom:6px">{op_nombre}</div>'
-        f'<div style="color:#a8b4d0;font-size:0.83rem">'
-        f'{modulo_nombre} &nbsp;·&nbsp; {total:,} pedidos analizados{clp_badge}'
-        f'</div></div></div></div>',
+        f'''<div class="hdr-card">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+            <div style="width:4px;height:52px;border-radius:4px;
+                        background:linear-gradient(180deg,{op_color},{op_color}88)"></div>
+            <div>
+                <div style="font-size:0.62rem;color:rgba(200,180,255,0.45);font-weight:700;
+                            letter-spacing:0.13em;text-transform:uppercase;margin-bottom:3px">
+                    {op_pais} &nbsp;·&nbsp; {op_moneda}{clp_badge}
+                </div>
+                <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.7rem;
+                            font-weight:800;color:#f0ecff;line-height:1;letter-spacing:-0.02em">
+                    {op_nombre}
+                </div>
+                <div style="color:rgba(200,180,255,0.4);font-size:0.78rem;margin-top:3px;
+                            font-family:'DM Sans',sans-serif">
+                    {modulo_nombre} &nbsp;·&nbsp; {total:,} pedidos analizados
+                </div>
+            </div>
+        </div>''',
         unsafe_allow_html=True
     )
 
-    # ══════════════════════════════════════════════════════════════════
-    # 📅 FILTRO UNIVERSAL — Por Mes / Por Semana
-    # Estándar en todos los módulos del sistema
-    # ══════════════════════════════════════════════════════════════════
+    # ── Tabs Mes / Por Semana ──
     _hoy = pd.Timestamp.now().normalize()
+    if "uf_modo" not in st.session_state: st.session_state.uf_modo = "mes"
 
-    _uf_c1, _uf_c2, _uf_c3 = st.columns([1.2, 2, 2.5])
+    tab_html = (
+        '<div style="padding:0 0 16px">' +
+        '<div class="ftab-wrap">' +
+        f'<div class="ftab {'active' if st.session_state.uf_modo == 'mes' else ''}">' +
+        '<div class="ficon">📅</div>Por Mes</div>' +
+        f'<div class="ftab {'active' if st.session_state.uf_modo == 'sem' else ''}">' +
+        '<div class="ficon">📆</div>Por Semana</div>' +
+        '</div></div>'
+    )
+    st.markdown(tab_html, unsafe_allow_html=True)
 
-    with _uf_c1:
-        _modo_periodo = st.radio(
-            "Período",
-            ["📅 Por Mes", "📆 Por Semana"],
-            horizontal=False,
-            label_visibility="collapsed",
-            key="filtro_universal_modo"
-        )
+    # Botones reales invisibles para cambiar modo
+    _tc1, _tc2, _tc3 = st.columns([1.2, 1.2, 6])
+    with _tc1:
+        if st.button("📅 Mes", key="uf_btn_mes", use_container_width=True):
+            st.session_state.uf_modo = "mes"
+    with _tc2:
+        if st.button("📆 Semana", key="uf_btn_sem", use_container_width=True):
+            st.session_state.uf_modo = "sem"
 
-    # ── Opciones según modo ──
-    if "Mes" in _modo_periodo:
-        if '_mes' in df.columns and len(df['_mes'].dropna()) > 0:
-            _meses_disp = sorted(df['_mes'].dropna().unique().tolist(), reverse=True)
-        else:
-            _meses_disp = [_hoy.to_period('M').strftime('%Y-%m')]
-        _meses_lbl = []
-        for _m in _meses_disp:
-            try:    _meses_lbl.append(pd.Period(_m, 'M').strftime('%B %Y').capitalize())
-            except: _meses_lbl.append(str(_m))
+    _modo_es_mes = st.session_state.uf_modo == "mes"
 
-        with _uf_c2:
-            _idx_mes_uf = st.selectbox(
-                "Mes",
-                list(range(len(_meses_disp))),
-                index=0,
-                format_func=lambda i: _meses_lbl[i] if i < len(_meses_lbl) else str(i),
-                key="filtro_universal_mes",
-                label_visibility="collapsed"
-            )
-        # Validación defensiva contra None
-        if _idx_mes_uf is None: _idx_mes_uf = 0
-        _idx_mes_uf = max(0, min(_idx_mes_uf, len(_meses_disp) - 1))
-        _periodo_sel = _meses_disp[_idx_mes_uf]
-        _periodo_lbl = _meses_lbl[_idx_mes_uf]
+    # ── Meses disponibles ──
+    if "_mes" in df.columns and len(df["_mes"].dropna()) > 0:
+        _meses_disp = sorted(df["_mes"].dropna().unique().tolist(), reverse=True)
+    else:
+        _meses_disp = [_hoy.to_period("M").strftime("%Y-%m")]
+    _meses_lbl = {}
+    for _m in _meses_disp:
+        try:    _meses_lbl[_m] = pd.Period(_m,"M").strftime("%b %Y").capitalize()
+        except: _meses_lbl[_m] = str(_m)
 
-        if '_mes' in df.columns:
-            df = df[df['_mes'] == _periodo_sel].copy()
+    # Session state mes seleccionado
+    if "uf_mes" not in st.session_state or st.session_state.uf_mes not in _meses_disp:
+        st.session_state.uf_mes = _meses_disp[0]
 
-    else:  # Por Semana
-        if '_mes' in df.columns and len(df['_mes'].dropna()) > 0:
-            _meses_disp_s = sorted(df['_mes'].dropna().unique().tolist(), reverse=True)
-        else:
-            _meses_disp_s = [_hoy.to_period('M').strftime('%Y-%m')]
+    # ── Pills de mes ──
+    _pills_html = '<div class="mes-pills">'
+    for _m in _meses_disp:
+        _ac = "active" if _m == st.session_state.uf_mes else ""
+        _pills_html += f'<div class="mes-pill {_ac}">{_meses_lbl[_m]}</div>'
+    _pills_html += '</div>'
+    st.markdown(_pills_html, unsafe_allow_html=True)
 
-        with _uf_c2:
-            _idx_mes_s = st.selectbox(
-                "Mes base",
-                list(range(len(_meses_disp_s))),
-                index=0,
-                format_func=lambda i: pd.Period(_meses_disp_s[i], 'M').strftime('%B %Y').capitalize() if i < len(_meses_disp_s) else str(i),
-                key="filtro_univ_mes_base",
-                label_visibility="collapsed"
-            )
-        if _idx_mes_s is None: _idx_mes_s = 0
-        _idx_mes_s = max(0, min(_idx_mes_s, len(_meses_disp_s) - 1))
-        _mes_base_s = _meses_disp_s[_idx_mes_s]
+    # Botones invisibles por mes
+    _mes_cols = st.columns(min(len(_meses_disp), 8))
+    for _ci, _m in enumerate(_meses_disp[:8]):
+        with _mes_cols[_ci]:
+            if st.button(_meses_lbl[_m], key=f"uf_mes_{_m}", use_container_width=True):
+                st.session_state.uf_mes = _m
 
-        # Calcular semanas del mes seleccionado
-        _inicio_mes_s = pd.Period(_mes_base_s, 'M').start_time
-        _fin_mes_s    = pd.Period(_mes_base_s, 'M').end_time
-        _semanas_mes  = []
-        _cur = _inicio_mes_s
-        _sw_n = 1
-        while _cur <= _fin_mes_s:
-            _fin_sem = min(_cur + pd.Timedelta(days=6), _fin_mes_s)
-            _semanas_mes.append({
-                "lbl": f"Semana {_sw_n} ({_cur.strftime('%d/%m')} – {_fin_sem.strftime('%d/%m')})",
-                "ini": _cur,
-                "fin": _fin_sem
-            })
-            _cur = _fin_sem + pd.Timedelta(days=1)
-            _sw_n += 1
+    _mes_sel = st.session_state.uf_mes
 
-        with _uf_c3:
-            _idx_sem = st.selectbox(
-                "Semana",
-                range(len(_semanas_mes)),
-                index=0,
-                format_func=lambda i: _semanas_mes[i]["lbl"],
-                key="filtro_universal_semana",
-                label_visibility="collapsed"
-            )
-        _sem_sel   = _semanas_mes[_idx_sem]
+    # ── Si modo Semana: mostrar pills de semana ──
+    if not _modo_es_mes:
+        _inicio_ms = pd.Period(_mes_sel, "M").start_time
+        _fin_ms    = pd.Period(_mes_sel, "M").end_time
+        _sems = []
+        _sc = _inicio_ms; _sn = 1
+        while _sc <= _fin_ms:
+            _fe = min(_sc + pd.Timedelta(days=6), _fin_ms)
+            _sems.append({"lbl": f"Sem {_sn}  {_sc.strftime('%d/%m')}–{_fe.strftime('%d/%m')}", "ini":_sc, "fin":_fe})
+            _sc = _fe + pd.Timedelta(days=1); _sn += 1
+
+        if "uf_sem_idx" not in st.session_state: st.session_state.uf_sem_idx = 0
+        _sem_idx = min(st.session_state.uf_sem_idx, len(_sems)-1)
+
+        _sem_colors = ["#c084fc","#60a5fa","#34d399","#fb923c","#f472b6"]
+        _spills = '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px">'
+        for _si, _sd in enumerate(_sems):
+            _sc_c = _sem_colors[_si % len(_sem_colors)]
+            _is_a = _si == _sem_idx
+            _bg   = f"background:{_sc_c}22;" if _is_a else "background:rgba(255,255,255,0.04);"
+            _brd  = f"border-color:{_sc_c}88;" if _is_a else "border-color:rgba(168,85,247,0.15);"
+            _clr  = f"color:{_sc_c};" if _is_a else "color:rgba(210,190,255,0.45);"
+            _fw   = "font-weight:700;" if _is_a else ""
+            _spills += f'<div class="sem-pill" style="{_bg}{_brd}{_clr}{_fw}">{_sd["lbl"]}</div>'
+        _spills += '</div>'
+        st.markdown(_spills, unsafe_allow_html=True)
+
+        _sem_btn_cols = st.columns(min(len(_sems), 5))
+        for _si, _sd in enumerate(_sems[:5]):
+            with _sem_btn_cols[_si]:
+                if st.button(_sd["lbl"], key=f"uf_sem_{_mes_sel}_{_si}", use_container_width=True):
+                    st.session_state.uf_sem_idx = _si
+
+        _sem_idx = min(st.session_state.uf_sem_idx, len(_sems)-1)
+        _sem_sel = _sems[_sem_idx]
         _periodo_lbl = _sem_sel["lbl"]
-
         if C_FECHA in df.columns:
-            df = df[
-                (df[C_FECHA] >= _sem_sel["ini"]) &
-                (df[C_FECHA] <= _sem_sel["fin"])
-            ].copy()
+            df = df[(df[C_FECHA] >= _sem_sel["ini"]) & (df[C_FECHA] <= _sem_sel["fin"])].copy()
+    else:
+        _periodo_lbl = _meses_lbl.get(_mes_sel, _mes_sel)
+        if "_mes" in df.columns:
+            df = df[df["_mes"] == _mes_sel].copy()
 
-    # ── Badge informativo ──
-    _badge_col = "#5b6cfc" if "Mes" in _modo_periodo else "#7c3aed"
-    _badge_ico = "📅" if "Mes" in _modo_periodo else "📆"
+    # Cerrar card header + badge resultado
+    _badge_ico = "📅" if _modo_es_mes else "📆"
     st.markdown(
-        f'<div style="background:{_badge_col}10;border:1px solid {_badge_col}33;'
-        f'border-radius:8px;padding:5px 12px;font-size:0.72rem;color:#a8b4d0;'
-        f'display:inline-block;margin-bottom:4px">'
-        f'{_badge_ico} <b style="color:{_badge_col}">{_periodo_lbl}</b>'
-        f' &nbsp;·&nbsp; <b style="color:#e8ecf7">{len(df):,} pedidos</b></div>',
+        f'</div>' +
+        f'<div class="periodo-badge">' +
+        f'{_badge_ico} <b>{_periodo_lbl}</b> &nbsp;·&nbsp; {len(df):,} pedidos</div>',
         unsafe_allow_html=True
     )
+
+    # Compatibilidad con código legacy
+    _modo_periodo = "📅 Por Mes" if _modo_es_mes else "📆 Por Semana"
 
     # ── Recalcular totales globales con df filtrado ──
     total      = len(df)
