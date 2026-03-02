@@ -1240,74 +1240,111 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         met = {k: metricas_dropi(v) for k,v in periodos_pg.items()}
 
         # ════════════════════════════════════════════════════
-        # CARDS DE INPUTS — siempre visibles, 4 columnas
+        # COSTOS DEL MES — Expanders colapsables con guardado
+        # Clave: los number_input y text_input usan keys fijos
+        # Streamlit guarda su valor en session_state automáticamente
+        # _load() lee ese valor para inicializar con el último guardado
         # ════════════════════════════════════════════════════
+
+        def _sv(key, default=0):
+            """Lee valor guardado en session_state."""
+            return st.session_state.get(key, default)
+
         st.markdown("""
-        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:0.75rem;font-weight:800;
-                    text-transform:uppercase;letter-spacing:0.1em;color:rgba(200,180,255,0.5);
-                    margin:4px 0 12px">
-            ✏️ Alimentar costos del mes
+        <div style="display:flex;align-items:center;gap:10px;margin:8px 0 14px">
+            <div style="height:1px;flex:1;background:linear-gradient(90deg,rgba(168,85,247,0.3),transparent)"></div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:0.65rem;font-weight:800;
+                        text-transform:uppercase;letter-spacing:0.13em;color:rgba(200,180,255,0.4)">
+                ✏️ Costos del Mes — clic para editar
+            </div>
+            <div style="height:1px;flex:1;background:linear-gradient(90deg,transparent,rgba(168,85,247,0.3))"></div>
         </div>""", unsafe_allow_html=True)
 
-        ci1, ci2, ci3, ci4 = st.columns(4)
-
-        with ci1:
-            st.markdown("""<div class="input-card">
-            <div class="input-card-title" style="color:#fbbf24">📣 Marketing & Pauta</div>
-            </div>""", unsafe_allow_html=True)
-            pauta         = st.number_input("💰 Pauta / Ads",         0,500000000,0,100000,key="m_pauta",   format="%d")
-            lucid_bot     = st.number_input("🤖 Lucid Bot",           0,50000000, 0,10000, key="m_lucidbot",format="%d")
-            open_ia       = st.number_input("🧠 Open IA",             0,20000000, 0,10000, key="m_openia",  format="%d")
-            luci_voice    = st.number_input("🎙️ Luci Voice",          0,20000000, 0,10000, key="m_lucivoz", format="%d")
-            contingencias = st.number_input("⚠️ Contingencias",       0,20000000, 0,10000, key="m_conting", format="%d")
-            plat_spy      = st.number_input("🔍 Plataformas Spy",     0,10000000, 0,10000, key="m_platspy", format="%d")
-            dominios      = st.number_input("🌐 Dominios / Hosting",  0,5000000,  0,10000, key="m_dominios",format="%d")
+        # ── 1. MARKETING ──
+        _t_mkt = sum(_sv(k,0) for k in ["m_pauta","m_lucidbot","m_openia","m_lucivoz","m_conting","m_platspy","m_dominios"])
+        _mkt_lbl = f"📣  Marketing & Pauta   ·   {fmt_money(_t_mkt)}" if _t_mkt > 0 else "📣  Marketing & Pauta   ·   sin datos aún"
+        with st.expander(_mkt_lbl, expanded=False):
+            st.markdown(f'<div style="font-size:0.68rem;color:rgba(200,180,255,0.4);margin-bottom:12px">💾 Los valores se recuerdan entre sesiones · Total actual: <b style="color:#fde68a">{fmt_money(_t_mkt)}</b></div>', unsafe_allow_html=True)
+            _mc1, _mc2 = st.columns(2)
+            with _mc1:
+                pauta         = st.number_input("💰 Pauta / Ads",      0,500000000,int(_sv("m_pauta",0)),     100000,key="m_pauta",   format="%d")
+                open_ia       = st.number_input("🧠 Open IA",          0,20000000, int(_sv("m_openia",0)),    10000, key="m_openia",  format="%d")
+                contingencias = st.number_input("⚠️ Contingencias",    0,20000000, int(_sv("m_conting",0)),   10000, key="m_conting", format="%d")
+                dominios      = st.number_input("🌐 Dominios/Hosting", 0,5000000,  int(_sv("m_dominios",0)),  10000, key="m_dominios",format="%d")
+            with _mc2:
+                lucid_bot     = st.number_input("🤖 Lucid Bot",        0,50000000, int(_sv("m_lucidbot",0)),  10000, key="m_lucidbot",format="%d")
+                luci_voice    = st.number_input("🎙️ Luci Voice",       0,20000000, int(_sv("m_lucivoz",0)),   10000, key="m_lucivoz", format="%d")
+                plat_spy      = st.number_input("🔍 Plataformas Spy",  0,10000000, int(_sv("m_platspy",0)),   10000, key="m_platspy", format="%d")
             total_mkt = pauta+lucid_bot+open_ia+luci_voice+contingencias+plat_spy+dominios
-            st.markdown(f'<div class="input-total" style="background:rgba(251,191,36,0.1);color:#fde68a;border:1px solid rgba(251,191,36,0.2)">Total Marketing<br><b style="font-size:1rem">{fmt_money(total_mkt)}</b></div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:10px 14px;text-align:center;color:#fde68a;font-weight:800;font-size:1rem;margin-top:6px">Total Marketing: {fmt_money(total_mkt)}</div>', unsafe_allow_html=True)
+        # Siempre leer el valor actualizado del session_state (dentro o fuera del expander)
+        pauta=int(_sv("m_pauta",0));lucid_bot=int(_sv("m_lucidbot",0));open_ia=int(_sv("m_openia",0))
+        luci_voice=int(_sv("m_lucivoz",0));contingencias=int(_sv("m_conting",0))
+        plat_spy=int(_sv("m_platspy",0));dominios=int(_sv("m_dominios",0))
+        total_mkt=pauta+lucid_bot+open_ia+luci_voice+contingencias+plat_spy+dominios
 
-        with ci2:
-            st.markdown("""<div class="input-card">
-            <div class="input-card-title" style="color:#a78bfa">🏢 Administrativos</div>
-            </div>""", unsafe_allow_html=True)
-            adm_personas = {}
-            # Campos dinámicos — hasta 8 personas
+        # ── 2. ADMINISTRATIVOS ──
+        _t_adm = sum(int(_sv(f"adm_val_{i}",0)) for i in range(1,9))
+        _adm_lbl = f"🏢  Administrativos   ·   {fmt_money(_t_adm)}" if _t_adm > 0 else "🏢  Administrativos   ·   sin datos aún"
+        with st.expander(_adm_lbl, expanded=False):
+            st.markdown(f'<div style="font-size:0.68rem;color:rgba(200,180,255,0.4);margin-bottom:12px">💾 Escribe el nombre y sueldo de cada persona. Se guardan automáticamente. Total: <b style="color:#c4b5fd">{fmt_money(_t_adm)}</b></div>', unsafe_allow_html=True)
             for i in range(1, 9):
-                saved_name = st.session_state.get(f"adm_name_{i}", "")
-                nombre = st.text_input(f"Persona {i} — nombre", value=saved_name,
-                                       key=f"adm_name_{i}", placeholder=f"Ej: Leidy Coord.")
-                if nombre:
-                    valor = st.number_input(f"  Sueldo {nombre[:12]}",0,30000000,0,100000,
-                                            key=f"adm_val_{i}",format="%d")
-                    adm_personas[nombre] = valor
-            total_adm = sum(adm_personas.values())
-            st.markdown(f'<div class="input-total" style="background:rgba(124,58,237,0.12);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3)">Total Administrativos<br><b style="font-size:1rem">{fmt_money(total_adm)}</b></div>', unsafe_allow_html=True)
+                _col_n, _col_s = st.columns([3,2])
+                with _col_n:
+                    st.text_input(f"Persona {i} — nombre", value=_sv(f"adm_name_{i}",""),
+                                  key=f"adm_name_{i}", placeholder="Nombre / Rol (ej: Leidy Coord.)")
+                with _col_s:
+                    _nm_i = _sv(f"adm_name_{i}","")
+                    if _nm_i:
+                        st.number_input(f"Sueldo {_nm_i[:14]}", 0,30000000,int(_sv(f"adm_val_{i}",0)),100000,
+                                        key=f"adm_val_{i}", format="%d")
+                    else:
+                        st.markdown('<div style="height:38px;font-size:0.72rem;color:rgba(200,180,255,0.3);padding-top:8px">Ingresa nombre primero</div>', unsafe_allow_html=True)
+            _total_adm_show = sum(int(_sv(f"adm_val_{i}",0)) for i in range(1,9))
+            st.markdown(f'<div style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);border-radius:10px;padding:10px 14px;text-align:center;color:#c4b5fd;font-weight:800;font-size:1rem;margin-top:6px">Total Administrativos: {fmt_money(_total_adm_show)}</div>', unsafe_allow_html=True)
+        adm_personas = {_sv(f"adm_name_{i}",""):int(_sv(f"adm_val_{i}",0))
+                        for i in range(1,9) if _sv(f"adm_name_{i}","")}
+        total_adm = sum(adm_personas.values())
 
-        with ci3:
-            st.markdown("""<div class="input-card">
-            <div class="input-card-title" style="color:#34d399">📦 Importaciones & Banco</div>
-            </div>""", unsafe_allow_html=True)
-            imp_compras = st.number_input("📥 Importaciones/Compras",0,200000000,0,100000,key="i_comp",  format="%d")
-            imp_sky     = st.number_input("✈️ Sky Carga USA-Col",    0,50000000, 0,100000,key="i_sky",   format="%d")
-            imp_tax8    = st.number_input("🏦 Impuesto 8×1000",      0,5000000,  0,10000, key="i_tax8",  format="%d")
-            imp_banco   = st.number_input("💳 Costos Bancarios",     0,5000000,  0,10000, key="i_banco", format="%d")
-            imp_activ   = st.number_input("🎓 Actividades/Capac.",   0,10000000, 0,10000, key="i_activ", format="%d")
-            total_imp = imp_compras+imp_sky+imp_tax8+imp_banco+imp_activ
-            st.markdown(f'<div class="input-total" style="background:rgba(52,211,153,0.08);color:#6ee7b7;border:1px solid rgba(52,211,153,0.2)">Total Importaciones<br><b style="font-size:1rem">{fmt_money(total_imp)}</b></div>', unsafe_allow_html=True)
+        # ── 3. IMPORTACIONES ──
+        _t_imp = sum(int(_sv(k,0)) for k in ["i_comp","i_sky","i_tax8","i_banco","i_activ"])
+        _imp_lbl = f"📦  Importaciones & Banco   ·   {fmt_money(_t_imp)}" if _t_imp > 0 else "📦  Importaciones & Banco   ·   sin datos aún"
+        with st.expander(_imp_lbl, expanded=False):
+            st.markdown(f'<div style="font-size:0.68rem;color:rgba(200,180,255,0.4);margin-bottom:12px">💾 Valores guardados automáticamente. Total: <b style="color:#6ee7b7">{fmt_money(_t_imp)}</b></div>', unsafe_allow_html=True)
+            _ic1, _ic2 = st.columns(2)
+            with _ic1:
+                imp_compras = st.number_input("📥 Importaciones/Compras",0,200000000,int(_sv("i_comp",0)),  100000,key="i_comp",  format="%d")
+                imp_tax8    = st.number_input("🏦 Impuesto 8×1000",      0,5000000,  int(_sv("i_tax8",0)),  10000, key="i_tax8",  format="%d")
+                imp_activ   = st.number_input("🎓 Actividades/Capac.",   0,10000000, int(_sv("i_activ",0)), 10000, key="i_activ", format="%d")
+            with _ic2:
+                imp_sky     = st.number_input("✈️ Sky Carga USA-Col",    0,50000000, int(_sv("i_sky",0)),   100000,key="i_sky",   format="%d")
+                imp_banco   = st.number_input("💳 Costos Bancarios",     0,5000000,  int(_sv("i_banco",0)), 10000, key="i_banco", format="%d")
+            total_imp_show = imp_compras+imp_sky+imp_tax8+imp_banco+imp_activ
+            st.markdown(f'<div style="background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.2);border-radius:10px;padding:10px 14px;text-align:center;color:#6ee7b7;font-weight:800;font-size:1rem;margin-top:6px">Total Importaciones: {fmt_money(total_imp_show)}</div>', unsafe_allow_html=True)
+        imp_compras=int(_sv("i_comp",0));imp_sky=int(_sv("i_sky",0));imp_tax8=int(_sv("i_tax8",0))
+        imp_banco=int(_sv("i_banco",0));imp_activ=int(_sv("i_activ",0))
+        total_imp=imp_compras+imp_sky+imp_tax8+imp_banco+imp_activ
 
-        with ci4:
-            st.markdown("""<div class="input-card">
-            <div class="input-card-title" style="color:#f87171">📊 Impuestos & Legal</div>
-            </div>""", unsafe_allow_html=True)
-            imp_renta   = st.number_input("📋 Impuesto de Renta",   0,100000000,0,100000,key="t_renta", format="%d")
-            imp_iva     = st.number_input("🧾 IVA a pagar",         0,100000000,0,100000,key="t_iva",   format="%d")
-            imp_ica     = st.number_input("🏙️ ICA / Industria",     0,20000000, 0,10000, key="t_ica",   format="%d")
-            imp_retencion=st.number_input("✂️ Retención en la Fte.", 0,20000000, 0,10000, key="t_reten", format="%d")
-            imp_otros   = st.number_input("📎 Otros tributos",      0,20000000, 0,10000, key="t_otros", format="%d")
-            # Porcentaje configurable adicional
-            imp_pct     = st.number_input("% auto sobre Shopify",   0.0,50.0,   0.0,0.5, key="t_pct",   format="%.1f",
-                                          help="Se calcula automáticamente sobre el total Shopify")
-            total_imp_manual = imp_renta+imp_iva+imp_ica+imp_retencion+imp_otros
-            st.markdown(f'<div class="input-total" style="background:rgba(248,113,113,0.08);color:#fca5a5;border:1px solid rgba(248,113,113,0.2)">Total Impuestos<br><b style="font-size:1rem">{fmt_money(total_imp_manual)}</b></div>', unsafe_allow_html=True)
+        # ── 4. IMPUESTOS ──
+        _t_tax = sum(int(_sv(k,0)) for k in ["t_renta","t_iva","t_ica","t_reten","t_otros"])
+        _tax_lbl = f"📋  Impuestos & Legal   ·   {fmt_money(_t_tax)}" if _t_tax > 0 else "📋  Impuestos & Legal   ·   sin datos aún"
+        with st.expander(_tax_lbl, expanded=False):
+            st.markdown(f'<div style="font-size:0.68rem;color:rgba(200,180,255,0.4);margin-bottom:12px">💾 Obligaciones tributarias del período. Total: <b style="color:#fca5a5">{fmt_money(_t_tax)}</b></div>', unsafe_allow_html=True)
+            _tc1, _tc2 = st.columns(2)
+            with _tc1:
+                imp_renta_in    = st.number_input("📋 Impuesto de Renta",    0,100000000,int(_sv("t_renta",0)),100000,key="t_renta",format="%d")
+                imp_ica_in      = st.number_input("🏙️ ICA / Industria",      0,20000000, int(_sv("t_ica",0)),  10000, key="t_ica",  format="%d")
+                imp_otros_in    = st.number_input("📎 Otros tributos",       0,20000000, int(_sv("t_otros",0)),10000, key="t_otros",format="%d")
+            with _tc2:
+                imp_iva_in      = st.number_input("🧾 IVA a pagar",          0,100000000,int(_sv("t_iva",0)),  100000,key="t_iva",  format="%d")
+                imp_reten_in    = st.number_input("✂️ Retención en la Fte.", 0,20000000, int(_sv("t_reten",0)),10000, key="t_reten",format="%d")
+            imp_pct_in = st.number_input("⚡ % automático sobre Shopify",0.0,50.0,float(_sv("t_pct",0.0)),0.5,key="t_pct",format="%.1f",
+                                         help="Se calcula automáticamente: útil para retenciones variables")
+            total_tax_show = imp_renta_in+imp_iva_in+imp_ica_in+imp_reten_in+imp_otros_in
+            st.markdown(f'<div style="background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:10px 14px;text-align:center;color:#fca5a5;font-weight:800;font-size:1rem;margin-top:6px">Total Impuestos: {fmt_money(total_tax_show)}</div>', unsafe_allow_html=True)
+        imp_renta=int(_sv("t_renta",0));imp_iva=int(_sv("t_iva",0));imp_ica=int(_sv("t_ica",0))
+        imp_retencion=int(_sv("t_reten",0));imp_otros=int(_sv("t_otros",0));imp_pct=float(_sv("t_pct",0.0))
+        total_imp_manual=imp_renta+imp_iva+imp_ica+imp_retencion+imp_otros
 
         st.markdown('<div style="height:10px"></div>', unsafe_allow_html=True)
 
@@ -1336,7 +1373,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 },
                 tx_items={
                     "Renta":imp_renta*f,"IVA":imp_iva*f,"ICA":imp_ica*f,
-                    f"Ret.Fte.":imp_retencion*f,"Otros":imp_otros*f,
+                    "Ret.Fte.":imp_retencion*f,"Otros":imp_otros*f,
                     f"Auto {imp_pct}%":imp_auto,
                 },
             )
