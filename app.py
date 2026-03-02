@@ -17,34 +17,43 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
-/* ── TOKENS DE DISEÑO ── */
+/* ── TOKENS DE DISEÑO PURPLE INFOGRAPHIC ── */
 :root {
-    --bg:          #0b0d16;
-    --bg-card:     #12151f;
-    --bg-card-2:   #161929;
-    --bg-hover:    #1e2438;
-    --border:      #252d42;
-    --border-2:    #2e3650;
-    --primary:     #5b6cfc;
-    --primary-2:   #7c3aed;
-    --primary-glow:rgba(91,108,252,0.18);
-    --accent:      #00d4ff;
-    --success:     #10b981;
-    --warning:     #f59e0b;
-    --danger:      #ef4444;
-    --gold:        #f0c060;
-    --text-1:      #e8ecf7;
-    --text-2:      #a8b4d0;
-    --text-3:      #6b7a9e;
-    --font-display:'Plus Jakarta Sans', sans-serif;
-    --font-body:   'DM Sans', sans-serif;
-    --font-mono:   'DM Mono', monospace;
-    --r-sm:        10px;
-    --r-md:        14px;
-    --r-lg:        18px;
-    --r-xl:        22px;
-    --shadow:      0 4px 24px rgba(0,0,0,0.4);
-    --shadow-glow: 0 0 32px rgba(91,108,252,0.12);
+    --bg:           #0d0a1a;
+    --bg-deep:      #080612;
+    --bg-card:      #13102a;
+    --bg-card-2:    #1a1535;
+    --bg-card-3:    #201a40;
+    --bg-hover:     #211c42;
+    --border:       #2e2558;
+    --border-2:     #3d3470;
+    --border-glow:  rgba(139,92,246,0.35);
+    --primary:      #7c3aed;
+    --primary-2:    #9333ea;
+    --primary-3:    #a855f7;
+    --magenta:      #e040fb;
+    --pink:         #f472b6;
+    --cyan:         #22d3ee;
+    --orange:       #fb923c;
+    --success:      #34d399;
+    --warning:      #fbbf24;
+    --danger:       #f87171;
+    --gold:         #fcd34d;
+    --glow-purple:  rgba(124,58,237,0.2);
+    --glow-magenta: rgba(224,64,251,0.15);
+    --text-1:       #f0ecff;
+    --text-2:       #b8b0d8;
+    --text-3:       #8878b8;
+    --font-display: 'Plus Jakarta Sans', sans-serif;
+    --font-body:    'DM Sans', sans-serif;
+    --font-mono:    'DM Mono', monospace;
+    --r-sm:  10px;
+    --r-md:  14px;
+    --r-lg:  18px;
+    --r-xl:  24px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.5);
+    --shadow-card: 0 2px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+    --shadow-glow: 0 0 40px rgba(124,58,237,0.18);
 }
 
 /* ── BASE ── */
@@ -52,75 +61,94 @@ html, body, [class*="css"] {
     font-family: var(--font-body);
     color: var(--text-1);
 }
+
 .stApp {
-    background-color: var(--bg);
+    background-color: var(--bg-deep);
     background-image:
-        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(91,108,252,0.07) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(124,58,237,0.05) 0%, transparent 60%);
+        radial-gradient(ellipse 90% 60% at 15% 0%,   rgba(124,58,237,0.22)  0%, transparent 55%),
+        radial-gradient(ellipse 70% 50% at 85% 0%,   rgba(168,85,247,0.12)  0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 50% 100%, rgba(224,64,251,0.10)  0%, transparent 55%),
+        radial-gradient(ellipse 40% 30% at 100% 50%, rgba(34,211,238,0.06)  0%, transparent 45%);
 }
 .block-container { padding: 1.4rem 2rem; max-width: 100% !important; }
 
 /* ── SIDEBAR ── */
 section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0e1020 0%, #0b0d16 100%);
+    background: linear-gradient(180deg, #100d22 0%, #0d0a1a 60%, #080612 100%);
     border-right: 1px solid var(--border);
-    box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+    box-shadow: 4px 0 32px rgba(0,0,0,0.5);
 }
-section[data-testid="stSidebar"] * { color: #c8d4f0 !important; }
+section[data-testid="stSidebar"] * { color: var(--text-1) !important; }
 section[data-testid="stSidebar"] .stRadio label {
-    padding: 8px 14px !important;
+    padding: 8px 12px !important;
     border-radius: var(--r-sm) !important;
-    transition: background 0.2s !important;
-    font-size: 0.84rem !important;
+    transition: all 0.2s !important;
+    font-size: 0.83rem !important;
     font-weight: 500 !important;
+    color: var(--text-2) !important;
 }
 section[data-testid="stSidebar"] .stRadio label:hover {
-    background: var(--bg-hover) !important;
+    background: rgba(124,58,237,0.15) !important;
+    color: var(--text-1) !important;
 }
 
 /* ── TIPOGRAFÍA ── */
 h1, h2, h3, .display {
     font-family: var(--font-display) !important;
     letter-spacing: -0.02em;
+    color: var(--text-1) !important;
 }
 
-/* ── TARJETAS KPI ── */
+/* ══════════════════════════════════════
+   TARJETAS KPI — estilo cuadrito premium
+══════════════════════════════════════ */
 .kpi {
-    background: var(--bg-card);
+    background: linear-gradient(145deg, var(--bg-card-2) 0%, var(--bg-card) 100%);
     border: 1px solid var(--border);
     border-radius: var(--r-lg);
     padding: 20px 16px;
     text-align: center;
     position: relative;
     overflow: hidden;
-    transition: transform 0.18s, box-shadow 0.18s;
-    box-shadow: var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    box-shadow: var(--shadow-card);
 }
-.kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow); }
+/* Textura cuadrícula sutil */
+.kpi::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    border-radius: var(--r-lg);
+}
+/* Brillo superior */
 .kpi::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
     border-radius: var(--r-lg) var(--r-lg) 0 0;
+    z-index: 1;
 }
-.kpi::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,255,255,0.025) 0%, transparent 70%);
-    pointer-events: none;
+.kpi:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-2);
+    box-shadow: var(--shadow-glow);
 }
-.kpi.gold::before   { background: linear-gradient(90deg, #f0c060, #fde68a); }
+.kpi.gold::before   { background: linear-gradient(90deg, #f59e0b, #fcd34d, #fb923c); }
 .kpi.green::before  { background: linear-gradient(90deg, #10b981, #34d399); }
 .kpi.red::before    { background: linear-gradient(90deg, #ef4444, #f87171); }
-.kpi.blue::before   { background: linear-gradient(90deg, #5b6cfc, #7c8ffd); }
-.kpi.purple::before { background: linear-gradient(90deg, #7c3aed, #9d6ffd); }
-.kpi.cyan::before   { background: linear-gradient(90deg, #00d4ff, #6aeeff); }
+.kpi.blue::before   { background: linear-gradient(90deg, var(--primary), var(--primary-3)); }
+.kpi.purple::before { background: linear-gradient(90deg, var(--primary-2), var(--magenta)); }
+.kpi.cyan::before   { background: linear-gradient(90deg, var(--cyan), #67e8f9); }
 
 .kpi-num {
     font-family: var(--font-display);
-    font-size: 1.85rem;
+    font-size: 1.8rem;
     font-weight: 800;
     color: var(--text-1);
     margin: 8px 0 4px;
@@ -129,17 +157,19 @@ h1, h2, h3, .display {
 }
 .kpi-label {
     font-family: var(--font-body);
-    font-size: 0.68rem;
+    font-size: 0.67rem;
     color: var(--text-2);
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
 }
-.kpi-sub { font-size: 0.78rem; color: var(--success); font-weight: 500; margin-top: 6px; }
+.kpi-sub { font-size: 0.77rem; color: var(--success); font-weight: 500; margin-top: 5px; }
 
-/* ── TARJETA PRODUCTO ── */
+/* ══════════════════════════════════════
+   CARDS SECCIÓN — cuadrícula premium
+══════════════════════════════════════ */
 .prod-card {
-    background: var(--bg-card);
+    background: linear-gradient(135deg, var(--bg-card-2) 0%, var(--bg-card) 100%);
     border: 1px solid var(--border);
     border-radius: var(--r-md);
     padding: 14px 16px;
@@ -147,9 +177,22 @@ h1, h2, h3, .display {
     display: flex;
     align-items: center;
     gap: 14px;
-    transition: background 0.2s, border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+    box-shadow: var(--shadow-card);
 }
-.prod-card:hover { background: var(--bg-hover); border-color: var(--border-2); }
+.prod-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 16px 16px;
+    pointer-events: none;
+}
+.prod-card:hover { border-color: var(--border-glow); transform: translateX(3px); }
 .prod-rank {
     font-family: var(--font-display);
     font-size: 1.5rem;
@@ -157,66 +200,82 @@ h1, h2, h3, .display {
     color: var(--gold);
     min-width: 36px;
 }
-.prod-name { font-size: 0.88rem; font-weight: 600; color: var(--text-1); }
-.prod-val  { font-size: 0.76rem; color: var(--text-2); margin-top: 2px; }
+.prod-name { font-size: 0.87rem; font-weight: 600; color: var(--text-1); }
+.prod-val  { font-size: 0.75rem; color: var(--text-2); margin-top: 2px; }
 
 /* ── ALERTAS ── */
 .alerta-r {
-    background: rgba(239,68,68,0.07);
-    border: 1px solid rgba(239,68,68,0.25);
-    border-left: 3px solid #ef4444;
+    background: rgba(248,113,113,0.07);
+    border: 1px solid rgba(248,113,113,0.22);
+    border-left: 3px solid #f87171;
     border-radius: var(--r-sm);
     padding: 10px 14px;
     margin: 5px 0;
-    font-size: 0.83rem;
+    font-size: 0.82rem;
     color: var(--text-1);
-    font-family: var(--font-body);
 }
 .alerta-a {
-    background: rgba(245,158,11,0.07);
-    border: 1px solid rgba(245,158,11,0.22);
-    border-left: 3px solid #f59e0b;
+    background: rgba(251,191,36,0.07);
+    border: 1px solid rgba(251,191,36,0.2);
+    border-left: 3px solid #fbbf24;
     border-radius: var(--r-sm);
     padding: 10px 14px;
     margin: 5px 0;
-    font-size: 0.83rem;
+    font-size: 0.82rem;
     color: var(--text-1);
 }
 
 /* ── INSIGHT CARD ── */
 .insight {
-    background: var(--bg-card);
+    background: linear-gradient(135deg, var(--bg-card-2), var(--bg-card));
     border: 1px solid var(--border);
     border-radius: var(--r-md);
     padding: 18px;
     margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+}
+.insight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+    background-size: 18px 18px;
+    pointer-events: none;
 }
 .insight-titulo {
     font-family: var(--font-display);
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     color: var(--gold);
     font-weight: 700;
     margin-bottom: 7px;
     letter-spacing: -0.01em;
 }
-.insight-texto { font-size: 0.84rem; color: var(--text-2); line-height: 1.65; }
+.insight-texto { font-size: 0.83rem; color: var(--text-2); line-height: 1.65; }
 
 /* ── BADGES ── */
-.badge-r  { background:rgba(239,68,68,0.12); color:#f87171; border:1px solid rgba(239,68,68,0.3); border-radius:20px; padding:2px 10px; font-size:0.71rem; font-weight:700; font-family:var(--font-body); }
-.badge-a  { background:rgba(245,158,11,0.12); color:#fbbf24; border:1px solid rgba(245,158,11,0.3); border-radius:20px; padding:2px 10px; font-size:0.71rem; font-weight:700; font-family:var(--font-body); }
-.badge-v  { background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.3); border-radius:20px; padding:2px 10px; font-size:0.71rem; font-weight:700; font-family:var(--font-body); }
-.badge-g  { background:rgba(240,192,96,0.12); color:#fde68a; border:1px solid rgba(240,192,96,0.3); border-radius:20px; padding:2px 10px; font-size:0.71rem; font-weight:700; font-family:var(--font-body); }
+.badge-r { background:rgba(248,113,113,0.12); color:#fca5a5; border:1px solid rgba(248,113,113,0.3); border-radius:20px; padding:2px 10px; font-size:0.7rem; font-weight:700; }
+.badge-a { background:rgba(251,191,36,0.12);  color:#fef08a; border:1px solid rgba(251,191,36,0.3);  border-radius:20px; padding:2px 10px; font-size:0.7rem; font-weight:700; }
+.badge-v { background:rgba(52,211,153,0.12);  color:#6ee7b7; border:1px solid rgba(52,211,153,0.3);  border-radius:20px; padding:2px 10px; font-size:0.7rem; font-weight:700; }
+.badge-g { background:rgba(252,211,77,0.12);  color:#fef08a; border:1px solid rgba(252,211,77,0.3);  border-radius:20px; padding:2px 10px; font-size:0.7rem; font-weight:700; }
 
 /* ── SECCIÓN TÍTULO ── */
 .seccion-titulo {
     font-family: var(--font-display);
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: 1.2rem;
+    font-weight: 800;
     color: var(--text-1);
     border-bottom: 1px solid var(--border);
     padding-bottom: 10px;
-    margin: 24px 0 16px 0;
+    margin: 22px 0 15px 0;
     letter-spacing: -0.02em;
+    background: linear-gradient(90deg, #f0ecff, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 /* ── TABS STREAMLIT ── */
@@ -232,25 +291,24 @@ h1, h2, h3, .display {
     border-radius: var(--r-sm) !important;
     color: var(--text-2) !important;
     font-family: var(--font-body) !important;
-    font-size: 0.82rem !important;
+    font-size: 0.81rem !important;
     font-weight: 600 !important;
-    padding: 8px 16px !important;
+    padding: 8px 14px !important;
     transition: all 0.18s !important;
 }
 .stTabs [aria-selected="true"] {
-    background: linear-gradient(135deg, var(--primary), var(--primary-2)) !important;
+    background: linear-gradient(135deg, var(--primary), var(--magenta)) !important;
     color: #fff !important;
-    box-shadow: 0 2px 12px rgba(91,108,252,0.35) !important;
+    box-shadow: 0 2px 16px rgba(124,58,237,0.4) !important;
 }
 
-/* ── INPUTS & SELECTS ── */
+/* ── INPUTS ── */
 .stSelectbox > div > div,
 .stMultiSelect > div > div {
     background: var(--bg-card) !important;
     border: 1px solid var(--border) !important;
     border-radius: var(--r-sm) !important;
     color: var(--text-1) !important;
-    font-family: var(--font-body) !important;
 }
 .stNumberInput > div > div > input,
 .stTextInput > div > div > input {
@@ -263,23 +321,24 @@ h1, h2, h3, .display {
 
 /* ── BOTONES ── */
 .stButton > button {
-    background: linear-gradient(135deg, var(--primary), var(--primary-2)) !important;
+    background: linear-gradient(135deg, var(--primary), var(--magenta)) !important;
     border: none !important;
     border-radius: var(--r-sm) !important;
     color: #fff !important;
     font-family: var(--font-body) !important;
-    font-weight: 600 !important;
-    font-size: 0.84rem !important;
+    font-weight: 700 !important;
+    font-size: 0.83rem !important;
     padding: 9px 20px !important;
     transition: all 0.18s !important;
-    box-shadow: 0 2px 12px rgba(91,108,252,0.25) !important;
+    box-shadow: 0 2px 16px rgba(124,58,237,0.3) !important;
+    letter-spacing: 0.02em !important;
 }
 .stButton > button:hover {
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 20px rgba(91,108,252,0.4) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 24px rgba(224,64,251,0.4) !important;
 }
 
-/* ── TABLA / DATAFRAME ── */
+/* ── TABLA ── */
 .stDataFrame {
     border-radius: var(--r-lg) !important;
     overflow: hidden !important;
@@ -291,7 +350,6 @@ h1, h2, h3, .display {
     background: var(--bg-card) !important;
     border: 2px dashed var(--border-2) !important;
     border-radius: var(--r-lg) !important;
-    transition: border-color 0.2s !important;
 }
 .stFileUploader:hover { border-color: var(--primary) !important; }
 
@@ -300,6 +358,7 @@ h1, h2, h3, .display {
     background: var(--bg-card) !important;
     border: 1px solid var(--border) !important;
     border-radius: var(--r-md) !important;
+    box-shadow: var(--shadow-card) !important;
 }
 
 /* ── MÉTRICAS ── */
@@ -313,52 +372,36 @@ div[data-testid="stMetricLabel"] {
     color: var(--text-2) !important;
 }
 
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--primary); }
-
-/* ── DIVIDER ── */
-hr { border-color: var(--border) !important; }
-
-
-/* ── LEGIBILIDAD FORZADA EN WIDGETS STREAMLIT ── */
+/* ── LEGIBILIDAD WIDGETS ── */
 label, .stRadio label, .stSelectbox label, .stMultiSelect label,
 .stNumberInput label, .stTextInput label, .stSlider label,
 div[data-testid="stWidgetLabel"] p,
-div[data-testid="stWidgetLabel"],
-.stRadio > label, p, li {
-    color: #c8d4f0 !important;
+div[data-testid="stWidgetLabel"], p, li {
+    color: #d4ccf0 !important;
     font-family: var(--font-body) !important;
 }
 .stRadio [data-testid="stMarkdownContainer"] p {
-    color: #c8d4f0 !important;
-    font-size: 0.86rem !important;
+    color: #d4ccf0 !important;
+    font-size: 0.85rem !important;
     font-weight: 500 !important;
 }
-/* Opciones de radio más visibles */
-.stRadio div[role="radiogroup"] label span {
-    color: #c8d4f0 !important;
-}
-/* Selectbox texto */
+.stRadio div[role="radiogroup"] label span { color: #d4ccf0 !important; }
 .stSelectbox div[data-baseweb="select"] span,
-.stSelectbox div[data-baseweb="select"] div {
-    color: #e8ecf7 !important;
-}
-/* Captions / st.caption */
-small, .stCaption, div[data-testid="stCaptionContainer"] {
-    color: #8892b0 !important;
-}
-/* Expander header */
+.stSelectbox div[data-baseweb="select"] div { color: #f0ecff !important; }
+small, .stCaption, div[data-testid="stCaptionContainer"] { color: #a098c8 !important; }
 .stExpander summary p, .stExpander details summary span {
-    color: #c8d4f0 !important;
+    color: #d4ccf0 !important;
     font-weight: 600 !important;
 }
-/* Tab text no activo */
-.stTabs [data-baseweb="tab"] { color: #a8b4d0 !important; }
+.stTabs [data-baseweb="tab"] { color: #b0a8d8 !important; }
 
-/* ── HIDE STREAMLIT UI ── */
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+hr { border-color: var(--border) !important; }
 #MainMenu, footer, header { visibility: hidden; }
 .stDeployButton { display: none; }
 </style>
@@ -432,13 +475,13 @@ def kpi(color, label, num, sub=""):
 PLOT_LAYOUT = dict(
     plot_bgcolor='rgba(0,0,0,0)',
     paper_bgcolor='rgba(0,0,0,0)',
-    font=dict(family='DM Sans', color='#8892b0', size=12),
-    title_font=dict(family='Plus Jakarta Sans', color='#e8ecf7', size=15),
-    legend=dict(font=dict(color='#8892b0', size=11), bgcolor='rgba(0,0,0,0)'),
+    font=dict(family='DM Sans', color='#d4ccf0', size=12),
+    title_font=dict(family='Plus Jakarta Sans', color='#f0ecff', size=15),
+    legend=dict(font=dict(color='#c8c0e8', size=11), bgcolor='rgba(0,0,0,0)'),
     margin=dict(l=10, r=10, t=48, b=10)
 )
-AXIS_STYLE = dict(gridcolor='#1e2337', linecolor='#1e2337', tickfont=dict(color='#7a8aaa', family='DM Mono'))
-COLORES_ELEGANTES = ['#5b6cfc','#10b981','#f0c060','#ef4444','#00d4ff','#7c3aed','#f59e0b','#ec4899','#14b8a6','#f97316']
+AXIS_STYLE = dict(gridcolor='#2e2558', linecolor='#2e2558', tickfont=dict(color='#a098c8', family='DM Mono'))
+COLORES_ELEGANTES = ['#a855f7','#34d399','#fcd34d','#f87171','#22d3ee','#e040fb','#fbbf24','#f472b6','#14b8a6','#fb923c']
 
 # ═══════════════════════════════════════════════════════════
 # SIDEBAR
@@ -448,13 +491,13 @@ with st.sidebar:
     <div style="padding:22px 12px 14px;text-align:center">
         <div style="display:inline-flex;align-items:center;justify-content:center;
                     width:52px;height:52px;border-radius:14px;margin-bottom:12px;
-                    background:linear-gradient(135deg,#5b6cfc 0%,#7c3aed 100%);
-                    box-shadow:0 8px 28px rgba(91,108,252,0.4)">
+                    background:linear-gradient(135deg,#7c3aed 0%,#e040fb 100%);
+                    box-shadow:0 8px 32px rgba(168,85,247,0.5)">
             <span style="font-size:1.5rem;line-height:1">🌐</span>
         </div>
         <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.45rem;font-weight:800;
                     color:#e8ecf7;letter-spacing:-0.03em;line-height:1;margin-bottom:5px">
-            Visió<span style="background:linear-gradient(90deg,#5b6cfc,#00d4ff);
+            Visió<span style="background:linear-gradient(90deg,#c084fc,#e040fb);
                               -webkit-background-clip:text;-webkit-text-fill-color:transparent;
                               background-clip:text">N360</span>
         </div>
@@ -511,7 +554,7 @@ with st.sidebar:
         st.markdown(f'''
         <div style="background:rgba(6,182,212,0.1);border:1px solid #00d4ff;border-radius:8px;
                     padding:8px 12px;margin:6px 0;font-size:0.8rem;color:#6aeeff;font-weight:600">
-            🚦 Monitor activo
+            🚦 <span style="color:#c084fc;font-weight:700">Monitor activo</span>
         </div>''', unsafe_allow_html=True)
 
     st.markdown("<hr style='border-color:#1e2337;margin:16px 0'>", unsafe_allow_html=True)
@@ -599,7 +642,7 @@ if archivo is None:
         '<div style="font-family:Plus Jakarta Sans,sans-serif;font-size:3.2rem;font-weight:800;'
         'color:#e8ecf7;letter-spacing:-0.03em;line-height:1;margin-bottom:10px">'
         'Visi&#243;'
-        '<span style="background:linear-gradient(90deg,#5b6cfc,#00d4ff);'
+        '<span style="background:linear-gradient(90deg,#c084fc,#e040fb);'
         '-webkit-background-clip:text;-webkit-text-fill-color:transparent;'
         'background-clip:text">N360</span>'
         '</div>'
@@ -610,7 +653,7 @@ if archivo is None:
         '</div>'
 
         '<div style="width:60px;height:2px;'
-        'background:linear-gradient(90deg,#5b6cfc,#00d4ff);'
+        'background:linear-gradient(90deg,#c084fc,#e040fb);'
         'border-radius:2px;margin-bottom:36px"></div>'
 
         '<div style="font-size:0.95rem;color:#a8b4d0;max-width:380px;line-height:1.9;'
@@ -702,7 +745,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
 
     st.markdown(
         f'<div style="margin-bottom:28px;background:linear-gradient(135deg,#12151f,#161929);'
-        f'border:1px solid #1e2337;border-radius:16px;padding:24px 28px">'
+        f'border:1px solid #2e2558;border-radius:16px;padding:24px 28px">'
         f'<div style="display:flex;align-items:center;gap:16px">'
         f'<div style="width:4px;height:54px;background:{op_color};border-radius:4px"></div>'
         f'<div>'
@@ -920,7 +963,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             col_m1, col_m2, col_m3 = st.columns(3)
 
             with col_m1:
-                st.markdown('<div style="font-size:0.72rem;color:#f0c060;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">📣 MARKETING</div>', unsafe_allow_html=True)
+                st.markdown('<div style="font-size:0.72rem;color:#fcd34d;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">📣 MARKETING</div>', unsafe_allow_html=True)
                 pauta        = st.number_input("Pauta (Ads)",         0, 500000000, 0, 100000, key="m_pauta",      format="%d")
                 lucid_bot    = st.number_input("Lucid Bot",           0, 50000000,  0, 10000,  key="m_lucidbot",   format="%d")
                 open_ia      = st.number_input("Open IA",             0, 20000000,  0, 10000,  key="m_openia",     format="%d")
@@ -929,10 +972,10 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 plat_spy     = st.number_input("Plataformas Spy",     0, 10000000,  0, 10000,  key="m_platspy",    format="%d")
                 dominios     = st.number_input("Dominios / GoDaddy",  0, 5000000,   0, 10000,  key="m_dominios",   format="%d")
                 total_mkt    = pauta+lucid_bot+open_ia+luci_voice+contingencias+plat_spy+dominios
-                st.markdown(f'<div style="background:rgba(201,168,76,0.1);border-radius:6px;padding:8px;text-align:center;color:#fde68a;font-size:0.85rem"><b>Total: {fmt_money(total_mkt)}</b></div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="background:rgba(201,168,76,0.1);border-radius:6px;padding:8px;text-align:center;color:#fef08a;font-size:0.85rem"><b>Total: {fmt_money(total_mkt)}</b></div>', unsafe_allow_html=True)
 
             with col_m2:
-                st.markdown('<div style="font-size:0.72rem;color:#5b6cfc;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">🏢 ADMINISTRATIVOS</div>', unsafe_allow_html=True)
+                st.markdown('<div style="font-size:0.72rem;color:#a855f7;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">🏢 ADMINISTRATIVOS</div>', unsafe_allow_html=True)
                 adm_coord    = st.number_input("Coord Leidy",             0, 20000000, 0, 100000, key="a_coord",   format="%d")
                 adm_logis    = st.number_input("Samanta Logística",       0, 20000000, 0, 100000, key="a_logis",   format="%d")
                 adm_sandra   = st.number_input("Sandra Confirmación",     0, 20000000, 0, 100000, key="a_sandra",  format="%d")
@@ -942,7 +985,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 st.markdown(f'<div style="background:rgba(99,102,241,0.1);border-radius:6px;padding:8px;text-align:center;color:#a5b4fc;font-size:0.85rem"><b>Total: {fmt_money(total_adm)}</b></div>', unsafe_allow_html=True)
 
             with col_m3:
-                st.markdown('<div style="font-size:0.72rem;color:#00d4ff;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">📦 IMPORTACIONES</div>', unsafe_allow_html=True)
+                st.markdown('<div style="font-size:0.72rem;color:#22d3ee;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">📦 IMPORTACIONES</div>', unsafe_allow_html=True)
                 imp_compras  = st.number_input("Importaciones & Compras", 0, 200000000, 0, 100000, key="i_comp",   format="%d")
                 imp_sky      = st.number_input("Sky Carga USA-Col",       0, 50000000,  0, 100000, key="i_sky",    format="%d")
                 imp_tax8     = st.number_input("Impuesto 8x1000",         0, 5000000,   0, 10000,  key="i_tax8",   format="%d")
@@ -1078,7 +1121,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
 
             h = (
                 f'<div style="overflow-x:auto;border-radius:10px;border:2px solid #1e2337;margin-top:10px">'
-                f'<table style="width:100%;border-collapse:collapse;background:#0b0d16;'
+                f'<table style="width:100%;border-collapse:collapse;background:#0d0a1a;'
                 f'font-family:DM Sans,sans-serif">'
                 f'<thead><tr style="background:#0d0c18">'
                 f'<th style="{HDRL}">Concepto</th>{hdr_cols}'
@@ -1140,7 +1183,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         with st.expander("⚙️ Configurar Impuestos · Red de Inversión · Ingresos adicionales", expanded=False):
             ci1,ci2,ci3 = st.columns(3)
             with ci1:
-                st.markdown('<div style="font-size:0.7rem;color:#f0c060;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">📊 IMPUESTOS</div>', unsafe_allow_html=True)
+                st.markdown('<div style="font-size:0.7rem;color:#fcd34d;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">📊 IMPUESTOS</div>', unsafe_allow_html=True)
                 imp_tasa = st.number_input("% Impuesto aplicable", 0.0, 50.0,
                                            float(st.session_state.get('pg_imp_tasa',8.0)), step=0.5, key="pg_imp_tasa",
                                            help="Ej: 8% retención, 19% IVA, etc.")
@@ -1149,7 +1192,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                                            help="Ej: 80% excluido → impuesto sobre el 20% restante")
                 st.caption(f"Impuesto efectivo: {imp_tasa * (1-iva_excl/100):.2f}% del total")
             with ci2:
-                st.markdown('<div style="font-size:0.7rem;color:#5b6cfc;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">🌐 RED DE INVERSIÓN</div>', unsafe_allow_html=True)
+                st.markdown('<div style="font-size:0.7rem;color:#a855f7;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">🌐 RED DE INVERSIÓN</div>', unsafe_allow_html=True)
                 red_inv = st.number_input("% Red de Inversión", 0.0, 50.0,
                                           float(st.session_state.get('pg_red_inv',0.0)), step=0.5, key="pg_red_inv",
                                           help="% del EBITDA destinado a red de inversión o socios")
@@ -1275,7 +1318,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             st.markdown(
                 '<div style="background:rgba(139,92,246,0.08);border:1px solid #7c3aed33;'
                 'border-radius:14px;padding:18px 22px;margin-bottom:18px">'
-                '<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:#7c3aed;font-size:0.92rem;margin-bottom:6px">'
+                '<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:#9333ea;font-size:0.92rem;margin-bottom:6px">'
                 '🟣 Proyección Autónoma — No depende de tu Excel</div>'
                 '<div style="color:#a8b4d0;font-size:0.78rem">Calculada con estacionalidad del mercado colombiano/chileno, '
                 'eventos comerciales del año y el promedio base que configures. '
@@ -1362,7 +1405,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 _ev_lbl = _fila["evento"][0] if _fila["evento"] else ""
                 with _th_c1[_ci + 1]:
                     st.markdown(
-                        f'<div style="text-align:center;background:#12151f;border-radius:8px;padding:6px 4px;'
+                        f'<div style="text-align:center;background:#13102a;border-radius:8px;padding:6px 4px;'
                         f'border:1px solid {_col_ev}55">'
                         f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-size:0.72rem;color:#e8ecf7;font-weight:800">{_fila["label"]}</div>'
                         f'<div style="font-size:0.58rem;color:{"#ef4444" if _fila["pct_vs_base"]>15 else "#10b981" if _fila["pct_vs_base"]>0 else "#8892b0"}">'
@@ -1377,19 +1420,19 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             # Fila: ventas proyectadas
             _row_c1 = st.columns(_col_w_c1)
             with _row_c1[0]:
-                st.markdown('<div style="font-size:0.72rem;color:#7c3aed;font-weight:700;padding:4px 0">💰 Ventas proyectadas</div>', unsafe_allow_html=True)
+                st.markdown('<div style="font-size:0.72rem;color:#9333ea;font-weight:700;padding:4px 0">💰 Ventas proyectadas</div>', unsafe_allow_html=True)
             for _ci, _fila in enumerate(_filas_c1):
                 with _row_c1[_ci + 1]:
                     st.markdown(
                         f'<div style="text-align:center;padding:4px 2px">'
-                        f'<div style="font-size:0.76rem;color:#7c3aed;font-weight:800">{fmt_money(_fila["venta"])}</div>'
+                        f'<div style="font-size:0.76rem;color:#9333ea;font-weight:800">{fmt_money(_fila["venta"])}</div>'
                         f'</div>', unsafe_allow_html=True
                     )
 
             # Fila: factor estacional
             _row_c1b = st.columns(_col_w_c1)
             with _row_c1b[0]:
-                st.markdown('<div style="font-size:0.72rem;color:#f0c060;font-weight:700;padding:4px 0">📊 Factor estacional</div>', unsafe_allow_html=True)
+                st.markdown('<div style="font-size:0.72rem;color:#fcd34d;font-weight:700;padding:4px 0">📊 Factor estacional</div>', unsafe_allow_html=True)
             for _ci, _fila in enumerate(_filas_c1):
                 _fc = "#ef4444" if _fila["factor"] >= 1.3 else "#f59e0b" if _fila["factor"] >= 1.1 else "#10b981" if _fila["factor"] >= 1.0 else "#8892b0"
                 with _row_c1b[_ci + 1]:
@@ -1418,7 +1461,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             # Línea base
             _fig_c1.add_hline(
                 y=_base_c1 / 1e6, line_dash="dot", line_color="#7c3aed",
-                annotation_text=f"Base: {fmt_money(_base_c1)}", annotation_font_color="#7c3aed"
+                annotation_text=f"Base: {fmt_money(_base_c1)}", annotation_font_color="#a08afd"
             )
             _fig_c1.update_layout(
                 **PLOT_LAYOUT, height=340,
@@ -1467,7 +1510,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             st.markdown(
                 '<div style="background:rgba(139,92,246,0.05);border:1px dashed #7c3aed44;border-radius:10px;'
                 'padding:14px 18px;margin-top:14px;font-size:0.76rem;color:#a8b4d0;line-height:1.7">'
-                '🟣 <b style="color:#7c3aed">Esta proyección es estable y estratégica.</b> '
+                '🟣 <b style="color:#9333ea">Esta proyección es estable y estratégica.</b> '
                 'No importa si mañana cambias el Excel — los factores estacionales del mercado no cambian. '
                 'Úsala para planificar importaciones, pauta y personal con 2-3 meses de anticipación.</div>',
                 unsafe_allow_html=True
@@ -1506,7 +1549,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
 
                 # ── BLOQUE: PUNTO DE PARTIDA ──
                 st.markdown(
-                    '<div style="background:linear-gradient(135deg,#12151f,#161929);border:1px solid #1e2337;'
+                    '<div style="background:linear-gradient(135deg,#12151f,#161929);border:1px solid #2e2558;'
                     'border-radius:14px;padding:20px 24px;margin-bottom:20px">'
                     '<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:#e8ecf7;font-size:0.92rem;margin-bottom:14px">'
                     '📍 Punto de Partida — ¿desde dónde proyectamos?</div>',
@@ -1518,14 +1561,14 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     st.markdown(
                         f'<div style="text-align:center">'
                         f'<div style="font-size:0.6rem;color:#a8b4d0;font-weight:800;text-transform:uppercase;margin-bottom:4px">Último mes ({mes_actual_p})</div>'
-                        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#5b6cfc;font-size:1.2rem">{fmt_money(ult1)}</div>'
+                        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#a855f7;font-size:1.2rem">{fmt_money(ult1)}</div>'
                         f'</div>', unsafe_allow_html=True
                     )
                 with bp2:
                     st.markdown(
                         f'<div style="text-align:center">'
                         f'<div style="font-size:0.6rem;color:#a8b4d0;font-weight:800;text-transform:uppercase;margin-bottom:4px">Promedio 3 meses</div>'
-                        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#00d4ff;font-size:1.2rem">{fmt_money(ult3)}</div>'
+                        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#22d3ee;font-size:1.2rem">{fmt_money(ult3)}</div>'
                         f'<div style="font-size:0.62rem;color:#7a8aaa;margin-top:2px">entre {fmt_money(ult3_min)} y {fmt_money(ult3_max)}</div>'
                         f'</div>', unsafe_allow_html=True
                     )
@@ -1540,7 +1583,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     st.markdown(
                         f'<div style="text-align:center">'
                         f'<div style="font-size:0.6rem;color:#a8b4d0;font-weight:800;text-transform:uppercase;margin-bottom:4px">Margen promedio</div>'
-                        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#f0c060;font-size:1.2rem">{gan_pct_hist:.1f}%</div>'
+                        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#fcd34d;font-size:1.2rem">{gan_pct_hist:.1f}%</div>'
                         f'<div style="font-size:0.62rem;color:#7a8aaa;margin-top:2px">últimos 3 meses</div>'
                         f'</div>', unsafe_allow_html=True
                     )
@@ -1548,7 +1591,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
 
                 # ── CONFIGURADOR ──
                 st.markdown(
-                    '<div style="background:#12151f;border:1px solid #1e2337;border-radius:14px;'
+                    '<div style="background:#13102a;border:1px solid #2e2558;border-radius:14px;'
                     'padding:20px 24px;margin-bottom:20px">',
                     unsafe_allow_html=True
                 )
@@ -1643,7 +1686,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     with th_cols[ci+1]:
                         crec_i = (fp['Ventas'] / filas_proy[ci-1]['Ventas'] - 1)*100 if ci > 0 else crecimiento_proy
                         st.markdown(
-                            f'<div style="text-align:center;background:#12151f;border-radius:8px;padding:6px 4px;border:1px solid #1e2337">'
+                            f'<div style="text-align:center;background:#13102a;border-radius:8px;padding:6px 4px;border:1px solid #2e2558">'
                             f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-size:0.72rem;color:#e8ecf7;font-weight:800">{fp["Mes"]}</div>'
                             f'<div style="font-size:0.6rem;color:{"#10b981" if crec_i>=0 else "#ef4444"}">'
                             f'{"+" if crec_i>=0 else ""}{crec_i:.0f}% vs ant.</div>'
@@ -1762,36 +1805,36 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     st.markdown(
                         f'<div style="background:rgba(6,182,212,0.07);border:1px solid #00d4ff44;'
                         f'border-radius:12px;padding:14px;text-align:center">'
-                        f'<div style="font-size:0.6rem;color:#00d4ff;font-weight:800;text-transform:uppercase;margin-bottom:4px">🏦 Reserva operativa</div>'
+                        f'<div style="font-size:0.6rem;color:#22d3ee;font-weight:800;text-transform:uppercase;margin-bottom:4px">🏦 Reserva operativa</div>'
                         f'<div style="font-size:0.58rem;color:#7a8aaa;margin-bottom:6px">3 meses de costos fijos</div>'
-                        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#00d4ff;font-size:1rem">{fmt_money(capital_reserva)}</div>'
+                        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#22d3ee;font-size:1rem">{fmt_money(capital_reserva)}</div>'
                         f'</div>', unsafe_allow_html=True
                     )
                 with cf2:
                     st.markdown(
                         f'<div style="background:rgba(139,92,246,0.07);border:1px solid #7c3aed44;'
                         f'border-radius:12px;padding:14px;text-align:center">'
-                        f'<div style="font-size:0.6rem;color:#7c3aed;font-weight:800;text-transform:uppercase;margin-bottom:4px">📣 Capital pauta</div>'
+                        f'<div style="font-size:0.6rem;color:#9333ea;font-weight:800;text-transform:uppercase;margin-bottom:4px">📣 Capital pauta</div>'
                         f'<div style="font-size:0.58rem;color:#7a8aaa;margin-bottom:6px">Inversión publicidad mes 1</div>'
-                        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#7c3aed;font-size:1rem">{fmt_money(capital_pauta_mes)}</div>'
+                        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#9333ea;font-size:1rem">{fmt_money(capital_pauta_mes)}</div>'
                         f'</div>', unsafe_allow_html=True
                     )
                 with cf3:
                     st.markdown(
                         f'<div style="background:rgba(201,168,76,0.07);border:1px solid #f0c06044;'
                         f'border-radius:12px;padding:14px;text-align:center">'
-                        f'<div style="font-size:0.6rem;color:#f0c060;font-weight:800;text-transform:uppercase;margin-bottom:4px">📦 Capital inventario</div>'
+                        f'<div style="font-size:0.6rem;color:#fcd34d;font-weight:800;text-transform:uppercase;margin-bottom:4px">📦 Capital inventario</div>'
                         f'<div style="font-size:0.58rem;color:#7a8aaa;margin-bottom:6px">~40% ventas mes 1</div>'
-                        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#f0c060;font-size:1rem">{fmt_money(capital_inv_prod)}</div>'
+                        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#fcd34d;font-size:1rem">{fmt_money(capital_inv_prod)}</div>'
                         f'</div>', unsafe_allow_html=True
                     )
                 with cf4:
                     st.markdown(
                         f'<div style="background:rgba(99,102,241,0.12);border:2px solid #5b6cfc;'
                         f'border-radius:12px;padding:14px;text-align:center">'
-                        f'<div style="font-size:0.6rem;color:#5b6cfc;font-weight:800;text-transform:uppercase;margin-bottom:4px">💪 CAPITAL TOTAL REQ.</div>'
+                        f'<div style="font-size:0.6rem;color:#a855f7;font-weight:800;text-transform:uppercase;margin-bottom:4px">💪 CAPITAL TOTAL REQ.</div>'
                         f'<div style="font-size:0.58rem;color:#7a8aaa;margin-bottom:6px">para operar sin presión</div>'
-                        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#5b6cfc;font-size:1.1rem">{fmt_money(capital_total_req)}</div>'
+                        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#a855f7;font-size:1.1rem">{fmt_money(capital_total_req)}</div>'
                         f'</div>', unsafe_allow_html=True
                     )
 
@@ -1799,9 +1842,9 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 st.markdown(
                     f'<div style="background:rgba(99,102,241,0.05);border:1px dashed #5b6cfc44;'
                     f'border-radius:10px;padding:14px 18px;margin-top:14px;font-size:0.76rem;color:#a8b4d0;line-height:1.7">'
-                    f'💡 <b style="color:#f0c060">Diagnóstico de capacidad:</b> '
-                    f'Para sostener un crecimiento del <b style="color:#5b6cfc">{crecimiento_proy:.0f}% mensual</b> '
-                    f'durante <b style="color:#5b6cfc">{n_meses_proy} meses</b>, necesitas un músculo financiero mínimo de '
+                    f'💡 <b style="color:#fcd34d">Diagnóstico de capacidad:</b> '
+                    f'Para sostener un crecimiento del <b style="color:#a855f7">{crecimiento_proy:.0f}% mensual</b> '
+                    f'durante <b style="color:#a855f7">{n_meses_proy} meses</b>, necesitas un músculo financiero mínimo de '
                     f'<b style="color:#10b981">{fmt_money(capital_total_req)}</b>. '
                     f'Si la utilidad neta proyectada es <b style="color:{"#10b981" if total_u>=0 else "#ef4444"}">{fmt_money(total_u)}</b>, '
                     f'{"el negocio puede autofinanciarse parcialmente." if total_u > 0 else "necesitarás capital externo o reducir la tasa de crecimiento."}'
@@ -1943,21 +1986,21 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         with col_break:
             # Cabecera con explicación
             st.markdown(
-                '<div style="background:#0f0e1d;border:1px solid #1e2337;border-radius:12px;'
+                '<div style="background:#0f0e1d;border:1px solid #2e2558;border-radius:12px;'
                 'padding:14px 18px;margin-bottom:12px;margin-top:8px">'
-                '<div style="font-size:0.65rem;color:#f0c060;font-weight:800;text-transform:uppercase;'
+                '<div style="font-size:0.65rem;color:#fcd34d;font-weight:800;text-transform:uppercase;'
                 'letter-spacing:0.07em;margin-bottom:10px">🧮 Metodología matemática del Score de Salud</div>'
                 '<div style="font-size:0.7rem;color:#a8b4d0;line-height:1.7;margin-bottom:10px">'
                 'El score mide <b style="color:#e8ecf7">qué tan cerca estás de cumplir cada meta del P&G</b>, '
                 'no el valor absoluto. Para métricas donde mayor es mejor '
-                '(entrega, margen): <code style="background:#12151f;color:#5b6cfc;padding:1px 5px;border-radius:3px">Logro = Real ÷ Meta</code>. '
+                '(entrega, margen): <code style="background:#13102a;color:#a855f7;padding:1px 5px;border-radius:3px">Logro = Real ÷ Meta</code>. '
                 'Para métricas donde menor es mejor '
-                '(devolución, cancelación): <code style="background:#12151f;color:#f59e0b;padding:1px 5px;border-radius:3px">Logro = Meta ÷ Real</code>. '
-                'En ambos casos el logro se <b style="color:#f0c060">limita a máximo 1.0</b>.</div>'
-                '<div style="background:#12151f;border:1px solid #1e2337;border-radius:8px;'
+                '(devolución, cancelación): <code style="background:#13102a;color:#f59e0b;padding:1px 5px;border-radius:3px">Logro = Meta ÷ Real</code>. '
+                'En ambos casos el logro se <b style="color:#fcd34d">limita a máximo 1.0</b>.</div>'
+                '<div style="background:#13102a;border:1px solid #2e2558;border-radius:8px;'
                 'padding:10px 14px;margin-bottom:10px;font-size:0.68rem;color:#a8b4d0;line-height:1.9">'
-                '<b style="color:#f0c060">Fórmula:</b><br>'
-                '<code style="color:#00d4ff">Score = min(Ent/MetaEnt,1)×30 + min(Mrg/MetaMrg,1)×30 '
+                '<b style="color:#fcd34d">Fórmula:</b><br>'
+                '<code style="color:#22d3ee">Score = min(Ent/MetaEnt,1)×30 + min(Mrg/MetaMrg,1)×30 '
                 '+ min(MetaDev/Dev,1)×20 + min(MetaCan/Can,1)×20</code><br>'
                 '<span style="color:#7a8aaa">Rango 0-100 · </span>'
                 '<span style="color:#10b981">≥80 EXCELENTE</span>'
@@ -1967,7 +2010,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 '<span style="color:#ef4444">&lt;55 CRÍTICO</span></div>'
                 '<div style="font-size:0.67rem;color:#a8b4d0;line-height:1.6">'
                 '⚖️ <b style="color:#c8d0e8">Pesos:</b> '
-                '<span style="color:#5b6cfc">Entrega 30pts</span> — cumplimiento logístico · '
+                '<span style="color:#a855f7">Entrega 30pts</span> — cumplimiento logístico · '
                 '<span style="color:#10b981">Margen 30pts</span> — salud financiera · '
                 '<span style="color:#f59e0b">Devolución 20pts</span> — calidad producto/proceso · '
                 '<span style="color:#ef4444">Cancelación 20pts</span> — intención de compra vs operación. '
@@ -1994,7 +2037,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     f'<span style="color:{c_b};font-weight:800">{pts:.1f}/{maxpts} pts</span>'
                     f'</div>'
                     f'<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">'
-                    f'<code style="background:#12151f;color:{col_c};font-size:0.62rem;padding:1px 6px;border-radius:4px">'
+                    f'<code style="background:#13102a;color:{col_c};font-size:0.62rem;padding:1px 6px;border-radius:4px">'
                     f'Real {real:.1f}% · Meta {meta:.1f}% · Logro {formula_str} = {min(pts/maxpts,1):.2f}</code>'
                     f'<span style="font-size:0.65rem;{"color:#10b981" if cumple else "color:#ef4444"};font-weight:700">'
                     f'{"✓ META" if cumple else "✗ BAJO"}</span>'
@@ -2021,7 +2064,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 f'border:2px solid #5b6cfc;border-radius:14px;padding:14px 10px;text-align:center">'
                 f'<div style="font-size:0.62rem;color:#a8b4d0;font-weight:800;text-transform:uppercase;'
                 f'letter-spacing:0.06em;margin-bottom:4px">📦 PEDIDOS TOTALES</div>'
-                f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#5b6cfc;font-size:1.7rem;'
+                f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#a855f7;font-size:1.7rem;'
                 f'margin:2px 0;line-height:1">{n_tot:,}</div>'
                 f'<div style="font-size:0.7rem;color:{delta_col};font-weight:700;margin-top:4px">'
                 f'{delta_sym} {abs(delta_tot):,} vs mes ant.</div>'
@@ -2051,7 +2094,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         estado_pauta   = "🔴 EXCEDE el 18% de la facturación — presupuesto en riesgo" if excede_18 \
                          else "🟢 Dentro del límite saludable (≤18% de facturación)"
         st.markdown(
-            f'<div style="background:#12151f;border:1px solid {c_pauta}44;border-radius:14px;padding:18px 22px;margin-bottom:14px">'
+            f'<div style="background:#13102a;border:1px solid {c_pauta}44;border-radius:14px;padding:18px 22px;margin-bottom:14px">'
             f'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">'
             f'<div>'
             f'<div style="font-size:0.68rem;color:#a8b4d0;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Inversión real en pauta</div>'
@@ -2059,7 +2102,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             f'</div>'
             f'<div style="text-align:right">'
             f'<div style="font-size:0.68rem;color:#a8b4d0;margin-bottom:4px">Presupuesto máx. P&G</div>'
-            f'<div style="font-size:1rem;font-weight:700;color:#f0c060">{fmt_money(meta_pauta_max)}</div>'
+            f'<div style="font-size:1rem;font-weight:700;color:#fcd34d">{fmt_money(meta_pauta_max)}</div>'
             f'</div>'
             f'</div>'
             f'<div style="font-size:0.68rem;color:#a8b4d0;margin-bottom:4px">Utilizado del presupuesto P&G ({pauta_pct_ppto:.1f}%)</div>'
@@ -2105,7 +2148,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         def pub_card(titulo, subtitulo, valor_str, formula_str, color_top, nota=""):
             nota_html = f'<div style="font-size:0.65rem;color:{color_top};font-weight:700;margin-top:4px">{nota}</div>' if nota else ''
             return (
-                f'<div style="background:#12151f;border:1px solid {color_top}44;'
+                f'<div style="background:#13102a;border:1px solid {color_top}44;'
                 f'border-top:3px solid {color_top};border-radius:12px;padding:14px;text-align:center">'
                 f'<div style="font-size:0.62rem;color:#a8b4d0;font-weight:800;text-transform:uppercase;'
                 f'letter-spacing:0.05em;margin-bottom:4px;line-height:1.3">{titulo}</div>'
@@ -2287,7 +2330,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
 
             # ── HTML: DELTA como número grande, valor actual pequeño ──
             return (
-                f'<div style="background:#12151f;border:1px solid #1e2337;border-radius:14px;'
+                f'<div style="background:#13102a;border:1px solid #2e2558;border-radius:14px;'
                 f'padding:16px 12px;border-top:3px solid {color_base};text-align:center;height:100%">'
                 # Icono + título
                 f'<div style="font-size:1.3rem;margin-bottom:4px">{icono}</div>'
@@ -2329,9 +2372,9 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             unsafe_allow_html=True
         )
         st.markdown(
-            '<div style="background:#161525;border:1px solid #1e2337;border-radius:8px;padding:8px 14px;'
+            '<div style="background:#161525;border:1px solid #2e2558;border-radius:8px;padding:8px 14px;'
             'margin-bottom:10px;font-size:0.68rem;color:#a8b4d0;line-height:1.6">'
-            '💡 <b style="color:#f0c060">¿Qué son los puntos porcentuales (pp)?</b> '
+            '💡 <b style="color:#fcd34d">¿Qué son los puntos porcentuales (pp)?</b> '
             'Si la devolución era <b>8%</b> el mes anterior y ahora es <b>10%</b>, '
             'el delta es <b style="color:#ef4444">+2 pp</b> — no un "25% de aumento". '
             'Los pp miden la diferencia directa entre dos tasas. '
@@ -2411,7 +2454,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             for idx, alerta in enumerate(alertas_cmd[:6]):
                 with acols[idx % 3]:
                     st.markdown(
-                        f'<div style="background:#12151f;border:1px solid {alerta["color"]}44;'
+                        f'<div style="background:#13102a;border:1px solid {alerta["color"]}44;'
                         f'border-left:4px solid {alerta["color"]};border-radius:12px;padding:16px;margin-bottom:12px">'
                         f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
                         f'<span style="font-size:1.1rem">{alerta["icono"]}</span>'
@@ -2436,7 +2479,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         prod_top = ""
         if C_PRODUCTO in df_act.columns and C_GANANCIA in df_act.columns:
             top = df_act.groupby(C_PRODUCTO)[C_GANANCIA].sum().idxmax() if len(df_act) else ""
-            prod_top = f" Tu producto más rentable fue <b style='color:#f0c060'>{str(top)[:40]}</b>." if top else ""
+            prod_top = f" Tu producto más rentable fue <b style='color:#fcd34d'>{str(top)[:40]}</b>." if top else ""
 
         ciudad_prob = ""
         if C_CIUDAD in df_act.columns and C_ESTATUS in df_act.columns:
@@ -2459,7 +2502,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         )
 
         resumen_txt = (
-            f"Este mes llevás <b style='color:#5b6cfc'>{n_tot:,} pedidos</b> procesados, "
+            f"Este mes llevás <b style='color:#a855f7'>{n_tot:,} pedidos</b> procesados, "
             f"de los cuales <b style='color:#10b981'>{n_ent:,} fueron entregados</b> — {comparativo}. "
             f"Tu tasa de entrega es del <b style='color:#10b981'>{tasa_ent:.1f}%</b>"
             + (f", sin embargo la devolución subió al <b style='color:#f59e0b'>{tasa_dev:.1f}%</b>.{ciudad_prob}" if tasa_dev > 7 else f" con devolución controlada en {tasa_dev:.1f}%.") +
@@ -2469,7 +2512,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
 
         st.markdown(
             f'<div style="background:linear-gradient(135deg,#12151f,#161929);'
-            f'border:1px solid #1e2337;border-radius:16px;padding:24px 28px;'
+            f'border:1px solid #2e2558;border-radius:16px;padding:24px 28px;'
             f'border-left:4px solid {score_color};position:relative">'
             f'<div style="font-size:2rem;position:absolute;top:18px;right:22px;opacity:0.15">🤖</div>'
             f'<div style="font-size:0.68rem;color:#a8b4d0;font-weight:800;text-transform:uppercase;'
@@ -2647,7 +2690,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 imp_key = alerta_d.get('impacto', '')
                 imp_lbl, imp_col = impacto_badges.get(imp_key, ("📌 Alerta", "#8892b0"))
                 st.markdown(
-                    f'<div style="background:#12151f;border:1px solid {alerta_d["color"]}33;'
+                    f'<div style="background:#13102a;border:1px solid {alerta_d["color"]}33;'
                     f'border-left:4px solid {alerta_d["color"]};border-radius:12px;padding:16px 18px;margin-bottom:10px">'
                     f'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'
                     f'<div style="display:flex;align-items:center;gap:8px">'
@@ -2670,7 +2713,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         cols_dir_disponibles = [c for c in [C_DIR, C_BARRIO, C_TORRE, C_DEPTO] if c]
         if not cols_dir_disponibles:
             st.markdown(
-                '<div style="background:rgba(91,85,120,0.1);border:1px dashed #2e3650;'
+                '<div style="background:rgba(124,58,237,0.1);border:1px dashed #2e3650;'
                 'border-radius:10px;padding:14px;margin-top:10px;font-size:0.75rem;color:#a8b4d0">'
                 '📋 <b style="color:#c8d0e8">Para activar el análisis completo de direcciones</b>, '
                 'asegúrate de que tu Excel tenga columnas como: '
@@ -2680,7 +2723,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 unsafe_allow_html=True
             )
         else:
-            cols_str = " · ".join([f"<b style='color:#5b6cfc'>{c}</b>" for c in cols_dir_disponibles])
+            cols_str = " · ".join([f"<b style='color:#a855f7'>{c}</b>" for c in cols_dir_disponibles])
             st.markdown(
                 f'<div style="font-size:0.68rem;color:#7a8aaa;margin-top:6px">'
                 f'🔍 Columnas de dirección detectadas: {cols_str}</div>',
@@ -3077,7 +3120,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     c_tipo = col_tipo_colors.get(ev["tipo"], "#8892b0")
                     dia_txt = f"Día {ev['dia']}" if ev["dia"] else "Mes completo"
                     st.markdown(
-                        f'<div style="background:#12151f;border:1px solid {c_imp}33;'
+                        f'<div style="background:#13102a;border:1px solid {c_imp}33;'
                         f'border-left:4px solid {c_imp};border-radius:12px;padding:16px 18px;margin-bottom:10px">'
                         f'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'
                         f'<div style="display:flex;align-items:center;gap:10px">'
@@ -3121,12 +3164,12 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 for ri, reg in enumerate(regiones_activas[:6]):
                     with reg_cols[ri % 3]:
                         prods_html = " · ".join([
-                            f'<span style="background:#5b6cfc18;color:#5b6cfc;border:1px solid #5b6cfc33;'
+                            f'<span style="background:#5b6cfc18;color:#a855f7;border:1px solid #5b6cfc33;'
                             f'border-radius:6px;padding:1px 7px;font-size:0.62rem">{p}</span>'
                             for p in reg["info"]["prod"]
                         ])
                         st.markdown(
-                            f'<div style="background:#12151f;border:1px solid #1e2337;'
+                            f'<div style="background:#13102a;border:1px solid #2e2558;'
                             f'border-radius:12px;padding:14px;margin-bottom:10px">'
                             f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:#e8ecf7;font-size:0.8rem;margin-bottom:4px">'
                             f'📍 {reg["dep"].title()}</div>'
@@ -3189,14 +3232,14 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                         g_b = df[df[C_PRODUCTO].astype(str)==cr["prod_b"]][C_GANANCIA].mean()
                         rentabilidad = f" · Ganancia combinada est.: {fmt_money(g_a + g_b)}/par"
                     st.markdown(
-                        f'<div style="background:#12151f;border:1px solid #5b6cfc33;border-radius:10px;'
+                        f'<div style="background:#13102a;border:1px solid #5b6cfc33;border-radius:10px;'
                         f'padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px">'
                         f'<div style="background:#5b6cfc18;border-radius:8px;padding:8px 10px;'
-                        f'font-size:0.78rem;color:#5b6cfc;font-weight:700;min-width:80px;text-align:center">'
+                        f'font-size:0.78rem;color:#a855f7;font-weight:700;min-width:80px;text-align:center">'
                         f'{cr["n"]} veces</div>'
                         f'<div style="flex:1">'
                         f'<span style="font-size:0.8rem;color:#e8ecf7;font-weight:600">{str(cr["prod_a"])[:40]}</span>'
-                        f'<span style="color:#f0c060;font-size:0.9rem;margin:0 8px">+</span>'
+                        f'<span style="color:#fcd34d;font-size:0.9rem;margin:0 8px">+</span>'
                         f'<span style="font-size:0.8rem;color:#e8ecf7;font-weight:600">{str(cr["prod_b"])[:40]}</span>'
                         f'<div style="font-size:0.65rem;color:#7a8aaa;margin-top:2px">'
                         f'💡 Crea un pack combo con descuento del 10-15%{rentabilidad}</div>'
@@ -3219,16 +3262,16 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     if len(top_prods) >= 2:
                         st.markdown("<br>", unsafe_allow_html=True)
                         st.markdown(
-                            '<div style="font-size:0.75rem;color:#f0c060;font-weight:700;margin-bottom:8px">'
+                            '<div style="font-size:0.75rem;color:#fcd34d;font-weight:700;margin-bottom:8px">'
                             '💡 Packs sugeridos con tus productos más vendidos:</div>',
                             unsafe_allow_html=True
                         )
                         for i in range(0, min(len(top_prods)-1, 4), 2):
                             st.markdown(
-                                f'<div style="background:#12151f;border:1px solid #f0c06033;border-radius:10px;'
+                                f'<div style="background:#13102a;border:1px solid #f0c06033;border-radius:10px;'
                                 f'padding:12px 16px;margin-bottom:8px">'
                                 f'<span style="font-size:0.8rem;color:#e8ecf7">{top_prods[i][:40]}</span>'
-                                f'<span style="color:#f0c060;margin:0 8px">+</span>'
+                                f'<span style="color:#fcd34d;margin:0 8px">+</span>'
                                 f'<span style="font-size:0.8rem;color:#e8ecf7">{top_prods[i+1][:40]}</span>'
                                 f'<div style="font-size:0.65rem;color:#7a8aaa;margin-top:4px">'
                                 f'💡 Sugerencia: pack combo. Prueba con descuento del 10% al comprar ambos.</div>'
@@ -3309,7 +3352,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
 
             for ps in promo_sugeridas:
                 st.markdown(
-                    f'<div style="background:#12151f;border:1px solid {ps["color"]}33;'
+                    f'<div style="background:#13102a;border:1px solid {ps["color"]}33;'
                     f'border-left:4px solid {ps["color"]};border-radius:12px;padding:16px 18px;margin-bottom:10px">'
                     f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:#e8ecf7;font-size:0.85rem;margin-bottom:6px">'
                     f'{ps["tipo"]}</div>'
@@ -3350,7 +3393,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 st.markdown(
                     f'<div style="background:rgba(201,168,76,0.07);border:1px solid #f0c06033;'
                     f'border-radius:12px;padding:16px 18px;margin-bottom:12px">'
-                    f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:700;color:#f0c060;font-size:0.85rem;margin-bottom:10px">'
+                    f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:700;color:#fcd34d;font-size:0.85rem;margin-bottom:10px">'
                     f'{temp_actual["season"]}</div>'
                     f'<div style="display:flex;flex-wrap:wrap;gap:6px">',
                     unsafe_allow_html=True
@@ -3605,7 +3648,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     f'<div style="font-size:0.6rem;color:#a8b4d0;font-weight:800;text-transform:uppercase;'
                     f'letter-spacing:0.06em;margin-bottom:4px">💵 INGRESO BRUTO</div>'
                     f'<div style="font-size:0.58rem;color:#7a8aaa;margin-bottom:6px">Todos los pedidos del período</div>'
-                    f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#5b6cfc;font-size:1.15rem">{fmt_money(ingreso_bruto)}</div>'
+                    f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#a855f7;font-size:1.15rem">{fmt_money(ingreso_bruto)}</div>'
                     f'<div style="font-size:0.62rem;color:#a8b4d0;margin-top:4px">Entregados: {fmt_money(ingreso_neto)}</div>'
                     f'</div>',
                     unsafe_allow_html=True
@@ -3632,8 +3675,8 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     f'<div style="font-size:0.6rem;color:#a8b4d0;font-weight:800;text-transform:uppercase;'
                     f'letter-spacing:0.06em;margin-bottom:4px">🏛️ IMPUESTO REAL</div>'
                     f'<div style="font-size:0.58rem;color:#7a8aaa;margin-bottom:6px">Tasa efectiva: {tasa_imp_efect:.2f}%</div>'
-                    f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#f0c060;font-size:1.15rem">{fmt_money(impuesto_real)}</div>'
-                    f'<div style="font-size:0.62rem;color:#f0c060;margin-top:4px">{pct_imp_sobre_ing:.2f}% del ingreso neto</div>'
+                    f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#fcd34d;font-size:1.15rem">{fmt_money(impuesto_real)}</div>'
+                    f'<div style="font-size:0.62rem;color:#fcd34d;margin-top:4px">{pct_imp_sobre_ing:.2f}% del ingreso neto</div>'
                     f'</div>',
                     unsafe_allow_html=True
                 )
@@ -3725,8 +3768,8 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 )
 
             casc_html = (
-                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #1e2337;margin-bottom:20px">'
-                f'<table style="width:100%;border-collapse:collapse;background:#12151f;font-family:DM Sans,sans-serif">'
+                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #2e2558;margin-bottom:20px">'
+                f'<table style="width:100%;border-collapse:collapse;background:#13102a;font-family:DM Sans,sans-serif">'
                 f'<thead><tr>'
                 f'<th style="padding:12px 16px;text-align:left;color:#a8b4d0;font-size:0.68rem;text-transform:uppercase;'
                 f'letter-spacing:0.07em;border-bottom:2px solid #1e2337">Concepto</th>'
@@ -3841,7 +3884,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                         f'<div style="font-size:0.62rem;color:{col_r};font-weight:800;text-transform:uppercase;'
                         f'letter-spacing:0.05em;margin-bottom:6px;line-height:1.3">{lbl_r}</div>'
                         f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:{col_r};font-size:1rem">{fmt_money(monto_r)}</div>'
-                        f'<div style="font-size:0.7rem;color:#f0c060;font-weight:700;margin:3px 0">{pct_r*100:.0f}% de la utilidad</div>'
+                        f'<div style="font-size:0.7rem;color:#fcd34d;font-weight:700;margin:3px 0">{pct_r*100:.0f}% de la utilidad</div>'
                         f'<div style="font-size:0.62rem;color:#7a8aaa;line-height:1.4">{desc_r}</div>'
                         f'</div>'
                     )
@@ -3849,9 +3892,9 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 asesor_html += (
                     f'<div style="background:rgba(99,102,241,0.06);border:1px dashed #5b6cfc44;'
                     f'border-radius:10px;padding:12px 16px;font-size:0.75rem;color:#a8b4d0;line-height:1.7">'
-                    f'💡 <b style="color:#f0c060">Recomendación del mes:</b> '
+                    f'💡 <b style="color:#fcd34d">Recomendación del mes:</b> '
                     f'Tienes <b style="color:#10b981">{fmt_money(utilidad_neta_diag)}</b> de utilidad neta real. '
-                    f'Prioriza la <b style="color:#00d4ff">reserva de emergencia</b> si no tienes 3 meses de costos fijos '
+                    f'Prioriza la <b style="color:#22d3ee">reserva de emergencia</b> si no tienes 3 meses de costos fijos '
                     f'cubiertos ({fmt_money(cf_total * 3)} objetivo). '
                     f'El flete de devolución representa <b style="color:#f97416">{fmt_money(flete_dev)}</b> de pérdida directa — '
                     f'reducirlo un 20% liberaría <b style="color:#f97416">{fmt_money(flete_dev * 0.2)}</b> mensuales.'
@@ -3888,7 +3931,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 {"nombre": "C.E.O. - Ronaldo",       "cargo": "CEO",                 "sueldo": 0, "bonificacion": 0},
             ])
 
-            st.markdown('<div style="background:#12151f;border:1px solid #1e2337;border-radius:14px;padding:20px;margin-bottom:20px">', unsafe_allow_html=True)
+            st.markdown('<div style="background:#13102a;border:1px solid #2e2558;border-radius:14px;padding:20px;margin-bottom:20px">', unsafe_allow_html=True)
             st.markdown('<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:700;color:#e8ecf7;font-size:0.95rem;margin-bottom:16px">📝 Equipo de Trabajo</div>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -3930,11 +3973,11 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                             pct_com = 0.0
                     with c5:
                         pct_sobre_vnt = bono / ingresos * 100 if ingresos and bono else 0
-                        st.markdown(f'<div style="padding-top:8px;color:#7c3aed;font-size:0.82rem;font-weight:600">'
+                        st.markdown(f'<div style="padding-top:8px;color:#9333ea;font-size:0.82rem;font-weight:600">'
                                     f'{"" if tipo_bono=="Sin bono" else f"{pct_sobre_vnt:.2f}%"}</div>', unsafe_allow_html=True)
                     with c6:
                         total_emp = sueldo + bono
-                        st.markdown(f'<div style="padding-top:8px;color:#f0c060;font-weight:800;font-size:0.85rem">'
+                        st.markdown(f'<div style="padding-top:8px;color:#fcd34d;font-weight:800;font-size:0.85rem">'
                                     f'{fmt_money(total_emp)}</div>', unsafe_allow_html=True)
 
                     total_sueldos += sueldo
@@ -3952,7 +3995,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 f'<span style="color:#a8b4d0;font-size:0.78rem;font-weight:700">SUBTOTALES</span>'
                 f'<span style="color:#e8ecf7;font-size:0.82rem">Sueldos: <b style="color:#e8ecf7">{fmt_money(total_sueldos)}</b>'
                 f' &nbsp;+&nbsp; Bonos/Comisiones: <b style="color:#10b981">{fmt_money(total_bonos)}</b>'
-                f' &nbsp;=&nbsp; <b style="color:#f0c060;font-size:1rem">{fmt_money(total_sueldos+total_bonos)}</b></span>'
+                f' &nbsp;=&nbsp; <b style="color:#fcd34d;font-size:1rem">{fmt_money(total_sueldos+total_bonos)}</b></span>'
                 f'</div>', unsafe_allow_html=True
             )
 
@@ -3980,8 +4023,8 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             hdr_n = "background:#161525;padding:10px 14px;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#a8b4d0;border-bottom:2px solid #1e2337"
             td_n  = "padding:11px 14px;font-size:0.83rem;border-bottom:1px solid #161929"
             tabla_nom = (
-                f'<div style="overflow-x:auto;border-radius:12px;border:1px solid #1e2337;margin-bottom:20px">'
-                f'<table style="width:100%;border-collapse:collapse;background:#12151f;font-family:DM Sans,sans-serif">'
+                f'<div style="overflow-x:auto;border-radius:12px;border:1px solid #2e2558;margin-bottom:20px">'
+                f'<table style="width:100%;border-collapse:collapse;background:#13102a;font-family:DM Sans,sans-serif">'
                 f'<thead><tr>'
                 f'<th style="{hdr_n};text-align:left">Colaborador</th>'
                 f'<th style="{hdr_n};text-align:right">Sueldo Base</th>'
@@ -3998,18 +4041,18 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     f'<td style="{td_n};color:#c8d0e8;font-weight:600">{emp["nombre"]}</td>'
                     f'<td style="{td_n};text-align:right;color:#e8ecf7">{fmt_money(emp["sueldo"])}</td>'
                     f'<td style="{td_n};text-align:right;color:#10b981">{fmt_money(emp["bonificacion"])}</td>'
-                    f'<td style="{td_n};text-align:right;color:#f0c060;font-weight:700">{fmt_money(total_e)}</td>'
+                    f'<td style="{td_n};text-align:right;color:#fcd34d;font-weight:700">{fmt_money(total_e)}</td>'
                     f'<td style="{td_n};text-align:right;color:#a8b4d0">{pct_e:.1f}%</td>'
                     f'</tr>'
                 )
             # Total
             tabla_nom += (
                 f'<tr style="background:rgba(201,168,76,0.06);border-top:2px solid #f0c060">'
-                f'<td style="{td_n};color:#f0c060;font-weight:800">TOTAL NÓMINA</td>'
-                f'<td style="{td_n};text-align:right;color:#f0c060;font-weight:800">{fmt_money(total_sueldos)}</td>'
+                f'<td style="{td_n};color:#fcd34d;font-weight:800">TOTAL NÓMINA</td>'
+                f'<td style="{td_n};text-align:right;color:#fcd34d;font-weight:800">{fmt_money(total_sueldos)}</td>'
                 f'<td style="{td_n};text-align:right;color:#10b981;font-weight:800">{fmt_money(total_bonos)}</td>'
-                f'<td style="{td_n};text-align:right;color:#f0c060;font-weight:800">{fmt_money(nomina_mes)}</td>'
-                f'<td style="{td_n};text-align:right;color:#f0c060;font-weight:800">100%</td>'
+                f'<td style="{td_n};text-align:right;color:#fcd34d;font-weight:800">{fmt_money(nomina_mes)}</td>'
+                f'<td style="{td_n};text-align:right;color:#fcd34d;font-weight:800">100%</td>'
                 f'</tr>'
                 f'</tbody></table></div>'
             )
@@ -4091,7 +4134,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 estado_txt = "NÓMINA CUBIERTA" if pct_avance >= 100 else f"Faltan {pedidos_necesarios - n_ent:,} pedidos para cubrir nómina"
 
                 st.markdown(
-                    f'<div style="background:#12151f;border:1px solid #1e2337;border-radius:14px;padding:20px;margin-bottom:16px">'
+                    f'<div style="background:#13102a;border:1px solid #2e2558;border-radius:14px;padding:20px;margin-bottom:16px">'
                     f'<div style="display:flex;justify-content:space-between;margin-bottom:10px">'
                     f'<span style="font-family:Plus Jakarta Sans,sans-serif;font-weight:700;color:#e8ecf7;font-size:0.9rem">'
                     f'{icono_estado} {estado_txt}</span>'
@@ -4122,7 +4165,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                         check     = "✅" if pct_e_av >= 100 else "🔄"
                         st.markdown(
                             f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;'
-                            f'background:#12151f;border-radius:10px;padding:10px 14px;border:1px solid #1e2337">'
+                            f'background:#13102a;border-radius:10px;padding:10px 14px;border:1px solid #2e2558">'
                             f'<div style="min-width:22px">{check}</div>'
                             f'<div style="flex:1">'
                             f'<div style="font-size:0.82rem;color:#c8d0e8;font-weight:600">{emp["nombre"]}</div>'
@@ -4130,7 +4173,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                             f'<div style="background:{c_e};width:{pct_e_av:.0f}%;height:100%;border-radius:100px"></div>'
                             f'</div></div>'
                             f'<div style="text-align:right;min-width:90px">'
-                            f'<div style="color:#f0c060;font-weight:700;font-size:0.82rem">{fmt_money(total_e)}</div>'
+                            f'<div style="color:#fcd34d;font-weight:700;font-size:0.82rem">{fmt_money(total_e)}</div>'
                             f'<div style="color:#7a8aaa;font-size:0.7rem">{peds_e:,} pedidos</div>'
                             f'</div></div>',
                             unsafe_allow_html=True
@@ -4177,8 +4220,8 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 )
 
             pl_html = (
-                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #1e2337">'
-                f'<table style="width:100%;border-collapse:collapse;background:#12151f;font-family:DM Sans,sans-serif">'
+                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #2e2558">'
+                f'<table style="width:100%;border-collapse:collapse;background:#13102a;font-family:DM Sans,sans-serif">'
                 f'<thead><tr>'
                 f'<th style="padding:12px 16px;text-align:left;color:#a8b4d0;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid #1e2337">Concepto</th>'
                 f'<th style="padding:12px 16px;text-align:right;color:#a8b4d0;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid #1e2337">Valor</th>'
@@ -4233,7 +4276,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             pct_pe = min(n_ent / pe_unidades * 100, 150) if pe_unidades else 0
             color_pe = "#10b981" if pct_pe >= 100 else "#f59e0b" if pct_pe >= 70 else "#ef4444"
             st.markdown(
-                f'<div style="background:#12151f;border:1px solid #1e2337;border-radius:14px;padding:24px">'
+                f'<div style="background:#13102a;border:1px solid #2e2558;border-radius:14px;padding:24px">'
                 f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:700;color:#e8ecf7;margin-bottom:14px;font-size:0.95rem">'
                 f'{"✅ Por encima del punto de equilibrio" if superavit>=0 else "🔴 Por debajo del punto de equilibrio"}</div>'
                 f'<div style="background:#1e2337;border-radius:100px;height:20px;overflow:hidden">'
@@ -4340,8 +4383,8 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 )
 
             tabla_fc = (
-                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #1e2337;margin-bottom:20px">'
-                f'<table style="width:100%;border-collapse:collapse;background:#12151f;font-family:DM Sans,sans-serif">'
+                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #2e2558;margin-bottom:20px">'
+                f'<table style="width:100%;border-collapse:collapse;background:#13102a;font-family:DM Sans,sans-serif">'
                 f'<thead><tr>'
                 f'<th style="{hdr_fc};text-align:left;min-width:220px">Concepto</th>'
                 f'<th style="{hdr_fc};text-align:center">Tipo</th>'
@@ -4370,9 +4413,9 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 f'<td style="{td_fc};text-align:right;color:{color_sf};font-size:0.8rem">{saldo_disp/entradas_total*100:.1f}% de ingresos</td>'
                 f'</tr>'
                 f'<tr style="background:rgba(201,168,76,0.06);border-top:1px dashed #f0c06044">'
-                f'<td style="{td_fc};color:#f0c060;font-weight:700">📦 Cartera en Tránsito (pedidos en proceso)</td>'
+                f'<td style="{td_fc};color:#fcd34d;font-weight:700">📦 Cartera en Tránsito (pedidos en proceso)</td>'
                 f'<td></td>'
-                f'<td style="{td_fc};text-align:right;color:#f0c060;font-weight:700">{fmt_money(cartera_transito)}</td>'
+                f'<td style="{td_fc};text-align:right;color:#fcd34d;font-weight:700">{fmt_money(cartera_transito)}</td>'
                 f'<td style="{td_fc};text-align:right;color:#7a8aaa;font-size:0.75rem">Capital inmovilizado</td>'
                 f'</tr>'
                 f'</tbody></table></div>'
@@ -4474,7 +4517,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 pct_ing = r["valor"] / ingresos * 100 if ingresos else 0
                 with cols_r[idx % 4]:
                     st.markdown(
-                        f'<div style="background:#12151f;border:1px solid {r["color"]}44;border-radius:14px;'
+                        f'<div style="background:#13102a;border:1px solid {r["color"]}44;border-radius:14px;'
                         f'padding:16px;margin-bottom:12px;border-top:3px solid {r["color"]}">'
                         f'<div style="font-size:1.4rem;margin-bottom:6px">{r["icono"]}</div>'
                         f'<div style="font-size:0.72rem;color:#a8b4d0;font-weight:700;text-transform:uppercase;'
@@ -4503,8 +4546,8 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             hdr_ct = "background:#161525;padding:10px 14px;font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#a8b4d0;border-bottom:2px solid #1e2337"
             td_ct  = "padding:10px 14px;font-size:0.82rem;border-bottom:1px solid #161929"
             tabla_ct = (
-                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #1e2337;margin-bottom:20px">'
-                f'<table style="width:100%;border-collapse:collapse;background:#12151f;font-family:DM Sans,sans-serif">'
+                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #2e2558;margin-bottom:20px">'
+                f'<table style="width:100%;border-collapse:collapse;background:#13102a;font-family:DM Sans,sans-serif">'
                 f'<thead><tr>'
                 f'<th style="{hdr_ct};text-align:left">Rubro de Costo</th>'
                 f'<th style="{hdr_ct};text-align:right">Total</th>'
@@ -4534,12 +4577,12 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 )
             tabla_ct += (
                 f'<tr style="background:rgba(201,168,76,0.07);border-top:2px solid #f0c060">'
-                f'<td style="{td_ct};color:#f0c060;font-weight:800">TOTAL COSTOS</td>'
-                f'<td style="{td_ct};text-align:right;color:#f0c060;font-weight:800">{fmt_money(total_costos)}</td>'
-                f'<td style="{td_ct};text-align:right;color:#f0c060;font-weight:800">100%</td>'
-                f'<td style="{td_ct};text-align:right;color:#f0c060;font-weight:800">'
+                f'<td style="{td_ct};color:#fcd34d;font-weight:800">TOTAL COSTOS</td>'
+                f'<td style="{td_ct};text-align:right;color:#fcd34d;font-weight:800">{fmt_money(total_costos)}</td>'
+                f'<td style="{td_ct};text-align:right;color:#fcd34d;font-weight:800">100%</td>'
+                f'<td style="{td_ct};text-align:right;color:#fcd34d;font-weight:800">'
                 f'{total_costos/ingresos*100:.1f}%</td>'
-                f'<td style="{td_ct};text-align:right;color:#f0c060;font-weight:800">'
+                f'<td style="{td_ct};text-align:right;color:#fcd34d;font-weight:800">'
                 f'{fmt_money(total_costos/n_ent if n_ent else 0)}</td>'
                 f'</tr>'
                 f'</tbody></table></div>'
@@ -4639,18 +4682,18 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     hdr_mm = "background:#161525;padding:9px 12px;font-size:0.67rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#a8b4d0;border-bottom:1px solid #1e2337"
                     td_mm  = "padding:9px 12px;font-size:0.79rem;border-bottom:1px solid #161929"
                     tabla_mm = (
-                        f'<div style="overflow-x:auto;border-radius:12px;border:1px solid #1e2337">'
-                        f'<table style="width:100%;border-collapse:collapse;background:#12151f;font-family:DM Sans,sans-serif">'
+                        f'<div style="overflow-x:auto;border-radius:12px;border:1px solid #2e2558">'
+                        f'<table style="width:100%;border-collapse:collapse;background:#13102a;font-family:DM Sans,sans-serif">'
                         f'<thead><tr>'
                         f'<th style="{hdr_mm};text-align:left">Mes</th>'
-                        f'<th style="{hdr_mm};text-align:right;color:#5b6cfc">Productos</th>'
-                        f'<th style="{hdr_mm};text-align:right;color:#00d4ff">Flete Ent.</th>'
+                        f'<th style="{hdr_mm};text-align:right;color:#a855f7">Productos</th>'
+                        f'<th style="{hdr_mm};text-align:right;color:#22d3ee">Flete Ent.</th>'
                         f'<th style="{hdr_mm};text-align:right;color:#f59e0b">Flete Dev.</th>'
-                        f'<th style="{hdr_mm};text-align:right;color:#7c3aed">Pauta</th>'
+                        f'<th style="{hdr_mm};text-align:right;color:#9333ea">Pauta</th>'
                         f'<th style="{hdr_mm};text-align:right;color:#ec4899">Nómina</th>'
                         f'<th style="{hdr_mm};text-align:right;color:#ef4444">Total Costos</th>'
                         f'<th style="{hdr_mm};text-align:right;color:#10b981">Ingresos</th>'
-                        f'<th style="{hdr_mm};text-align:right;color:#f0c060">% Costo/Ingr.</th>'
+                        f'<th style="{hdr_mm};text-align:right;color:#fcd34d">% Costo/Ingr.</th>'
                         f'</tr></thead><tbody>'
                     )
                     for _, row in df_mes_cos.iterrows():
@@ -4707,8 +4750,8 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             hdr_k = "background:#161525;padding:12px 16px;font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#a8b4d0;border-bottom:2px solid #1e2337"
             td_k  = "padding:13px 16px;border-bottom:1px solid #161929;font-size:0.83rem"
             tabla_kpi = (
-                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #1e2337">'
-                f'<table style="width:100%;border-collapse:collapse;background:#12151f;font-family:DM Sans,sans-serif">'
+                f'<div style="overflow-x:auto;border-radius:14px;border:1px solid #2e2558">'
+                f'<table style="width:100%;border-collapse:collapse;background:#13102a;font-family:DM Sans,sans-serif">'
                 f'<thead><tr>'
                 f'<th style="{hdr_k};text-align:left">Indicador</th>'
                 f'<th style="{hdr_k};text-align:right">Valor</th>'
@@ -4719,7 +4762,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 tabla_kpi += (
                     f'<tr style="background:rgba(255,255,255,0.01)">'
                     f'<td style="{td_k};color:#c8d0e8;font-weight:600">{nom_k}</td>'
-                    f'<td style="{td_k};text-align:right;color:#f0c060;font-weight:800;font-size:0.95rem">{val_k}</td>'
+                    f'<td style="{td_k};text-align:right;color:#fcd34d;font-weight:800;font-size:0.95rem">{val_k}</td>'
                     f'<td style="{td_k};color:#7a8aaa">{desc_k}</td>'
                     f'</tr>'
                 )
@@ -4748,7 +4791,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         # ════════════════════════════════
         # SECCIÓN 1 — CARGAR PAUTA
         # ════════════════════════════════
-        st.markdown('<div style="background:#12151f;border:1px solid #1e2337;border-radius:14px;padding:18px;margin-bottom:20px">', unsafe_allow_html=True)
+        st.markdown('<div style="background:#13102a;border:1px solid #2e2558;border-radius:14px;padding:18px;margin-bottom:20px">', unsafe_allow_html=True)
         st.markdown('<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:700;color:#e8ecf7;font-size:0.95rem;margin-bottom:12px">💾 Inversión Publicitaria por Producto (Pauta)</div>', unsafe_allow_html=True)
 
         col_pa, col_pb = st.columns([1,1])
@@ -4909,8 +4952,8 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 tabla_html = (
                     f'<div style="margin-bottom:4px;font-family:Plus Jakarta Sans,sans-serif;font-size:0.75rem;'
                     f'font-weight:700;color:{color_titulo};padding:6px 0">▶ {titulo}</div>'
-                    f'<div style="overflow-x:auto;border-radius:12px;border:1px solid #1e2337;margin-bottom:16px">'
-                    f'<table style="width:100%;border-collapse:collapse;background:#12151f;font-family:DM Sans,sans-serif">'
+                    f'<div style="overflow-x:auto;border-radius:12px;border:1px solid #2e2558;margin-bottom:16px">'
+                    f'<table style="width:100%;border-collapse:collapse;background:#13102a;font-family:DM Sans,sans-serif">'
                     f'<thead><tr>'
                     f'<th style="{hdr_base};text-align:left;color:#a8b4d0;min-width:160px">Producto</th>'
                     f'<th style="{hdr_base};text-align:center;color:#10b981">% ENTR</th>'
@@ -4919,12 +4962,12 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     f'<th style="{hdr_base};text-align:center;color:#e8ecf7;background:#2d2b35">CIERRE</th>'
                     f'<th style="{hdr_base};text-align:right;color:#10b981">% VNT</th>'
                     f'<th style="{hdr_base};text-align:right;color:#e8ecf7">MRGN BRT</th>'
-                    f'<th style="{hdr_base};text-align:right;color:#00d4ff;background:#00d4ff15">PAUTA</th>'
+                    f'<th style="{hdr_base};text-align:right;color:#22d3ee;background:#00d4ff15">PAUTA</th>'
                     f'<th style="{hdr_base};text-align:right;color:#e8ecf7">UT. BRT</th>'
-                    f'<th style="{hdr_base};text-align:right;color:#f0c060">% UT. PAUTA</th>'
-                    f'<th style="{hdr_base};text-align:right;color:#7c3aed">&#916; INV</th>'
-                    f'<th style="{hdr_base};text-align:right;color:#7c3aed">&#916; VNT</th>'
-                    f'<th style="{hdr_base};text-align:right;color:#7c3aed">&#916; UT. BRT</th>'
+                    f'<th style="{hdr_base};text-align:right;color:#fcd34d">% UT. PAUTA</th>'
+                    f'<th style="{hdr_base};text-align:right;color:#9333ea">&#916; INV</th>'
+                    f'<th style="{hdr_base};text-align:right;color:#9333ea">&#916; VNT</th>'
+                    f'<th style="{hdr_base};text-align:right;color:#9333ea">&#916; UT. BRT</th>'
                     f'</tr></thead><tbody>'
                 )
 
@@ -4961,10 +5004,10 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                         f'<span style="color:#e8ecf7;font-weight:700">{r["CIERRE"]:.1f}%</span></td>'
                         f'<td style="{td};text-align:right;color:{c_vnt};font-weight:700">{r["% VNT"]:.2f}%</td>'
                         f'<td style="{td};text-align:right;color:#e8ecf7">{fmt_money(r["MRGN BRT"])}</td>'
-                        f'<td style="{td};text-align:right;color:#00d4ff;font-weight:700;background:#00d4ff0a">{pauta_txt}</td>'
+                        f'<td style="{td};text-align:right;color:#22d3ee;font-weight:700;background:#00d4ff0a">{pauta_txt}</td>'
                         f'<td style="{td};text-align:right;color:#e8ecf7">{fmt_money(r["UT. BRT"])}</td>'
                         f'<td style="{td};text-align:right;color:{c_ut};font-weight:700">{pct_ut_txt}</td>'
-                        f'<td style="{td};text-align:right;color:#7c3aed">{r["DELTA INV"]:.1f}%</td>'
+                        f'<td style="{td};text-align:right;color:#9333ea">{r["DELTA INV"]:.1f}%</td>'
                         f'<td style="{td};text-align:right;color:{c_dvnt};font-weight:700">'
                         f'{"+" if r["DELTA VNT"]>0 else ""}{r["DELTA VNT"]:.1f}%</td>'
                         f'<td style="{td};text-align:right;color:{c_dut};font-weight:700">{r["DELTA UT. BRT"]:.1f}%</td>'
@@ -4998,12 +5041,12 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     f'<td style="{td_sub};text-align:center;color:#e8ecf7">{sum_cier:.1f}%</td>'
                     f'<td style="{td_sub};text-align:right;color:#10b981">{sum_vnt:.1f}%</td>'
                     f'<td style="{td_sub};text-align:right;color:#e8ecf7">{fmt_money(sum_mrgn)}</td>'
-                    f'<td style="{td_sub};text-align:right;color:#00d4ff;background:#00d4ff0a">{pauta_sub_txt}</td>'
+                    f'<td style="{td_sub};text-align:right;color:#22d3ee;background:#00d4ff0a">{pauta_sub_txt}</td>'
                     f'<td style="{td_sub};text-align:right;color:#e8ecf7">{fmt_money(sum_ut)}</td>'
-                    f'<td style="{td_sub};text-align:right;color:#f0c060">{pct_ut_sub_txt}</td>'
-                    f'<td style="{td_sub};text-align:right;color:#7c3aed">—</td>'
-                    f'<td style="{td_sub};text-align:right;color:#7c3aed">—</td>'
-                    f'<td style="{td_sub};text-align:right;color:#7c3aed">{sum_dut:.1f}%</td>'
+                    f'<td style="{td_sub};text-align:right;color:#fcd34d">{pct_ut_sub_txt}</td>'
+                    f'<td style="{td_sub};text-align:right;color:#9333ea">—</td>'
+                    f'<td style="{td_sub};text-align:right;color:#9333ea">—</td>'
+                    f'<td style="{td_sub};text-align:right;color:#9333ea">{sum_dut:.1f}%</td>'
                     f'</tr>'
                 )
 
@@ -5020,7 +5063,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             pauta_tot_txt   = fmt_money(pauta_total) if pauta_total else "—"
             pct_ut_tot_txt  = f"{ut_brt_total/pauta_total*100:.1f}%" if pauta_total else "—"
             kpig_html = (
-                f'<div style="background:#161525;border:1px solid #1e2337;border-radius:10px;padding:2px 0;margin-top:4px">'
+                f'<div style="background:#161525;border:1px solid #2e2558;border-radius:10px;padding:2px 0;margin-top:4px">'
                 f'<table style="width:100%;border-collapse:collapse;font-family:DM Sans,sans-serif"><tr>'
                 f'<td style="{td_g};text-align:left;min-width:160px">KPI\'s Generales</td>'
                 f'<td style="{td_g};text-align:center;color:#10b981">{pct_entr_g:.1f}%</td>'
@@ -5029,9 +5072,9 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 f'<td style="{td_g};text-align:center"></td>'
                 f'<td style="{td_g};text-align:right"></td>'
                 f'<td style="{td_g};text-align:right;color:#e8ecf7">{fmt_money(df_prod["MRGN BRT"].sum())}</td>'
-                f'<td style="{td_g};text-align:right;color:#00d4ff">{pauta_tot_txt}</td>'
+                f'<td style="{td_g};text-align:right;color:#22d3ee">{pauta_tot_txt}</td>'
                 f'<td style="{td_g};text-align:right;color:#e8ecf7">{ut_brt_tot_txt}</td>'
-                f'<td style="{td_g};text-align:right;color:#f0c060">{pct_ut_tot_txt}</td>'
+                f'<td style="{td_g};text-align:right;color:#fcd34d">{pct_ut_tot_txt}</td>'
                 f'<td style="{td_g}" colspan="3"></td>'
                 f'</tr></table></div>'
             )
@@ -5062,7 +5105,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     text=[f"{'+'if v>=0 else ''}{v:.1f}%" for v in top_d['DELTA VNT']],
                     textposition='outside'
                 ))
-                fig_dv.add_vline(x=0, line_color='#6b7a9e', line_width=1)
+                fig_dv.add_vline(x=0, line_color='#a8b8d0', line_width=1)
                 fig_dv.update_layout(**PLOT_LAYOUT, height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
                                      title='Delta Venta — Eficiencia de Pauta por Producto',
                                      xaxis_ticksuffix='%')
@@ -5091,7 +5134,7 @@ elif "Asesor" in vista_activa:
     op_color  = op_info["color"]
     st.markdown(
         f'<div style="margin-bottom:28px;background:linear-gradient(135deg,#12151f,#161929);'
-        f'border:1px solid #1e2337;border-radius:16px;padding:24px 28px">'
+        f'border:1px solid #2e2558;border-radius:16px;padding:24px 28px">'
         f'<div style="display:flex;align-items:center;gap:16px">'
         f'<div style="width:4px;height:54px;background:{op_color};border-radius:4px"></div>'
         f'<div>'
@@ -5165,7 +5208,7 @@ elif "Asesor" in vista_activa:
             label_visibility="collapsed"
         )
         st.markdown(
-            f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#5b6cfc;font-size:1.6rem;'
+            f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;color:#a855f7;font-size:1.6rem;'
             f'margin-top:8px">{fmt_money(saldo_banco)}</div>',
             unsafe_allow_html=True
         )
@@ -5183,7 +5226,7 @@ elif "Asesor" in vista_activa:
                        "#f59e0b" if _tasa_e_af >= 50 else "#ef4444"
         _salud_txt   = "Buena" if _score_color == "#10b981" else "Moderada" if _score_color == "#f59e0b" else "Crítica"
         st.markdown(
-            f'<div style="background:#12151f;border:1px solid #1e2337;border-radius:14px;padding:18px 20px">'
+            f'<div style="background:#13102a;border:1px solid #2e2558;border-radius:14px;padding:18px 20px">'
             f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:#e8ecf7;font-size:0.82rem;margin-bottom:12px">'
             f'📊 Contexto del negocio — Período actual</div>'
             f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">',
@@ -5200,7 +5243,7 @@ elif "Asesor" in vista_activa:
         ctx_html = ""
         for lbl_c, val_c, col_c in ctx_items:
             ctx_html += (
-                f'<div style="background:#0b0d16;border-radius:10px;padding:10px 12px">'
+                f'<div style="background:#0d0a1a;border-radius:10px;padding:10px 12px">'
                 f'<div style="font-size:0.6rem;color:#a8b4d0;font-weight:700;margin-bottom:3px">{lbl_c}</div>'
                 f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:{col_c};font-size:0.9rem">{val_c}</div>'
                 f'</div>'
@@ -5209,7 +5252,7 @@ elif "Asesor" in vista_activa:
 
     if saldo_banco <= 0:
         st.markdown(
-            '<div style="background:rgba(91,85,120,0.15);border:1px dashed #2e3650;border-radius:12px;'
+            '<div style="background:rgba(124,58,237,0.15);border:1px dashed #2e3650;border-radius:12px;'
             'padding:20px;text-align:center;margin-top:10px">'
             '<div style="font-size:1.8rem;margin-bottom:8px">💡</div>'
             '<div style="color:#a8b4d0;font-size:0.85rem">Ingresa el saldo bancario disponible arriba para ver la distribución recomendada</div>'
@@ -5285,7 +5328,7 @@ elif "Asesor" in vista_activa:
         # ── TÍTULO SECCIÓN ──
         st.markdown(
             f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:#e8ecf7;font-size:0.95rem;margin-bottom:4px">'
-            f'💡 Distribución recomendada para <span style="color:#5b6cfc">{fmt_money(saldo_banco)}</span></div>'
+            f'💡 Distribución recomendada para <span style="color:#a855f7">{fmt_money(saldo_banco)}</span></div>'
             f'<div style="font-size:0.72rem;color:#a8b4d0;margin-bottom:16px">'
             f'Perfil: {_modo_asesor} · Basado en métricas reales del período</div>',
             unsafe_allow_html=True
@@ -5323,7 +5366,7 @@ elif "Asesor" in vista_activa:
 
                     f'<div style="font-size:0.68rem;color:#7a8aaa;margin-bottom:8px;line-height:1.4">{bol["desc"]}</div>'
 
-                    f'<div style="background:#0b0d16;border-radius:8px;padding:6px 10px">'
+                    f'<div style="background:#0d0a1a;border-radius:8px;padding:6px 10px">'
                     f'<div style="font-size:0.6rem;color:#7a8aaa">{bol["meta_lbl"]}</div>'
                     f'<div style="font-size:0.72rem;color:{"#10b981" if _suficiente else "#ef4444"};font-weight:700">'
                     f'{bol["meta"]}'
@@ -5354,7 +5397,7 @@ elif "Asesor" in vista_activa:
                 f'{bol["pct"]*100:.0f}%</div>'
             )
         st.markdown(
-            f'<div style="display:flex;border-radius:10px;overflow:hidden;border:1px solid #1e2337;margin-bottom:6px">'
+            f'<div style="display:flex;border-radius:10px;overflow:hidden;border:1px solid #2e2558;margin-bottom:6px">'
             f'{barra_seg}</div>',
             unsafe_allow_html=True
         )
@@ -5455,8 +5498,8 @@ elif "Asesor" in vista_activa:
         # ── TABLA RESUMEN ──
         st.markdown("<br>", unsafe_allow_html=True)
         tbl_html = (
-            '<div style="overflow-x:auto;border-radius:12px;border:1px solid #1e2337">'
-            '<table style="width:100%;border-collapse:collapse;background:#12151f;font-family:DM Sans,sans-serif">'
+            '<div style="overflow-x:auto;border-radius:12px;border:1px solid #2e2558">'
+            '<table style="width:100%;border-collapse:collapse;background:#13102a;font-family:DM Sans,sans-serif">'
             '<thead><tr>'
             '<th style="padding:10px 14px;text-align:left;color:#c0cce0;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid #1e2337">Bolsillo</th>'
             '<th style="padding:10px 14px;text-align:right;color:#c0cce0;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid #1e2337">% Asignado</th>'
@@ -5486,7 +5529,7 @@ elif "Asesor" in vista_activa:
             f'<tr style="background:rgba(99,102,241,0.07)">'
             f'<td style="padding:10px 14px;color:#e8ecf7;font-weight:800;font-size:0.85rem">TOTAL</td>'
             f'<td style="padding:10px 14px;text-align:right;color:#e8ecf7;font-weight:800">100%</td>'
-            f'<td style="padding:10px 14px;text-align:right;color:#5b6cfc;font-weight:900;font-size:0.9rem">{fmt_money(saldo_banco)}</td>'
+            f'<td style="padding:10px 14px;text-align:right;color:#a855f7;font-weight:900;font-size:0.9rem">{fmt_money(saldo_banco)}</td>'
             f'<td colspan="2"></td>'
             f'</tr>'
             '</tbody></table></div>'
@@ -5505,7 +5548,7 @@ elif "Tendencias" in vista_activa:
 
     st.markdown(
         '<div style="margin-bottom:20px;background:linear-gradient(135deg,#12151f,#161929);'
-        'border:1px solid #1e2337;border-radius:16px;padding:22px 26px">'
+        'border:1px solid #2e2558;border-radius:16px;padding:22px 26px">'
         '<div style="font-family:Plus Jakarta Sans,sans-serif;font-size:1.7rem;font-weight:800;color:#e8ecf7">📡 Tendencias & Clima</div>'
         '<div style="color:#a8b4d0;font-size:0.82rem;margin-top:4px">Inteligencia comercial basada en problemas, regiones y estacionalidad</div>'
         '</div>',
@@ -5659,7 +5702,7 @@ elif "Tendencias" in vista_activa:
         with _pc1:
             st.markdown('<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:700;color:#e8ecf7;font-size:0.85rem;margin-bottom:10px">🛍️ Productos Recomendados</div>', unsafe_allow_html=True)
             for _pr in _prob["productos_sugeridos"]:
-                st.markdown(f'<div style="background:#161929;border:1px solid #1e2337;border-radius:8px;padding:8px 12px;margin-bottom:6px;color:#c8d0e8;font-size:0.8rem">✅ {_pr}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="background:#1a1535;border:1px solid #2e2558;border-radius:8px;padding:8px 12px;margin-bottom:6px;color:#c8d0e8;font-size:0.8rem">✅ {_pr}</div>', unsafe_allow_html=True)
 
             # Cruce con catálogo real si hay datos
             if C_PRODUCTO in df.columns:
@@ -5679,7 +5722,7 @@ elif "Tendencias" in vista_activa:
                 _cc = _RCOL.get(_niv, "#8892b0")
                 st.markdown(
                     f'<div style="display:flex;justify-content:space-between;align-items:center;'
-                    f'background:#161929;border:1px solid #1e2337;border-radius:8px;padding:8px 12px;margin-bottom:6px">'
+                    f'background:#1a1535;border:1px solid #2e2558;border-radius:8px;padding:8px 12px;margin-bottom:6px">'
                     f'<span style="color:#c8d0e8;font-size:0.8rem">📍 {_reg}</span>'
                     f'<span style="background:{_cc}20;color:{_cc};padding:3px 10px;border-radius:12px;font-size:0.7rem;font-weight:700">'
                     f'{"🔴 Muy Alta" if _niv=="muy_alto" else "🟡 Alta" if _niv=="alto" else "🔵 Media"}</span>'
@@ -5692,13 +5735,13 @@ elif "Tendencias" in vista_activa:
                 st.markdown('<div style="font-size:0.75rem;color:#a8b4d0;margin-top:10px;margin-bottom:6px">📊 Tu volumen actual por región:</div>', unsafe_allow_html=True)
                 _dep_vol = df.groupby(C_DEPTO).size().sort_values(ascending=False).head(5)
                 for _dep, _cnt in _dep_vol.items():
-                    st.markdown(f'<div style="color:#5b6cfc;font-size:0.76rem;padding:4px 0">• {_dep}: {_cnt:,} pedidos</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div style="color:#a855f7;font-size:0.76rem;padding:4px 0">• {_dep}: {_cnt:,} pedidos</div>', unsafe_allow_html=True)
 
         # ── Resumen estratégico ──
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown(
             f'<div style="background:rgba(201,168,76,0.08);border:1px solid #f0c06044;border-radius:12px;padding:16px 18px">'
-            f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:#f0c060;margin-bottom:10px">📌 Resumen Estratégico</div>'
+            f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:#fcd34d;margin-bottom:10px">📌 Resumen Estratégico</div>'
             f'<div style="display:flex;gap:16px;flex-wrap:wrap">'
             f'<div><span style="color:#a8b4d0;font-size:0.75rem">Problema a explotar</span><br>'
             f'<span style="color:#e8ecf7;font-weight:700;font-size:0.85rem">{_prob_sel}</span></div>'
@@ -5857,7 +5900,7 @@ elif "Tendencias" in vista_activa:
                 _cc_z = _NIVEL_C.get(_niv_z, "#8892b0")
                 st.markdown(
                     f'<div style="display:flex;justify-content:space-between;align-items:center;'
-                    f'background:#161929;border:1px solid {_cc_z}22;border-radius:8px;padding:9px 12px;margin-bottom:5px">'
+                    f'background:#1a1535;border:1px solid {_cc_z}22;border-radius:8px;padding:9px 12px;margin-bottom:5px">'
                     f'<span style="color:#c8d0e8;font-size:0.8rem">✅ {_prod_z}</span>'
                     f'<span style="background:{_cc_z}20;color:{_cc_z};padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:700">'
                     f'{"Alta demanda" if _niv_z=="muy_alto" else "Buena demanda" if _niv_z=="alto" else "Moderada"}</span>'
@@ -6013,7 +6056,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
 
     st.markdown(
         f'<div style="margin-bottom:28px;background:linear-gradient(135deg,#12151f,#161929);'
-        f'border:1px solid #1e2337;border-radius:16px;padding:24px 28px">'
+        f'border:1px solid #2e2558;border-radius:16px;padding:24px 28px">'
         f'<div style="display:flex;align-items:center;gap:16px">'
         f'<div style="width:4px;height:54px;background:{op_color};border-radius:4px"></div>'
         f'<div>'
@@ -6071,7 +6114,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
         col_umb1, col_umb2 = st.columns([3,1])
         with col_umb1:
             st.markdown(
-                f'<div style="background:rgba(99,102,241,0.07);border:1px solid #1e2337;border-radius:10px;'
+                f'<div style="background:rgba(99,102,241,0.07);border:1px solid #2e2558;border-radius:10px;'
                 f'padding:10px 16px;font-size:0.8rem;color:#a8b4d0">'
                 f'<b style="color:#a5b4fc">⚙️ Umbrales activos:</b> &nbsp; '
                 f'🔴 Crítico = pedidos despachados hace más de <b style="color:#ef4444">15 días</b> &nbsp;·&nbsp; '
@@ -6286,7 +6329,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                     f'{row["tipo"]}'
                     f'</div>'
                     f'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:5px">'
-                    f'<span style="background:rgba(201,168,76,0.15);color:#f0c060;font-weight:700;'
+                    f'<span style="background:rgba(201,168,76,0.15);color:#fcd34d;font-weight:700;'
                     f'font-size:0.78rem;padding:2px 8px;border-radius:6px">#{row["id"]}</span>'
                     f'<span style="color:#c8d0e8;font-size:0.82rem">{row["cliente"]}</span>'
                     f'</div>'
@@ -6531,8 +6574,8 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                     filas_html += f'<tr style="background:{bg};border-bottom:1px solid #12151f">{celdas}</tr>'
 
                 st.markdown(
-                    f'<div style="overflow-x:auto;border-radius:12px;border:1px solid #1e2337;margin-top:4px">'
-                    f'<table style="width:100%;border-collapse:collapse;background:#12151f;font-family:DM Sans,sans-serif">'
+                    f'<div style="overflow-x:auto;border-radius:12px;border:1px solid #2e2558;margin-top:4px">'
+                    f'<table style="width:100%;border-collapse:collapse;background:#13102a;font-family:DM Sans,sans-serif">'
                     f'<thead><tr>{hdr_e}</tr></thead><tbody>{filas_html}</tbody></table></div>',
                     unsafe_allow_html=True
                 )
@@ -6625,8 +6668,8 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
             hdr_ef="background:#161525;padding:10px 14px;font-size:0.67rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#a8b4d0;border-bottom:2px solid #1e2337"
             td_ef="padding:10px 14px;font-size:0.82rem;border-bottom:1px solid #161929"
             tabla_ef=(
-                f'<div style="overflow-x:auto;border-radius:12px;border:1px solid #1e2337;margin-bottom:16px">'
-                f'<table style="width:100%;border-collapse:collapse;background:#12151f;font-family:DM Sans,sans-serif">'
+                f'<div style="overflow-x:auto;border-radius:12px;border:1px solid #2e2558;margin-bottom:16px">'
+                f'<table style="width:100%;border-collapse:collapse;background:#13102a;font-family:DM Sans,sans-serif">'
                 f'<thead><tr>'
                 f'<th style="{hdr_ef};text-align:left">Estatus Financiero</th>'
                 f'<th style="{hdr_ef};text-align:right">Pedidos</th>'
@@ -6648,7 +6691,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                     f'<td style="{td_ef}"><span style="background:{_col}22;color:{_col};padding:3px 10px;border-radius:20px;font-weight:700;font-size:0.78rem">{_r["Estatus Financiero"]}</span></td>'
                     f'<td style="{td_ef};text-align:right;color:#e8ecf7;font-weight:700">{_r["Pedidos"]:,}</td>'
                     f'<td style="{td_ef};text-align:right"><div style="display:flex;align-items:center;gap:6px;justify-content:flex-end"><div style="background:#1e2337;border-radius:100px;height:5px;width:60px;overflow:hidden"><div style="background:{_col};width:{min(_pct,100):.0f}%;height:100%"></div></div><span style="color:{_col};font-weight:700">{_pct:.1f}%</span></div></td>'
-                    f'<td style="{td_ef};text-align:right;color:#00d4ff">{fmt_money(_r["Ingresos"])}</td>'
+                    f'<td style="{td_ef};text-align:right;color:#22d3ee">{fmt_money(_r["Ingresos"])}</td>'
                     f'<td style="{td_ef};text-align:right;color:#10b981;font-weight:700">{fmt_money(_r["Ganancia"])}</td>'
                     f'<td style="{td_ef};text-align:right;color:{_mc};font-weight:700">{_mrg:.1f}%</td>'
                     f'<td style="{td_ef};text-align:right;color:#f59e0b">{fmt_money(_r["Fletes"])}</td>'
@@ -6656,13 +6699,13 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 )
             tabla_ef+=(
                 f'<tr style="background:rgba(201,168,76,0.07);border-top:2px solid #f0c060">'
-                f'<td style="{td_ef};color:#f0c060;font-weight:800">TOTAL</td>'
-                f'<td style="{td_ef};text-align:right;color:#f0c060;font-weight:800">{total_ef:,}</td>'
-                f'<td style="{td_ef};text-align:right;color:#f0c060;font-weight:800">100%</td>'
-                f'<td style="{td_ef};text-align:right;color:#f0c060;font-weight:800">{fmt_money(ing_mf)}</td>'
-                f'<td style="{td_ef};text-align:right;color:#f0c060;font-weight:800">{fmt_money(gan_mf)}</td>'
-                f'<td style="{td_ef};text-align:right;color:#f0c060;font-weight:800">{gan_mf/ing_mf*100:.1f}% if ing_mf else "—"</td>'
-                f'<td style="{td_ef};text-align:right;color:#f0c060;font-weight:800">{fmt_money(flt_mf)}</td>'
+                f'<td style="{td_ef};color:#fcd34d;font-weight:800">TOTAL</td>'
+                f'<td style="{td_ef};text-align:right;color:#fcd34d;font-weight:800">{total_ef:,}</td>'
+                f'<td style="{td_ef};text-align:right;color:#fcd34d;font-weight:800">100%</td>'
+                f'<td style="{td_ef};text-align:right;color:#fcd34d;font-weight:800">{fmt_money(ing_mf)}</td>'
+                f'<td style="{td_ef};text-align:right;color:#fcd34d;font-weight:800">{fmt_money(gan_mf)}</td>'
+                f'<td style="{td_ef};text-align:right;color:#fcd34d;font-weight:800">{gan_mf/ing_mf*100:.1f}% if ing_mf else "—"</td>'
+                f'<td style="{td_ef};text-align:right;color:#fcd34d;font-weight:800">{fmt_money(flt_mf)}</td>'
                 f'</tr></tbody></table></div>'
             )
             st.markdown(tabla_ef,unsafe_allow_html=True)
@@ -7151,7 +7194,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
         # ═══════════════════════════════════════
         # FILTROS — fila 1
         # ═══════════════════════════════════════
-        st.markdown('<div style="background:#161525;border:1px solid #1e2337;border-radius:12px;padding:14px 18px;margin-bottom:14px">', unsafe_allow_html=True)
+        st.markdown('<div style="background:#161525;border:1px solid #2e2558;border-radius:12px;padding:14px 18px;margin-bottom:14px">', unsafe_allow_html=True)
         fc1,fc2,fc3,fc4,fc5,fc6 = st.columns([1,1.3,1.3,1.3,1.3,1])
 
         with fc1:
@@ -7442,7 +7485,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
         if _proximas_imp:
             st.markdown(
                 '<div style="background:rgba(201,168,76,0.1);border:1px solid #f0c06044;border-radius:12px;padding:14px 18px;margin-bottom:18px">'
-                '<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:#f0c060;font-size:0.95rem;margin-bottom:12px">'
+                '<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:#fcd34d;font-size:0.95rem;margin-bottom:12px">'
                 '⚡ Modo Importación — Equipo de Proyecto Activado</div>',
                 unsafe_allow_html=True
             )
@@ -7462,7 +7505,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
 
                 with _imp_cols[_i % 3]:
                     st.markdown(
-                        f'<div style="background:#12151f;border:1px solid {_color_p}44;border-radius:10px;padding:14px;text-align:center">'
+                        f'<div style="background:#13102a;border:1px solid {_color_p}44;border-radius:10px;padding:14px;text-align:center">'
                         f'<div style="font-size:1.6rem">{_fe_p["ico"]}</div>'
                         f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:{_color_p};font-size:1.4rem;margin:4px 0">{_estado}</div>'
                         f'<div style="color:#e8ecf7;font-size:0.82rem;font-weight:700">{_fe_p["nombre"]}</div>'
@@ -7486,7 +7529,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                     _lbl_ev = IMPACTO_LABEL.get(_ev60["impacto"], "")
                     st.markdown(
                         f'<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;'
-                        f'margin-bottom:6px;background:#12151f;border-left:3px solid {_col_ev};border-radius:8px">'
+                        f'margin-bottom:6px;background:#13102a;border-left:3px solid {_col_ev};border-radius:8px">'
                         f'<div style="font-size:1.3rem;min-width:30px">{_ev60["ico"]}</div>'
                         f'<div style="flex:1">'
                         f'<span style="color:#e8ecf7;font-weight:700;font-size:0.84rem">{_ev60["nombre"]}</span>'
@@ -7595,6 +7638,6 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 ph.write(resp)
             st.session_state.messages.append({"role":"assistant","content":resp})
     else:
-        st.markdown('<div style="background:rgba(201,168,76,0.08);border:1px solid #f0c060;border-radius:12px;padding:14px;text-align:center;color:#fde68a;font-size:0.85rem">🤖 Claude IA se activa cuando configures tu API Key · El dashboard funciona completo sin él</div>', unsafe_allow_html=True)
+        st.markdown('<div style="background:rgba(201,168,76,0.08);border:1px solid #f0c060;border-radius:12px;padding:14px;text-align:center;color:#fef08a;font-size:0.85rem">🤖 Claude IA se activa cuando configures tu API Key · El dashboard funciona completo sin él</div>', unsafe_allow_html=True)
 
-st.markdown('<div style="text-align:center;color:#6b7a9e;font-size:0.7rem;margin-top:30px">🚀 VisióN360 · Dashboard Profesional · Colombia</div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align:center;color:#6b7a9e;font-size:0.7rem;margin-top:30px">🚀 VisióN360 · Inteligencia Comercial</div>', unsafe_allow_html=True)
