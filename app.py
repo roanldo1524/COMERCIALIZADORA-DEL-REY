@@ -778,22 +778,27 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
 
     # ── Opciones según modo ──
     if "Mes" in _modo_periodo:
-        if '_mes' in df.columns:
+        if '_mes' in df.columns and len(df['_mes'].dropna()) > 0:
             _meses_disp = sorted(df['_mes'].dropna().unique().tolist(), reverse=True)
-            _meses_lbl  = [pd.Period(_m, 'M').strftime('%B %Y').capitalize() for _m in _meses_disp]
         else:
             _meses_disp = [_hoy.to_period('M').strftime('%Y-%m')]
-            _meses_lbl  = [_hoy.strftime('%B %Y').capitalize()]
+        _meses_lbl = []
+        for _m in _meses_disp:
+            try:    _meses_lbl.append(pd.Period(_m, 'M').strftime('%B %Y').capitalize())
+            except: _meses_lbl.append(str(_m))
 
         with _uf_c2:
             _idx_mes_uf = st.selectbox(
                 "Mes",
-                range(len(_meses_disp)),
+                list(range(len(_meses_disp))),
                 index=0,
-                format_func=lambda i: _meses_lbl[i],
+                format_func=lambda i: _meses_lbl[i] if i < len(_meses_lbl) else str(i),
                 key="filtro_universal_mes",
                 label_visibility="collapsed"
             )
+        # Validación defensiva contra None
+        if _idx_mes_uf is None: _idx_mes_uf = 0
+        _idx_mes_uf = max(0, min(_idx_mes_uf, len(_meses_disp) - 1))
         _periodo_sel = _meses_disp[_idx_mes_uf]
         _periodo_lbl = _meses_lbl[_idx_mes_uf]
 
@@ -801,7 +806,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             df = df[df['_mes'] == _periodo_sel].copy()
 
     else:  # Por Semana
-        if '_mes' in df.columns:
+        if '_mes' in df.columns and len(df['_mes'].dropna()) > 0:
             _meses_disp_s = sorted(df['_mes'].dropna().unique().tolist(), reverse=True)
         else:
             _meses_disp_s = [_hoy.to_period('M').strftime('%Y-%m')]
@@ -809,12 +814,14 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         with _uf_c2:
             _idx_mes_s = st.selectbox(
                 "Mes base",
-                range(len(_meses_disp_s)),
+                list(range(len(_meses_disp_s))),
                 index=0,
-                format_func=lambda i: pd.Period(_meses_disp_s[i], 'M').strftime('%B %Y').capitalize(),
+                format_func=lambda i: pd.Period(_meses_disp_s[i], 'M').strftime('%B %Y').capitalize() if i < len(_meses_disp_s) else str(i),
                 key="filtro_univ_mes_base",
                 label_visibility="collapsed"
             )
+        if _idx_mes_s is None: _idx_mes_s = 0
+        _idx_mes_s = max(0, min(_idx_mes_s, len(_meses_disp_s) - 1))
         _mes_base_s = _meses_disp_s[_idx_mes_s]
 
         # Calcular semanas del mes seleccionado
