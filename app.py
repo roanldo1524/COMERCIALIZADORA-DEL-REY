@@ -484,311 +484,214 @@ AXIS_STYLE = dict(gridcolor='#2e2558', linecolor='#2e2558', tickfont=dict(color=
 COLORES_ELEGANTES = ['#a855f7','#34d399','#fcd34d','#f87171','#22d3ee','#e040fb','#fbbf24','#f472b6','#14b8a6','#fb923c']
 
 # ═══════════════════════════════════════════════════════════
-# SIDEBAR — Purple Premium Style
+# SIDEBAR — Purple Premium con botones reales
 # ═══════════════════════════════════════════════════════════
 
-# CSS específico para el sidebar premium
 st.markdown("""
 <style>
-/* ── SIDEBAR FONDO DEGRADADO PURPLE ── */
+/* FONDO SIDEBAR */
 section[data-testid="stSidebar"] {
     background: linear-gradient(160deg,
-        #1a0a2e 0%,
-        #2d1060 25%,
-        #1e0a40 50%,
-        #150830 75%,
-        #0d0520 100%) !important;
-    border-right: 1px solid rgba(168,85,247,0.25) !important;
-    box-shadow: 4px 0 40px rgba(0,0,0,0.6) !important;
+        #1a0a2e 0%, #2d1060 25%, #1e0a40 55%, #0d0520 100%) !important;
+    border-right: 1px solid rgba(168,85,247,0.2) !important;
+    box-shadow: 4px 0 40px rgba(0,0,0,0.7) !important;
 }
-
-/* ── RADIO BUTTONS — convertir en nav items ── */
-section[data-testid="stSidebar"] .stRadio > div {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 2px !important;
+/* Quitar padding default del sidebar */
+section[data-testid="stSidebar"] .block-container {
+    padding: 0 !important;
 }
-/* Ocultar el círculo nativo del radio */
-section[data-testid="stSidebar"] .stRadio input[type="radio"] {
-    display: none !important;
-}
-/* Cada label = un nav item */
-section[data-testid="stSidebar"] .stRadio label {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-    padding: 11px 14px !important;
-    margin: 1px 6px !important;
+/* BOTONES NAV — estado normal */
+section[data-testid="stSidebar"] .stButton > button {
+    width: 100% !important;
+    text-align: left !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
     border-radius: 12px !important;
-    cursor: pointer !important;
+    color: rgba(220,200,255,0.7) !important;
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.88rem !important;
     font-weight: 500 !important;
-    color: rgba(220,200,255,0.72) !important;
-    border: 1px solid transparent !important;
-    transition: all 0.2s ease !important;
-    background: transparent !important;
-    position: relative !important;
-    overflow: hidden !important;
-    min-height: 48px !important;
+    padding: 10px 14px !important;
+    margin: 1px 0 !important;
+    transition: all 0.18s ease !important;
+    box-shadow: none !important;
+    transform: none !important;
+    justify-content: flex-start !important;
 }
-section[data-testid="stSidebar"] .stRadio label:hover {
-    background: rgba(168,85,247,0.15) !important;
+section[data-testid="stSidebar"] .stButton > button:hover {
+    background: rgba(168,85,247,0.18) !important;
+    border-color: rgba(168,85,247,0.3) !important;
     color: #f0ecff !important;
-    border-color: rgba(168,85,247,0.25) !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
-/* Label seleccionado */
-section[data-testid="stSidebar"] .stRadio label[data-baseweb] {
-    background: transparent !important;
-}
-section[data-testid="stSidebar"] .stRadio [aria-checked="true"] ~ label,
-section[data-testid="stSidebar"] .stRadio input:checked + div label,
-section[data-testid="stSidebar"] .stRadio div[data-testid="stMarkdownContainer"]:has(input:checked) label {
-    background: linear-gradient(135deg, rgba(124,58,237,0.65), rgba(168,85,247,0.4)) !important;
+/* BOTÓN ACTIVO */
+section[data-testid="stSidebar"] .stButton > button[kind="primary"],
+section[data-testid="stSidebar"] .nav-active > button {
+    background: linear-gradient(135deg, rgba(124,58,237,0.7), rgba(168,85,247,0.45)) !important;
+    border-color: rgba(168,85,247,0.55) !important;
     color: #ffffff !important;
-    border-color: rgba(168,85,247,0.5) !important;
     font-weight: 700 !important;
-    box-shadow: 0 4px 20px rgba(124,58,237,0.3) !important;
+    box-shadow: 0 4px 18px rgba(124,58,237,0.35) !important;
 }
-/* Truco: usar :has para el item activo */
-section[data-testid="stSidebar"] .stRadio label:has(input:checked) {
-    background: linear-gradient(135deg, rgba(124,58,237,0.65), rgba(168,85,247,0.4)) !important;
-    color: #ffffff !important;
-    border-color: rgba(168,85,247,0.5) !important;
-    font-weight: 700 !important;
-    box-shadow: 0 4px 20px rgba(124,58,237,0.3) !important;
-}
-/* El span de texto del radio */
-section[data-testid="stSidebar"] .stRadio label > div {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-    width: 100% !important;
-}
-section[data-testid="stSidebar"] .stRadio label p {
-    margin: 0 !important;
-    font-size: 0.88rem !important;
-    font-weight: inherit !important;
-    color: inherit !important;
-    line-height: 1.3 !important;
-}
-/* Ícono cuadrito para cada label */
-section[data-testid="stSidebar"] .stRadio label::before {
-    content: '';
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    border-radius: 9px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-/* Línea activa a la izquierda */
-section[data-testid="stSidebar"] .stRadio label:has(input:checked)::after {
-    content: '';
-    position: absolute;
-    left: 0; top: 20%; bottom: 20%;
-    width: 3px;
-    background: linear-gradient(180deg, #c084fc, #e040fb);
-    border-radius: 0 4px 4px 0;
-}
-
-/* Sección labels */
-.nav-section {
-    font-size: 0.58rem;
-    color: rgba(200,180,255,0.45);
+.nav-section-lbl {
+    font-size: 0.57rem;
+    color: rgba(200,180,255,0.4);
     font-weight: 700;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
-    padding: 0 16px;
-    margin: 16px 0 4px;
+    padding: 0 8px;
+    margin: 14px 0 3px;
     font-family: 'DM Sans', sans-serif;
+    display: block;
 }
-.nav-divider {
+.nav-sep {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(168,85,247,0.3), transparent);
-    margin: 10px 16px;
-}
-.op-badge {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 14px;
-    margin: 2px 6px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.84rem;
-    font-weight: 500;
-    color: rgba(220,200,255,0.65);
-    border: 1px solid transparent;
-    transition: all 0.2s;
-}
-.op-badge:hover { background: rgba(255,255,255,0.05); }
-.op-badge.active {
-    background: rgba(255,255,255,0.07);
-    border-color: rgba(255,255,255,0.12);
-    color: #f0ecff;
-    font-weight: 700;
-}
-.op-dot {
-    width: 9px; height: 9px;
-    border-radius: 50%;
-    flex-shrink: 0;
+    background: linear-gradient(90deg, transparent, rgba(168,85,247,0.35), transparent);
+    margin: 8px 0;
 }
 </style>
 """, unsafe_allow_html=True)
 
-with st.sidebar:
+# ── Session state navegación ──
+MENU_ITEMS = {
+    "📊 Panel Ejecutivo":   "analisis",
+    "📈 P&G":               "analisis",
+    "💹 Finanzas":          "analisis",
+    "🔮 Proyecciones":      "analisis",
+    "🧠 Asesor Financiero": "analisis",
+    "📡 Tendencias & Clima":"analisis",
+    "📦 Operaciones":       "operacional",
+    "🚦 Monitor de Estatus":"operacional",
+    "📣 Marketing":         "operacional",
+    "🛍️ Catálogo":          "operacional",
+    "🤖 Asistente IA":      "operacional",
+}
+OPERACIONES = {
+    "🤖 LUCID BOT":      {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#a78bfa","dot":"#7c3aed","bg":"rgba(124,58,237,0.15)","border":"rgba(124,58,237,0.45)"},
+    "✨ ESSENTYA":        {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#f9a8d4","dot":"#ec4899","bg":"rgba(236,72,153,0.12)","border":"rgba(236,72,153,0.4)"},
+    "🐂 EL TORO":         {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#fca5a5","dot":"#ef4444","bg":"rgba(239,68,68,0.12)","border":"rgba(239,68,68,0.4)"},
+    "🛒 Carrito Naranja": {"pais":"🇨🇱 Chile",   "moneda":"CLP","color":"#fdba74","dot":"#f97316","bg":"rgba(249,115,22,0.12)","border":"rgba(249,115,22,0.4)"},
+}
 
+if "nav_activa"  not in st.session_state: st.session_state.nav_activa  = "📊 Panel Ejecutivo"
+if "op_activa"   not in st.session_state: st.session_state.op_activa   = "🤖 LUCID BOT"
+
+with st.sidebar:
     # ── Logo ──
     st.markdown("""
-    <div style="padding:28px 16px 16px;text-align:center">
+    <div style="padding:26px 16px 12px;text-align:center">
         <div style="display:inline-flex;align-items:center;justify-content:center;
-                    width:58px;height:58px;border-radius:18px;margin-bottom:14px;
-                    background:linear-gradient(135deg,#7c3aed 0%,#e040fb 100%);
-                    box-shadow:0 8px 32px rgba(168,85,247,0.55),
-                               inset 0 1px 0 rgba(255,255,255,0.2)">
-            <span style="font-size:1.6rem;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3))">🌐</span>
+                    width:56px;height:56px;border-radius:18px;margin-bottom:12px;
+                    background:linear-gradient(135deg,#7c3aed,#e040fb);
+                    box-shadow:0 8px 32px rgba(168,85,247,0.55),inset 0 1px 0 rgba(255,255,255,0.2)">
+            <span style="font-size:1.55rem">🌐</span>
         </div>
-        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.5rem;font-weight:800;
-                    letter-spacing:-0.03em;line-height:1;margin-bottom:6px">
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.45rem;font-weight:800;
+                    letter-spacing:-0.03em;line-height:1;margin-bottom:5px">
             <span style="color:#f0ecff">Visió</span><span style="background:linear-gradient(90deg,#c084fc,#e040fb);
             -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">N360</span>
         </div>
-        <div style="font-family:'DM Sans',sans-serif;font-size:0.62rem;
-                    color:rgba(200,180,255,0.5);font-weight:600;letter-spacing:0.1em;
-                    text-transform:uppercase">
+        <div style="font-size:0.6rem;color:rgba(200,180,255,0.45);font-weight:600;
+                    letter-spacing:0.1em;text-transform:uppercase;font-family:'DM Sans',sans-serif">
             Inteligencia Comercial
         </div>
     </div>
-    <div class="nav-divider"></div>
+    <div class="nav-sep"></div>
     """, unsafe_allow_html=True)
 
-    # ── Menú ANÁLISIS ──
-    st.markdown('<div class="nav-section">Análisis</div>', unsafe_allow_html=True)
-    vista = st.radio("_nav_analisis", [
-        "📊  Panel Ejecutivo",
-        "📈  P&G",
-        "💹  Finanzas",
-        "🔮  Proyecciones",
-        "🧠  Asesor Financiero",
-        "📡  Tendencias & Clima",
-    ], label_visibility="collapsed")
+    # ── Menú Análisis ──
+    st.markdown('<span class="nav-section-lbl">Análisis</span>', unsafe_allow_html=True)
+    for item in ["📊 Panel Ejecutivo","📈 P&G","💹 Finanzas","🔮 Proyecciones","🧠 Asesor Financiero","📡 Tendencias & Clima"]:
+        is_active = st.session_state.nav_activa == item
+        # Inyectar clase activa via contenedor
+        if is_active:
+            st.markdown('<div class="nav-active">', unsafe_allow_html=True)
+        clicked = st.button(item, key=f"nav_{item}", use_container_width=True,
+                            type="primary" if is_active else "secondary")
+        if is_active:
+            st.markdown('</div>', unsafe_allow_html=True)
+        if clicked:
+            st.session_state.nav_activa = item
+            st.rerun()
 
-    st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="nav-section">Operacional</div>', unsafe_allow_html=True)
+    st.markdown('<div class="nav-sep"></div>', unsafe_allow_html=True)
 
-    vista2 = st.radio("_nav_op", [
-        "📦  Operaciones",
-        "🚦  Monitor de Estatus",
-        "📣  Marketing",
-        "🛍️  Catálogo",
-        "🤖  Asistente IA",
-    ], label_visibility="collapsed")
+    # ── Menú Operacional ──
+    st.markdown('<span class="nav-section-lbl">Operacional</span>', unsafe_allow_html=True)
+    for item in ["📦 Operaciones","🚦 Monitor de Estatus","📣 Marketing","🛍️ Catálogo","🤖 Asistente IA"]:
+        is_active = st.session_state.nav_activa == item
+        if is_active:
+            st.markdown('<div class="nav-active">', unsafe_allow_html=True)
+        clicked = st.button(item, key=f"nav_{item}", use_container_width=True,
+                            type="primary" if is_active else "secondary")
+        if is_active:
+            st.markdown('</div>', unsafe_allow_html=True)
+        if clicked:
+            st.session_state.nav_activa = item
+            st.rerun()
 
-    # Detectar cuál grupo tocó el usuario por último
-    if "last_group" not in st.session_state:
-        st.session_state.last_group  = "analisis"
-    if "prev_vista" not in st.session_state:
-        st.session_state.prev_vista  = vista
-        st.session_state.prev_vista2 = vista2
-
-    if vista != st.session_state.prev_vista:
-        st.session_state.last_group  = "analisis"
-        st.session_state.prev_vista  = vista
-    elif vista2 != st.session_state.prev_vista2:
-        st.session_state.last_group  = "operacional"
-        st.session_state.prev_vista2 = vista2
-
-    vista_activa = vista if st.session_state.last_group == "analisis" else vista2
-
-    st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="nav-sep"></div>', unsafe_allow_html=True)
 
     # ── Operación activa ──
-    st.markdown('<div class="nav-section">Operación Activa</div>', unsafe_allow_html=True)
-
-    OPERACIONES = {
-        "🤖  LUCID BOT":      {"pais": "🇨🇴 Colombia", "moneda": "COP", "color": "#a78bfa", "dot": "#7c3aed",
-                               "bg": "rgba(124,58,237,0.12)", "border": "rgba(124,58,237,0.4)"},
-        "✨  ESSENTYA":        {"pais": "🇨🇴 Colombia", "moneda": "COP", "color": "#f9a8d4", "dot": "#ec4899",
-                               "bg": "rgba(236,72,153,0.10)", "border": "rgba(236,72,153,0.35)"},
-        "🐂  EL TORO":         {"pais": "🇨🇴 Colombia", "moneda": "COP", "color": "#fca5a5", "dot": "#ef4444",
-                               "bg": "rgba(239,68,68,0.10)",  "border": "rgba(239,68,68,0.35)"},
-        "🛒  Carrito Naranja": {"pais": "🇨🇱 Chile",    "moneda": "CLP", "color": "#fdba74", "dot": "#f97316",
-                               "bg": "rgba(249,115,22,0.10)", "border": "rgba(249,115,22,0.35)"},
-    }
-
-    operacion = st.radio("_operacion", list(OPERACIONES.keys()), label_visibility="collapsed")
-    op_info = OPERACIONES[operacion]
-    es_clp  = op_info["moneda"] == "CLP"
-
-    # Render visual de operaciones
-    ops_html = ""
+    st.markdown('<span class="nav-section-lbl">Operación Activa</span>', unsafe_allow_html=True)
     for op_key, op_data in OPERACIONES.items():
-        is_sel = op_key == operacion
-        cls = "op-badge active" if is_sel else "op-badge"
-        ops_html += f'''<div class="{cls}">
-            <div class="op-dot" style="background:{op_data["dot"]};
-                box-shadow:{"0 0 8px " + op_data["dot"] if is_sel else "none"}"></div>
-            <span>{op_key.split("  ")[1]}</span>
-            <span style="margin-left:auto;font-size:0.68rem;
-                color:{"rgba(200,180,255,0.5)" if not is_sel else op_data["color"]}">
-                {op_data["moneda"]}
-            </span>
-        </div>'''
-    st.markdown(ops_html, unsafe_allow_html=True)
+        is_sel = st.session_state.op_activa == op_key
+        bg = op_data["bg"] if is_sel else "transparent"
+        border = op_data["border"] if is_sel else "transparent"
+        color  = op_data["color"] if is_sel else "rgba(220,200,255,0.6)"
+        glow   = f'box-shadow:0 0 10px {op_data["dot"]}88;' if is_sel else ""
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;margin:2px 0;'
+            f'border-radius:11px;background:{bg};border:1px solid {border};cursor:pointer;'
+            f'font-family:DM Sans,sans-serif;font-size:0.84rem;font-weight:{"700" if is_sel else "500"};'
+            f'color:{color};transition:all 0.2s">'
+            f'<div style="width:9px;height:9px;border-radius:50%;background:{op_data["dot"]};{glow}flex-shrink:0"></div>'
+            f'<span style="flex:1">{op_key.split(" ",1)[1]}</span>'
+            f'<span style="font-size:0.68rem;opacity:0.7">{op_data["moneda"]}</span>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+        if st.button(f"→ {op_key.split(' ',1)[1]}", key=f"op_{op_key}",
+                     use_container_width=True):
+            st.session_state.op_activa = op_key
+            st.rerun()
 
-    # Badge país activo
-    st.markdown(
-        f'<div style="margin:8px 16px;padding:8px 12px;border-radius:10px;'
-        f'background:{op_info["bg"]};border:1px solid {op_info["border"]};'
-        f'font-size:0.78rem;color:{op_info["color"]};font-weight:600;font-family:DM Sans,sans-serif">'
-        f'{op_info["pais"]} &nbsp;·&nbsp; {op_info["moneda"]}</div>',
-        unsafe_allow_html=True
-    )
+    # ── Derivar variables de sesión ──
+    vista_activa = st.session_state.nav_activa
+    operacion    = st.session_state.op_activa
+    op_info      = OPERACIONES[operacion]
+    es_clp       = op_info["moneda"] == "CLP"
 
-    # TRM solo para Carrito Naranja
+    st.markdown('<div class="nav-sep"></div>', unsafe_allow_html=True)
+
+    # TRM
     trm_clp_cop = 4.2
     if es_clp:
-        st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="nav-section">💱 Conversión CLP → COP</div>', unsafe_allow_html=True)
-        trm_clp_cop = st.number_input(
-            "1 CLP = ? COP",
-            min_value=1.0, max_value=20.0,
-            value=4.2, step=0.1,
-            help="Tasa de cambio CLP a COP"
-        )
-        st.markdown(f'<div style="font-size:0.74rem;color:rgba(200,180,255,0.5);padding:2px 8px">= ${trm_clp_cop:.2f} COP por CLP</div>', unsafe_allow_html=True)
+        st.markdown('<span class="nav-section-lbl">💱 CLP → COP</span>', unsafe_allow_html=True)
+        trm_clp_cop = st.number_input("1 CLP = ? COP", min_value=1.0, max_value=20.0,
+                                       value=4.2, step=0.1)
 
-    st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="nav-sep"></div>', unsafe_allow_html=True)
 
     # ── Importar datos ──
-    st.markdown('<div class="nav-section">Importar Datos</div>', unsafe_allow_html=True)
-    archivo = st.file_uploader(
-        f"📁 {operacion.split('  ')[1]}",
-        type=["xlsx","xls"],
-        help="Exporta el reporte de órdenes desde Dropi"
-    )
-
+    st.markdown('<span class="nav-section-lbl">Importar Datos</span>', unsafe_allow_html=True)
+    archivo = st.file_uploader(f"📁 {operacion.split(' ',1)[1]}", type=["xlsx","xls"])
     if archivo:
         st.markdown(
-            f'<div style="margin:8px;padding:10px 12px;border-radius:10px;text-align:center;'
+            f'<div style="padding:8px 12px;border-radius:10px;text-align:center;margin-top:6px;'
             f'background:{op_info["bg"]};border:1px solid {op_info["border"]};'
-            f'font-size:0.78rem;color:{op_info["color"]};font-weight:700">'
-            f'✅ {operacion.split("  ")[1]} · Cargado</div>',
+            f'font-size:0.78rem;color:{op_info["color"]};font-weight:700;font-family:DM Sans,sans-serif">'
+            f'✅ {operacion.split(" ",1)[1]} · Cargado</div>',
             unsafe_allow_html=True
         )
 
-    # ── Footer ──
     st.markdown("""
-    <div style="padding:16px;margin-top:8px;text-align:center">
-        <div style="font-size:0.6rem;color:rgba(200,180,255,0.3);font-family:'DM Sans',sans-serif;
-                    letter-spacing:0.05em">
+    <div style="padding:14px 8px 8px;text-align:center">
+        <div style="font-size:0.58rem;color:rgba(200,180,255,0.25);font-family:'DM Sans',sans-serif">
             VisióN360 · v2.0 · Colombia
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+    </div>""", unsafe_allow_html=True)
 
     st.markdown("""
     <div style="position:fixed;bottom:20px;left:0;width:260px;text-align:center">
@@ -906,12 +809,12 @@ pct_gan    = round(tot_gan/tot_venta*100,1) if tot_venta else 0
 if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" in vista_activa or "Finanzas" in vista_activa or "Marketing" in vista_activa or "Catálogo" in vista_activa:
 
     # Header
-    op_nombre = operacion.split("  ")[1]
+    op_nombre = operacion.split(" ", 1)[1]
     op_color  = op_info["color"]
     op_pais   = op_info["pais"]
     op_moneda = op_info["moneda"]
 
-    modulo_nombre = vista_activa.split("  ")[1] if "  " in vista_activa else vista_activa.strip()
+    modulo_nombre = vista_activa.split(" ", 1)[1] if " " in vista_activa else vista_activa.strip()
     clp_badge = (f"&nbsp;&nbsp;&middot;&nbsp;&nbsp;<span style='color:#f97316;font-size:0.78rem'>"
                  f"&#x1F4B1; CLP&#8594;COP @ {trm_clp_cop}</span>") if es_clp else ""
 
@@ -5309,7 +5212,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
 # ═══════════════════════════════════════════════════════════
 elif "Asesor" in vista_activa:
 
-    op_nombre = operacion.split("  ")[1]
+    op_nombre = operacion.split(" ", 1)[1]
     op_color  = op_info["color"]
     st.markdown(
         f'<div style="margin-bottom:28px;background:linear-gradient(135deg,#12151f,#161929);'
@@ -6226,7 +6129,7 @@ elif "Tendencias" in vista_activa:
 # ██████  VISTA 2: OPERACIONES
 # ═══════════════════════════════════════════════════════════
 elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" in vista_activa:
-    op_nombre = operacion.split("  ")[1]
+    op_nombre = operacion.split(" ", 1)[1]
     op_color  = op_info["color"]
     op_pais   = op_info["pais"]
     op_moneda = op_info["moneda"]
