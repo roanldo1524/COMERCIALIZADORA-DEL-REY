@@ -502,51 +502,91 @@ section[data-testid="stSidebar"] {
     box-shadow: 4px 0 40px rgba(0,0,0,0.6) !important;
 }
 
-/* Ocultar radios nativos de Streamlit completamente */
-section[data-testid="stSidebar"] .stRadio > div { display: none !important; }
-
-/* Estilos de los ítems del menú custom */
-.nav-section {
-    font-size: 0.58rem;
-    color: rgba(200,180,255,0.45);
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    padding: 0 16px;
-    margin: 18px 0 6px;
-    font-family: 'DM Sans', sans-serif;
+/* ── RADIO BUTTONS — convertir en nav items ── */
+section[data-testid="stSidebar"] .stRadio > div {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
 }
-.nav-item {
+/* Ocultar el círculo nativo del radio */
+section[data-testid="stSidebar"] .stRadio input[type="radio"] {
+    display: none !important;
+}
+/* Cada label = un nav item */
+section[data-testid="stSidebar"] .stRadio label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 11px 14px !important;
+    margin: 1px 6px !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.88rem !important;
+    font-weight: 500 !important;
+    color: rgba(220,200,255,0.72) !important;
+    border: 1px solid transparent !important;
+    transition: all 0.2s ease !important;
+    background: transparent !important;
+    position: relative !important;
+    overflow: hidden !important;
+    min-height: 48px !important;
+}
+section[data-testid="stSidebar"] .stRadio label:hover {
+    background: rgba(168,85,247,0.15) !important;
+    color: #f0ecff !important;
+    border-color: rgba(168,85,247,0.25) !important;
+}
+/* Label seleccionado */
+section[data-testid="stSidebar"] .stRadio label[data-baseweb] {
+    background: transparent !important;
+}
+section[data-testid="stSidebar"] .stRadio [aria-checked="true"] ~ label,
+section[data-testid="stSidebar"] .stRadio input:checked + div label,
+section[data-testid="stSidebar"] .stRadio div[data-testid="stMarkdownContainer"]:has(input:checked) label {
+    background: linear-gradient(135deg, rgba(124,58,237,0.65), rgba(168,85,247,0.4)) !important;
+    color: #ffffff !important;
+    border-color: rgba(168,85,247,0.5) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.3) !important;
+}
+/* Truco: usar :has para el item activo */
+section[data-testid="stSidebar"] .stRadio label:has(input:checked) {
+    background: linear-gradient(135deg, rgba(124,58,237,0.65), rgba(168,85,247,0.4)) !important;
+    color: #ffffff !important;
+    border-color: rgba(168,85,247,0.5) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.3) !important;
+}
+/* El span de texto del radio */
+section[data-testid="stSidebar"] .stRadio label > div {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+}
+section[data-testid="stSidebar"] .stRadio label p {
+    margin: 0 !important;
+    font-size: 0.88rem !important;
+    font-weight: inherit !important;
+    color: inherit !important;
+    line-height: 1.3 !important;
+}
+/* Ícono cuadrito para cada label */
+section[data-testid="stSidebar"] .stRadio label::before {
+    content: '';
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 9px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
     display: flex;
     align-items: center;
-    gap: 13px;
-    padding: 11px 16px;
-    margin: 2px 8px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: rgba(220,200,255,0.7);
-    border: 1px solid transparent;
-    position: relative;
-    overflow: hidden;
-    text-decoration: none !important;
+    justify-content: center;
 }
-.nav-item:hover {
-    background: rgba(168,85,247,0.15);
-    color: #f0ecff;
-    border-color: rgba(168,85,247,0.3);
-}
-.nav-item.active {
-    background: linear-gradient(135deg, rgba(124,58,237,0.6) 0%, rgba(168,85,247,0.4) 100%);
-    color: #ffffff;
-    border-color: rgba(168,85,247,0.5);
-    box-shadow: 0 4px 20px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.1);
-    font-weight: 700;
-}
-.nav-item.active::before {
+/* Línea activa a la izquierda */
+section[data-testid="stSidebar"] .stRadio label:has(input:checked)::after {
     content: '';
     position: absolute;
     left: 0; top: 20%; bottom: 20%;
@@ -554,33 +594,31 @@ section[data-testid="stSidebar"] .stRadio > div { display: none !important; }
     background: linear-gradient(180deg, #c084fc, #e040fb);
     border-radius: 0 4px 4px 0;
 }
-.nav-icon {
-    width: 32px; height: 32px;
-    display: flex; align-items: center; justify-content: center;
-    border-radius: 9px;
-    font-size: 1rem;
-    flex-shrink: 0;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.06);
-}
-.nav-item.active .nav-icon {
-    background: rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.2);
+
+/* Sección labels */
+.nav-section {
+    font-size: 0.58rem;
+    color: rgba(200,180,255,0.45);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0 16px;
+    margin: 16px 0 4px;
+    font-family: 'DM Sans', sans-serif;
 }
 .nav-divider {
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(168,85,247,0.3), transparent);
-    margin: 12px 16px;
+    margin: 10px 16px;
 }
-/* Op badge */
 .op-badge {
     display: flex; align-items: center; gap: 10px;
     padding: 10px 14px;
-    margin: 4px 8px;
+    margin: 2px 6px;
     border-radius: 12px;
     cursor: pointer;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.83rem;
+    font-size: 0.84rem;
     font-weight: 500;
     color: rgba(220,200,255,0.65);
     border: 1px solid transparent;
@@ -594,7 +632,7 @@ section[data-testid="stSidebar"] .stRadio > div { display: none !important; }
     font-weight: 700;
 }
 .op-dot {
-    width: 8px; height: 8px;
+    width: 9px; height: 9px;
     border-radius: 50%;
     flex-shrink: 0;
 }
@@ -627,7 +665,8 @@ with st.sidebar:
     <div class="nav-divider"></div>
     """, unsafe_allow_html=True)
 
-    # ── Menú ANÁLISIS (radio oculto + HTML visual) ──
+    # ── Menú ANÁLISIS ──
+    st.markdown('<div class="nav-section">Análisis</div>', unsafe_allow_html=True)
     vista = st.radio("_nav_analisis", [
         "📊  Panel Ejecutivo",
         "📈  P&G",
@@ -636,6 +675,9 @@ with st.sidebar:
         "🧠  Asesor Financiero",
         "📡  Tendencias & Clima",
     ], label_visibility="collapsed")
+
+    st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="nav-section">Operacional</div>', unsafe_allow_html=True)
 
     vista2 = st.radio("_nav_op", [
         "📦  Operaciones",
@@ -661,38 +703,6 @@ with st.sidebar:
 
     vista_activa = vista if st.session_state.last_group == "analisis" else vista2
 
-    # ── Render visual del menú ──
-    MENU_ANALISIS = [
-        ("📊", "Panel Ejecutivo",    "📊  Panel Ejecutivo"),
-        ("📈", "P&G",                "📈  P&G"),
-        ("💹", "Finanzas",           "💹  Finanzas"),
-        ("🔮", "Proyecciones",       "🔮  Proyecciones"),
-        ("🧠", "Asesor Financiero",  "🧠  Asesor Financiero"),
-        ("📡", "Tendencias & Clima", "📡  Tendencias & Clima"),
-    ]
-    MENU_OPERACIONAL = [
-        ("📦", "Operaciones",       "📦  Operaciones"),
-        ("🚦", "Monitor de Estatus","🚦  Monitor de Estatus"),
-        ("📣", "Marketing",         "📣  Marketing"),
-        ("🛍️", "Catálogo",          "🛍️  Catálogo"),
-        ("🤖", "Asistente IA",      "🤖  Asistente IA"),
-    ]
-
-    def render_menu(items, activa):
-        html = '<div class="nav-section">Análisis</div>' if items == MENU_ANALISIS else '<div class="nav-section" style="margin-top:4px">Operacional</div>'
-        for ico, lbl, key in items:
-            is_active = key in activa or activa in key
-            cls = "nav-item active" if is_active else "nav-item"
-            html += f'''
-            <div class="{cls}">
-                <div class="nav-icon">{ico}</div>
-                <span>{lbl}</span>
-            </div>'''
-        return html
-
-    st.markdown(render_menu(MENU_ANALISIS, vista_activa), unsafe_allow_html=True)
-    st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
-    st.markdown(render_menu(MENU_OPERACIONAL, vista_activa), unsafe_allow_html=True)
     st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
 
     # ── Operación activa ──
