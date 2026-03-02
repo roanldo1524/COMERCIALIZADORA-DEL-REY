@@ -1384,9 +1384,9 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         # FUNCIÓN RENDER P&G TABLA PARA UN PERÍODO
         # ════════════════════════════════════════════════════
         def fmt_v(v):
-            if abs(v) >= 1_000_000: return f"${v/1_000_000:.2f}M"
-            if abs(v) >= 1_000:     return f"${v/1_000:.1f}K"
-            return f"${v:,.0f}"
+            # Siempre número completo con puntos de miles, sin abreviar
+            signo = "-" if v < 0 else ""
+            return f"{signo}${abs(v):,.0f}"
 
         def pct_color(p, invertir=False, destacar=False):
             if invertir:
@@ -1493,80 +1493,115 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             return h
 
         # ════════════════════════════════════════════════════
-        # RESUMEN TOTAL MES — siempre visible en la cima
+        # CALCULAR TOTALES
         # ════════════════════════════════════════════════════
-        m_mes = met["mes"]
+        m_mes  = met["mes"]
         cs_mes = costos["mes"]
         ebitda_mes = m_mes["margen_bruto"] - cs_mes["mkt"] - cs_mes["adm"] - cs_mes["imp"]
         neto_mes   = ebitda_mes - cs_mes["imp_tx"]
         rec_mes    = m_mes["recaudo"] or 1
 
+        def _neto(k):
+            return met[k]["margen_bruto"] - costos[k]["mkt"] - costos[k]["adm"] - costos[k]["imp"] - costos[k]["imp_tx"]
+
+        SEMS_DEF = [
+            ("sem1","Sem 1","días 1–8",   "#c084fc"),
+            ("sem2","Sem 2","días 9–16",  "#60a5fa"),
+            ("sem3","Sem 3","días 17–24", "#34d399"),
+            ("sem4","Sem 4","días 25–31", "#fb923c"),
+            ("mes", "Total Mes","mes completo","#a855f7"),
+        ]
+
+        # ════════════════════════════════════════════════════
+        # KPIs — 5 tarjetas arriba
+        # ════════════════════════════════════════════════════
         kpi_data = [
-            ("💰 Shopify",    m_mes["shopify"],   "#a855f7"),
-            ("✅ Recaudo",    m_mes["recaudo"],   "#34d399"),
-            ("📊 Mg. Bruto",  m_mes["margen_bruto"], "#fbbf24"),
-            ("📈 EBITDA",     ebitda_mes,          "#22d3ee"),
-            ("🏆 Mg. Neto",   neto_mes,            "#f0c060"),
+            ("💰 Shopify",   m_mes["shopify"],        "#a855f7"),
+            ("✅ Recaudo",   m_mes["recaudo"],         "#34d399"),
+            ("📊 Mg. Bruto", m_mes["margen_bruto"],    "#fbbf24"),
+            ("📈 EBITDA",    ebitda_mes,               "#22d3ee"),
+            ("🏆 Mg. Neto",  neto_mes,                 "#f0c060"),
         ]
         kpi_cols = st.columns(5)
         for col, (lbl, val, color) in zip(kpi_cols, kpi_data):
-            pct_v = val/m_mes["shopify"]*100 if m_mes["shopify"] else 0
+            pct_v = val / m_mes["shopify"] * 100 if m_mes["shopify"] else 0
+            # Número completo con puntos de miles y decimales
+            val_fmt = f"${val:,.0f}"
             with col:
                 st.markdown(
                     f'<div style="background:linear-gradient(145deg,#1a1535,#13102a);'
-                    f'border:1px solid #2e2558;border-radius:14px;padding:14px 12px;'
+                    f'border:1px solid #2e2558;border-radius:14px;padding:14px 10px;'
                     f'border-top:2px solid {color};text-align:center">'
-                    f'<div style="font-size:0.62rem;color:rgba(200,180,255,0.5);font-weight:700;'
-                    f'text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">{lbl}</div>'
-                    f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-size:1.2rem;'
-                    f'font-weight:800;color:#f0ecff">{fmt_money(val)}</div>'
-                    f'<div style="font-size:0.75rem;color:{color};font-weight:700;margin-top:3px">'
+                    f'<div style="font-size:0.58rem;color:rgba(200,180,255,0.45);font-weight:700;'
+                    f'text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px">{lbl}</div>'
+                    f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-size:0.95rem;'
+                    f'font-weight:800;color:#f0ecff;word-break:break-all">{val_fmt}</div>'
+                    f'<div style="font-size:0.72rem;color:{color};font-weight:700;margin-top:3px">'
                     f'{pct_v:.1f}% Shopify</div>'
                     f'</div>',
                     unsafe_allow_html=True
                 )
 
-        st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="height:18px"></div>', unsafe_allow_html=True)
 
         # ════════════════════════════════════════════════════
-        # SEMANAS — cada una expandible individualmente
+        # TABS HORIZONTALES + TABLA ÚNICA A LA DERECHA
         # ════════════════════════════════════════════════════
-        SEMS = [
-            ("sem1","Semana 1","días 1 – 8",   "#c084fc"),
-            ("sem2","Semana 2","días 9 – 16",  "#60a5fa"),
-            ("sem3","Semana 3","días 17 – 24", "#34d399"),
-            ("sem4","Semana 4","días 25 – 31", "#fb923c"),
-        ]
-        for sk, slbl, sdias, scolor in SEMS:
-            n_ped = len(periodos_pg[sk])
-            shop_s = met[sk]["shopify"]
-            neto_s = met[sk]["margen_bruto"] - costos[sk]["mkt"] - costos[sk]["adm"] - costos[sk]["imp"] - costos[sk]["imp_tx"]
-            pct_s  = neto_s/shop_s*100 if shop_s else 0
-            c_s,_ = pct_color(pct_s, destacar=True)
-            with st.expander(
-                f"{slbl}  ·  {sdias}  ·  {n_ped:,} pedidos  ·  Shopify {fmt_money(shop_s)}  ·  Neto {fmt_money(neto_s)} ({pct_s:.1f}%)",
-                expanded=False
-            ):
-                st.markdown(
-                    f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'
-                    f'<div style="width:12px;height:12px;border-radius:50%;background:{scolor};'
-                    f'box-shadow:0 0 10px {scolor}88"></div>'
-                    f'<span style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;'
-                    f'color:{scolor};font-size:0.9rem">{slbl} — {sdias}</span>'
-                    f'</div>',
-                    unsafe_allow_html=True
-                )
-                st.markdown(render_pg_tabla(sk, scolor), unsafe_allow_html=True)
+        if "pg_tab_sel" not in st.session_state:
+            st.session_state.pg_tab_sel = "mes"
 
-        # ════════════════════════════════════════════════════
-        # TOTAL MES — expandible al final
-        # ════════════════════════════════════════════════════
-        st.markdown('<div style="height:6px"></div>', unsafe_allow_html=True)
-        with st.expander(
-            f"📊 TOTAL MES  ·  {len(df_pg):,} pedidos  ·  Shopify {fmt_money(m_mes['shopify'])}  ·  Neto {fmt_money(neto_mes)} ({neto_mes/rec_mes*100:.1f}%)",
-            expanded=True
-        ):
-            st.markdown(render_pg_tabla("mes","#c084fc"), unsafe_allow_html=True)
+        # ── Tabs visuales ──
+        tabs_html = '<div style="display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap">'
+        for sk, slbl, sdias, scolor in SEMS_DEF:
+            n   = len(periodos_pg[sk])
+            nt  = _neto(sk)
+            sh  = met[sk]["shopify"]
+            pct = nt/sh*100 if sh else 0
+            is_a = sk == st.session_state.pg_tab_sel
+            bg   = f"background:linear-gradient(135deg,{scolor}55,{scolor}33);" if is_a else "background:rgba(255,255,255,0.04);"
+            brd  = f"border-color:{scolor}88;" if is_a else "border-color:rgba(168,85,247,0.15);"
+            clr  = f"color:#fff;" if is_a else f"color:rgba(210,190,255,0.55);"
+            shw  = f"box-shadow:0 3px 16px {scolor}44;" if is_a else ""
+            tabs_html += (
+                f'<div style="{bg}{brd}{clr}{shw}'
+                f'padding:10px 16px;border-radius:12px;border:1px solid;'
+                f'font-family:DM Sans,sans-serif;font-size:0.82rem;font-weight:700;'
+                f'cursor:pointer;transition:all 0.15s;min-width:100px;text-align:center">'
+                f'<div style="font-size:0.65rem;opacity:0.7;margin-bottom:2px">{sdias}</div>'
+                f'<div style="font-size:0.88rem">{slbl}</div>'
+                f'<div style="font-size:0.68rem;margin-top:3px;color:{scolor if is_a else "rgba(200,180,255,0.4)"};font-weight:800">'
+                f'${sh:,.0f}</div>'
+                f'<div style="font-size:0.68rem;color:{"#34d399" if pct>=35 else "#fbbf24" if pct>=20 else "#ef4444"};font-weight:700">'
+                f'Neto {pct:.1f}%</div>'
+                f'</div>'
+            )
+        tabs_html += '</div>'
+        st.markdown(tabs_html, unsafe_allow_html=True)
+
+        # Botones reales invisibles debajo de los tabs visuales
+        _tab_btn_cols = st.columns(5)
+        for idx, (sk, slbl, sdias, scolor) in enumerate(SEMS_DEF):
+            with _tab_btn_cols[idx]:
+                if st.button(slbl, key=f"pg_tab_{sk}", use_container_width=True):
+                    st.session_state.pg_tab_sel = sk
+
+        # ── Tabla del tab seleccionado ──
+        _sel = st.session_state.pg_tab_sel
+        _sel_def = next((d for d in SEMS_DEF if d[0]==_sel), SEMS_DEF[-1])
+        _sel_color = _sel_def[3]
+        _sel_lbl   = _sel_def[1]
+        _sel_dias  = _sel_def[2]
+
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'
+            f'<div style="width:3px;height:22px;border-radius:3px;background:{_sel_color}"></div>'
+            f'<span style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;'
+            f'color:{_sel_color};font-size:0.9rem">{_sel_lbl}</span>'
+            f'<span style="color:rgba(200,180,255,0.35);font-size:0.75rem">— {_sel_dias} — {len(periodos_pg[_sel]):,} pedidos</span>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+        st.markdown(render_pg_tabla(_sel, _sel_color), unsafe_allow_html=True)
 
         # ════════════════════════════════════════════════════
         # GRÁFICA resumen
