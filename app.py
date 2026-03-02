@@ -496,27 +496,38 @@ section[data-testid="stSidebar"] {
     border-right: 1px solid rgba(168,85,247,0.2) !important;
     box-shadow: 4px 0 40px rgba(0,0,0,0.7) !important;
 }
-/* Quitar padding default del sidebar */
-section[data-testid="stSidebar"] .block-container {
-    padding: 0 !important;
-}
-/* BOTONES NAV — estado normal */
+section[data-testid="stSidebar"] > div { padding-top: 0 !important; }
+section[data-testid="stSidebar"] .block-container { padding: 0 8px !important; }
+
+/* ── BOTONES NAV ── */
+section[data-testid="stSidebar"] .stButton { margin: 0 !important; }
 section[data-testid="stSidebar"] .stButton > button {
     width: 100% !important;
     text-align: left !important;
+    justify-content: flex-start !important;
     background: transparent !important;
     border: 1px solid transparent !important;
-    border-radius: 12px !important;
-    color: rgba(220,200,255,0.7) !important;
+    border-radius: 10px !important;
+    color: rgba(210,190,255,0.75) !important;
     font-family: 'DM Sans', sans-serif !important;
-    font-size: 0.88rem !important;
+    font-size: 0.86rem !important;
     font-weight: 500 !important;
-    padding: 10px 14px !important;
-    margin: 1px 0 !important;
-    transition: all 0.18s ease !important;
+    padding: 8px 12px !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    transition: background 0.15s, color 0.15s, border-color 0.15s !important;
     box-shadow: none !important;
     transform: none !important;
-    justify-content: flex-start !important;
+    /* Eliminar el doble clic: quitar el outline de foco */
+    outline: none !important;
+}
+section[data-testid="stSidebar"] .stButton > button:focus,
+section[data-testid="stSidebar"] .stButton > button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: rgba(168,85,247,0.4) !important;
 }
 section[data-testid="stSidebar"] .stButton > button:hover {
     background: rgba(168,85,247,0.18) !important;
@@ -525,30 +536,37 @@ section[data-testid="stSidebar"] .stButton > button:hover {
     transform: none !important;
     box-shadow: none !important;
 }
-/* BOTÓN ACTIVO */
-section[data-testid="stSidebar"] .stButton > button[kind="primary"],
-section[data-testid="stSidebar"] .nav-active > button {
-    background: linear-gradient(135deg, rgba(124,58,237,0.7), rgba(168,85,247,0.45)) !important;
-    border-color: rgba(168,85,247,0.55) !important;
+/* BOTÓN ACTIVO — type=primary */
+section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, rgba(124,58,237,0.75), rgba(168,85,247,0.5)) !important;
+    border-color: rgba(168,85,247,0.6) !important;
     color: #ffffff !important;
     font-weight: 700 !important;
-    box-shadow: 0 4px 18px rgba(124,58,237,0.35) !important;
+    box-shadow: 0 3px 14px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+}
+section[data-testid="stSidebar"] .stButton > button[kind="primary"]:hover {
+    background: linear-gradient(135deg, rgba(124,58,237,0.85), rgba(168,85,247,0.65)) !important;
+    transform: none !important;
+}
+section[data-testid="stSidebar"] .stButton > button[kind="primary"]:focus {
+    outline: none !important;
+    box-shadow: 0 3px 14px rgba(124,58,237,0.4) !important;
 }
 .nav-section-lbl {
-    font-size: 0.57rem;
-    color: rgba(200,180,255,0.4);
+    font-size: 0.56rem;
+    color: rgba(200,180,255,0.38);
     font-weight: 700;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    padding: 0 8px;
-    margin: 14px 0 3px;
+    padding: 0 4px;
+    margin: 10px 0 2px;
     font-family: 'DM Sans', sans-serif;
     display: block;
 }
 .nav-sep {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(168,85,247,0.35), transparent);
-    margin: 8px 0;
+    background: linear-gradient(90deg, transparent, rgba(168,85,247,0.3), transparent);
+    margin: 6px 0;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -580,21 +598,23 @@ if "op_activa"   not in st.session_state: st.session_state.op_activa   = "🤖 L
 with st.sidebar:
     # ── Logo ──
     st.markdown("""
-    <div style="padding:26px 16px 12px;text-align:center">
+    <div style="padding:16px 8px 10px;display:flex;align-items:center;gap:10px">
         <div style="display:inline-flex;align-items:center;justify-content:center;
-                    width:56px;height:56px;border-radius:18px;margin-bottom:12px;
+                    width:40px;height:40px;border-radius:12px;flex-shrink:0;
                     background:linear-gradient(135deg,#7c3aed,#e040fb);
-                    box-shadow:0 8px 32px rgba(168,85,247,0.55),inset 0 1px 0 rgba(255,255,255,0.2)">
-            <span style="font-size:1.55rem">🌐</span>
+                    box-shadow:0 4px 18px rgba(168,85,247,0.5)">
+            <span style="font-size:1.2rem">🌐</span>
         </div>
-        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.45rem;font-weight:800;
-                    letter-spacing:-0.03em;line-height:1;margin-bottom:5px">
-            <span style="color:#f0ecff">Visió</span><span style="background:linear-gradient(90deg,#c084fc,#e040fb);
-            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">N360</span>
-        </div>
-        <div style="font-size:0.6rem;color:rgba(200,180,255,0.45);font-weight:600;
-                    letter-spacing:0.1em;text-transform:uppercase;font-family:'DM Sans',sans-serif">
-            Inteligencia Comercial
+        <div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.15rem;font-weight:800;
+                        letter-spacing:-0.02em;line-height:1;margin-bottom:2px">
+                <span style="color:#f0ecff">Visió</span><span style="background:linear-gradient(90deg,#c084fc,#e040fb);
+                -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">N360</span>
+            </div>
+            <div style="font-size:0.56rem;color:rgba(200,180,255,0.4);font-weight:600;
+                        letter-spacing:0.1em;text-transform:uppercase;font-family:'DM Sans',sans-serif">
+                Inteligencia Comercial
+            </div>
         </div>
     </div>
     <div class="nav-sep"></div>
@@ -615,7 +635,6 @@ with st.sidebar:
             st.session_state.nav_activa = item
 
     st.markdown('<div class="nav-sep"></div>', unsafe_allow_html=True)
-
     # ── Menú Operacional ──
     st.markdown('<span class="nav-section-lbl">Operacional</span>', unsafe_allow_html=True)
     for item in ["📦 Operaciones","🚦 Monitor de Estatus","📣 Marketing","🛍️ Catálogo","🤖 Asistente IA"]:
