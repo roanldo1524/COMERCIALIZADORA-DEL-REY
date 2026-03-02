@@ -1141,19 +1141,6 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             -webkit-background-clip:text;-webkit-text-fill-color:transparent;
             background-clip:text;margin-bottom:6px;
         }
-        .pg-mes-pill {
-            display:inline-flex;align-items:center;justify-content:center;
-            padding:7px 18px;border-radius:20px;
-            font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:700;
-            cursor:pointer;border:1px solid rgba(168,85,247,0.3);
-            background:rgba(168,85,247,0.08);color:rgba(210,190,255,0.7);
-            transition:all 0.15s;margin:3px;
-        }
-        .pg-mes-pill.active {
-            background:linear-gradient(135deg,rgba(124,58,237,0.8),rgba(168,85,247,0.6));
-            color:#fff;border-color:rgba(168,85,247,0.6);
-            box-shadow:0 3px 14px rgba(124,58,237,0.4);
-        }
         .input-card {
             background:linear-gradient(145deg,#1a1535,#13102a);
             border:1px solid #2e2558;border-radius:16px;
@@ -1207,45 +1194,15 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         # HEADER
         # ════════════════════════════════════════════════════
         st.markdown('<div class="pg-header">📈 Estado de Pérdidas & Ganancias</div>', unsafe_allow_html=True)
-        st.markdown('<div style="color:rgba(200,180,255,0.5);font-size:0.8rem;margin-bottom:20px;font-family:DM Sans,sans-serif">Selecciona el mes · expande cada semana · alimenta los costos</div>', unsafe_allow_html=True)
+        st.markdown('<div style="color:rgba(200,180,255,0.5);font-size:0.8rem;margin-bottom:16px;font-family:DM Sans,sans-serif">Expande cada semana · alimenta los costos del mes</div>', unsafe_allow_html=True)
 
-        # ════════════════════════════════════════════════════
-        # SELECTOR MES — pills visuales
-        # ════════════════════════════════════════════════════
-        meses_pg = sorted(df["_mes"].dropna().unique().tolist(), reverse=True) if "_mes" in df.columns else []
-        if not meses_pg: meses_pg = ["Sin datos"]
-
-        meses_lbl = {}
-        import calendar
-        for m in meses_pg:
-            try:
-                p = pd.Period(m,"M")
-                meses_lbl[m] = p.strftime("%b %Y").capitalize()
-            except:
-                meses_lbl[m] = m
-
-        if "pg_mes_sel" not in st.session_state or st.session_state.pg_mes_sel not in meses_pg:
-            st.session_state.pg_mes_sel = meses_pg[0]
-
-        # Mostrar pills y botones invisibles encima
-        pills_html = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:18px">'
-        for m in meses_pg:
-            active = "active" if m == st.session_state.pg_mes_sel else ""
-            pills_html += f'<div class="pg-mes-pill {active}">{meses_lbl.get(m,m)}</div>'
-        pills_html += "</div>"
-        st.markdown(pills_html, unsafe_allow_html=True)
-
-        col_mes_btns = st.columns(len(meses_pg))
-        for idx, m in enumerate(meses_pg):
-            with col_mes_btns[idx]:
-                lbl = meses_lbl.get(m, m)
-                if st.button(lbl, key=f"pg_mes_{m}", use_container_width=True):
-                    st.session_state.pg_mes_sel = m
-
-        mes_pg = st.session_state.pg_mes_sel
-        df_pg = df[df["_mes"] == mes_pg].copy() if "_mes" in df.columns and mes_pg != "Sin datos" else df.copy()
-
-        st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+        # df ya viene filtrado por el filtro universal (mes o semana)
+        # Para el P&G necesitamos el mes completo para calcular semanas
+        _mes_actual = st.session_state.get("uf_mes", None)
+        if _mes_actual and "_mes" in df.columns:
+            df_pg = df[df["_mes"] == _mes_actual].copy() if st.session_state.get("uf_modo","mes") == "mes" else df.copy()
+        else:
+            df_pg = df.copy()
 
         # ════════════════════════════════════════════════════
         # FUNCIONES HELPERS
