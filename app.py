@@ -484,38 +484,151 @@ AXIS_STYLE = dict(gridcolor='#2e2558', linecolor='#2e2558', tickfont=dict(color=
 COLORES_ELEGANTES = ['#a855f7','#34d399','#fcd34d','#f87171','#22d3ee','#e040fb','#fbbf24','#f472b6','#14b8a6','#fb923c']
 
 # ═══════════════════════════════════════════════════════════
-# SIDEBAR
+# SIDEBAR — Purple Premium Style
 # ═══════════════════════════════════════════════════════════
+
+# CSS específico para el sidebar premium
+st.markdown("""
+<style>
+/* ── SIDEBAR FONDO DEGRADADO PURPLE ── */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(160deg,
+        #1a0a2e 0%,
+        #2d1060 25%,
+        #1e0a40 50%,
+        #150830 75%,
+        #0d0520 100%) !important;
+    border-right: 1px solid rgba(168,85,247,0.25) !important;
+    box-shadow: 4px 0 40px rgba(0,0,0,0.6) !important;
+}
+
+/* Ocultar radios nativos de Streamlit completamente */
+section[data-testid="stSidebar"] .stRadio > div { display: none !important; }
+
+/* Estilos de los ítems del menú custom */
+.nav-section {
+    font-size: 0.58rem;
+    color: rgba(200,180,255,0.45);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0 16px;
+    margin: 18px 0 6px;
+    font-family: 'DM Sans', sans-serif;
+}
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 11px 16px;
+    margin: 2px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(220,200,255,0.7);
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none !important;
+}
+.nav-item:hover {
+    background: rgba(168,85,247,0.15);
+    color: #f0ecff;
+    border-color: rgba(168,85,247,0.3);
+}
+.nav-item.active {
+    background: linear-gradient(135deg, rgba(124,58,237,0.6) 0%, rgba(168,85,247,0.4) 100%);
+    color: #ffffff;
+    border-color: rgba(168,85,247,0.5);
+    box-shadow: 0 4px 20px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.1);
+    font-weight: 700;
+}
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 20%; bottom: 20%;
+    width: 3px;
+    background: linear-gradient(180deg, #c084fc, #e040fb);
+    border-radius: 0 4px 4px 0;
+}
+.nav-icon {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 9px;
+    font-size: 1rem;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+.nav-item.active .nav-icon {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.2);
+}
+.nav-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(168,85,247,0.3), transparent);
+    margin: 12px 16px;
+}
+/* Op badge */
+.op-badge {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    margin: 4px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.83rem;
+    font-weight: 500;
+    color: rgba(220,200,255,0.65);
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+.op-badge:hover { background: rgba(255,255,255,0.05); }
+.op-badge.active {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.12);
+    color: #f0ecff;
+    font-weight: 700;
+}
+.op-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+</style>
+""", unsafe_allow_html=True)
+
 with st.sidebar:
+
+    # ── Logo ──
     st.markdown("""
-    <div style="padding:22px 12px 14px;text-align:center">
+    <div style="padding:28px 16px 16px;text-align:center">
         <div style="display:inline-flex;align-items:center;justify-content:center;
-                    width:52px;height:52px;border-radius:14px;margin-bottom:12px;
+                    width:58px;height:58px;border-radius:18px;margin-bottom:14px;
                     background:linear-gradient(135deg,#7c3aed 0%,#e040fb 100%);
-                    box-shadow:0 8px 32px rgba(168,85,247,0.5)">
-            <span style="font-size:1.5rem;line-height:1">🌐</span>
+                    box-shadow:0 8px 32px rgba(168,85,247,0.55),
+                               inset 0 1px 0 rgba(255,255,255,0.2)">
+            <span style="font-size:1.6rem;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3))">🌐</span>
         </div>
-        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.45rem;font-weight:800;
-                    color:#e8ecf7;letter-spacing:-0.03em;line-height:1;margin-bottom:5px">
-            Visió<span style="background:linear-gradient(90deg,#c084fc,#e040fb);
-                              -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-                              background-clip:text">N360</span>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.5rem;font-weight:800;
+                    letter-spacing:-0.03em;line-height:1;margin-bottom:6px">
+            <span style="color:#f0ecff">Visió</span><span style="background:linear-gradient(90deg,#c084fc,#e040fb);
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">N360</span>
         </div>
-        <div style="font-family:'DM Sans',sans-serif;font-size:0.67rem;
-                    color:#7a8aaa;font-weight:500;letter-spacing:0.08em;
-                    text-transform:uppercase;line-height:1.5">
+        <div style="font-family:'DM Sans',sans-serif;font-size:0.62rem;
+                    color:rgba(200,180,255,0.5);font-weight:600;letter-spacing:0.1em;
+                    text-transform:uppercase">
             Inteligencia Comercial
         </div>
     </div>
-    <div style="height:1px;background:linear-gradient(90deg,transparent,#1e2337,transparent);
-                margin:0 0 14px"></div>
+    <div class="nav-divider"></div>
     """, unsafe_allow_html=True)
 
-    # Sección PANEL PRINCIPAL
-    st.markdown('<div style="font-size:0.6rem;color:#7a8aaa;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:0 4px;margin-bottom:6px">ANÁLISIS</div>', unsafe_allow_html=True)
-
-    # PANEL PRINCIPAL — un solo radio unificado
-    vista = st.radio("", [
+    # ── Menú ANÁLISIS (radio oculto + HTML visual) ──
+    vista = st.radio("_nav_analisis", [
         "📊  Panel Ejecutivo",
         "📈  P&G",
         "💹  Finanzas",
@@ -524,8 +637,7 @@ with st.sidebar:
         "📡  Tendencias & Clima",
     ], label_visibility="collapsed")
 
-    st.markdown('<div style="font-size:0.6rem;color:#7a8aaa;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:2px 4px;margin:14px 0 6px">OPERACIONAL</div>', unsafe_allow_html=True)
-    vista2 = st.radio("_op", [
+    vista2 = st.radio("_nav_op", [
         "📦  Operaciones",
         "🚦  Monitor de Estatus",
         "📣  Marketing",
@@ -549,74 +661,124 @@ with st.sidebar:
 
     vista_activa = vista if st.session_state.last_group == "analisis" else vista2
 
-    # Resaltar Monitor de Estatus visualmente cuando está activo
-    if "Monitor" in vista_activa:
-        st.markdown(f'''
-        <div style="background:rgba(6,182,212,0.1);border:1px solid #00d4ff;border-radius:8px;
-                    padding:8px 12px;margin:6px 0;font-size:0.8rem;color:#6aeeff;font-weight:600">
-            🚦 <span style="color:#c084fc;font-weight:700">Monitor activo</span>
-        </div>''', unsafe_allow_html=True)
+    # ── Render visual del menú ──
+    MENU_ANALISIS = [
+        ("📊", "Panel Ejecutivo",    "📊  Panel Ejecutivo"),
+        ("📈", "P&G",                "📈  P&G"),
+        ("💹", "Finanzas",           "💹  Finanzas"),
+        ("🔮", "Proyecciones",       "🔮  Proyecciones"),
+        ("🧠", "Asesor Financiero",  "🧠  Asesor Financiero"),
+        ("📡", "Tendencias & Clima", "📡  Tendencias & Clima"),
+    ]
+    MENU_OPERACIONAL = [
+        ("📦", "Operaciones",       "📦  Operaciones"),
+        ("🚦", "Monitor de Estatus","🚦  Monitor de Estatus"),
+        ("📣", "Marketing",         "📣  Marketing"),
+        ("🛍️", "Catálogo",          "🛍️  Catálogo"),
+        ("🤖", "Asistente IA",      "🤖  Asistente IA"),
+    ]
 
-    st.markdown("<hr style='border-color:#1e2337;margin:16px 0'>", unsafe_allow_html=True)
+    def render_menu(items, activa):
+        html = '<div class="nav-section">Análisis</div>' if items == MENU_ANALISIS else '<div class="nav-section" style="margin-top:4px">Operacional</div>'
+        for ico, lbl, key in items:
+            is_active = key in activa or activa in key
+            cls = "nav-item active" if is_active else "nav-item"
+            html += f'''
+            <div class="{cls}">
+                <div class="nav-icon">{ico}</div>
+                <span>{lbl}</span>
+            </div>'''
+        return html
 
-    # Sección OPERACIONES
-    st.markdown('<div style="font-size:0.62rem;color:#7a8aaa;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:0 4px;margin-bottom:8px">OPERACIÓN ACTIVA</div>', unsafe_allow_html=True)
+    st.markdown(render_menu(MENU_ANALISIS, vista_activa), unsafe_allow_html=True)
+    st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
+    st.markdown(render_menu(MENU_OPERACIONAL, vista_activa), unsafe_allow_html=True)
+    st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
+
+    # ── Operación activa ──
+    st.markdown('<div class="nav-section">Operación Activa</div>', unsafe_allow_html=True)
 
     OPERACIONES = {
-        "🤖  LUCID BOT":      {"pais": "🇨🇴 Colombia", "moneda": "COP", "color": "#5b6cfc",
-                               "bg": "rgba(99,102,241,0.08)",  "border": "#5b6cfc"},
-        "✨  ESSENTYA":        {"pais": "🇨🇴 Colombia", "moneda": "COP", "color": "#ec4899",
-                               "bg": "rgba(236,72,153,0.08)",  "border": "#ec4899"},
-        "🐂  EL TORO":         {"pais": "🇨🇴 Colombia", "moneda": "COP", "color": "#ef4444",
-                               "bg": "rgba(239,68,68,0.08)",   "border": "#ef4444"},
-        "🛒  Carrito Naranja": {"pais": "🇨🇱 Chile",    "moneda": "CLP", "color": "#f97316",
-                               "bg": "rgba(249,115,22,0.08)",  "border": "#f97316"},
+        "🤖  LUCID BOT":      {"pais": "🇨🇴 Colombia", "moneda": "COP", "color": "#a78bfa", "dot": "#7c3aed",
+                               "bg": "rgba(124,58,237,0.12)", "border": "rgba(124,58,237,0.4)"},
+        "✨  ESSENTYA":        {"pais": "🇨🇴 Colombia", "moneda": "COP", "color": "#f9a8d4", "dot": "#ec4899",
+                               "bg": "rgba(236,72,153,0.10)", "border": "rgba(236,72,153,0.35)"},
+        "🐂  EL TORO":         {"pais": "🇨🇴 Colombia", "moneda": "COP", "color": "#fca5a5", "dot": "#ef4444",
+                               "bg": "rgba(239,68,68,0.10)",  "border": "rgba(239,68,68,0.35)"},
+        "🛒  Carrito Naranja": {"pais": "🇨🇱 Chile",    "moneda": "CLP", "color": "#fdba74", "dot": "#f97316",
+                               "bg": "rgba(249,115,22,0.10)", "border": "rgba(249,115,22,0.35)"},
     }
 
-    operacion = st.radio("", list(OPERACIONES.keys()), label_visibility="collapsed")
+    operacion = st.radio("_operacion", list(OPERACIONES.keys()), label_visibility="collapsed")
     op_info = OPERACIONES[operacion]
-    es_clp   = op_info["moneda"] == "CLP"
+    es_clp  = op_info["moneda"] == "CLP"
 
-    st.markdown(f'''<div style="background:{op_info["bg"]};border:1px solid {op_info["border"]};
-        border-radius:8px;padding:8px 12px;margin:8px 0;font-size:0.8rem;
-        color:{op_info["color"]};font-weight:600">
-        {op_info["pais"]} · {op_info["moneda"]}
-    </div>''', unsafe_allow_html=True)
+    # Render visual de operaciones
+    ops_html = ""
+    for op_key, op_data in OPERACIONES.items():
+        is_sel = op_key == operacion
+        cls = "op-badge active" if is_sel else "op-badge"
+        ops_html += f'''<div class="{cls}">
+            <div class="op-dot" style="background:{op_data["dot"]};
+                box-shadow:{"0 0 8px " + op_data["dot"] if is_sel else "none"}"></div>
+            <span>{op_key.split("  ")[1]}</span>
+            <span style="margin-left:auto;font-size:0.68rem;
+                color:{"rgba(200,180,255,0.5)" if not is_sel else op_data["color"]}">
+                {op_data["moneda"]}
+            </span>
+        </div>'''
+    st.markdown(ops_html, unsafe_allow_html=True)
+
+    # Badge país activo
+    st.markdown(
+        f'<div style="margin:8px 16px;padding:8px 12px;border-radius:10px;'
+        f'background:{op_info["bg"]};border:1px solid {op_info["border"]};'
+        f'font-size:0.78rem;color:{op_info["color"]};font-weight:600;font-family:DM Sans,sans-serif">'
+        f'{op_info["pais"]} &nbsp;·&nbsp; {op_info["moneda"]}</div>',
+        unsafe_allow_html=True
+    )
 
     # TRM solo para Carrito Naranja
     trm_clp_cop = 4.2
     if es_clp:
-        st.markdown("<hr style='border-color:#1e2337;margin:12px 0 8px'>", unsafe_allow_html=True)
-        st.markdown('<div style="font-size:0.62rem;color:#7a8aaa;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:0 4px;margin-bottom:6px">💱 CONVERSIÓN CLP → COP</div>', unsafe_allow_html=True)
+        st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="nav-section">💱 Conversión CLP → COP</div>', unsafe_allow_html=True)
         trm_clp_cop = st.number_input(
             "1 CLP = ? COP",
             min_value=1.0, max_value=20.0,
             value=4.2, step=0.1,
-            help="Tasa de cambio CLP a COP. Actualiza según el valor del día. (Referencia: 1 CLP ≈ 4.2 COP)"
+            help="Tasa de cambio CLP a COP"
         )
-        st.markdown(f'<div style="font-size:0.75rem;color:#a8b4d0;padding:4px">= ${trm_clp_cop:.2f} COP por cada CLP</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="font-size:0.74rem;color:rgba(200,180,255,0.5);padding:2px 8px">= ${trm_clp_cop:.2f} COP por CLP</div>', unsafe_allow_html=True)
 
-    st.markdown("<hr style='border-color:#1e2337;margin:16px 0'>", unsafe_allow_html=True)
+    st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
 
-    # Sección DATOS
-    st.markdown('<div style="font-size:0.62rem;color:#7a8aaa;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:0 4px;margin-bottom:8px">IMPORTAR DATOS</div>', unsafe_allow_html=True)
-    archivo = st.file_uploader(f"📁 Reporte {operacion.split('  ')[1]}", type=["xlsx","xls"],
-                               help="Exporta el reporte de órdenes desde Dropi")
+    # ── Importar datos ──
+    st.markdown('<div class="nav-section">Importar Datos</div>', unsafe_allow_html=True)
+    archivo = st.file_uploader(
+        f"📁 {operacion.split('  ')[1]}",
+        type=["xlsx","xls"],
+        help="Exporta el reporte de órdenes desde Dropi"
+    )
 
     if archivo:
-        st.markdown(f'''<div style="background:{op_info["bg"]};border:1px solid {op_info["border"]};
-            border-radius:8px;padding:10px;text-align:center;font-size:0.8rem;
-            color:{op_info["color"]};margin-top:10px">
-            ✅ {operacion.split("  ")[1]}<br>
-            <span style="font-size:0.72rem;opacity:0.8">Archivo cargado</span>
-        </div>''', unsafe_allow_html=True)
+        st.markdown(
+            f'<div style="margin:8px;padding:10px 12px;border-radius:10px;text-align:center;'
+            f'background:{op_info["bg"]};border:1px solid {op_info["border"]};'
+            f'font-size:0.78rem;color:{op_info["color"]};font-weight:700">'
+            f'✅ {operacion.split("  ")[1]} · Cargado</div>',
+            unsafe_allow_html=True
+        )
 
-    st.markdown("<hr style='border-color:#1e2337;margin:16px 0'>", unsafe_allow_html=True)
-
-    # Sección CONFIGURACIÓN
-    st.markdown('<div style="font-size:0.62rem;color:#7a8aaa;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:0 4px;margin-bottom:8px">CONFIGURACIÓN</div>', unsafe_allow_html=True)
-    st.markdown('<div style="font-size:0.82rem;color:#a8b4d0;padding:6px 4px;cursor:pointer">⚙️  Configuración</div>', unsafe_allow_html=True)
-    st.markdown('<div style="font-size:0.82rem;color:#a8b4d0;padding:6px 4px;cursor:pointer">🌐  Colombia · CO</div>', unsafe_allow_html=True)
+    # ── Footer ──
+    st.markdown("""
+    <div style="padding:16px;margin-top:8px;text-align:center">
+        <div style="font-size:0.6rem;color:rgba(200,180,255,0.3);font-family:'DM Sans',sans-serif;
+                    letter-spacing:0.05em">
+            VisióN360 · v2.0 · Colombia
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("""
     <div style="position:fixed;bottom:20px;left:0;width:260px;text-align:center">
