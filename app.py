@@ -746,8 +746,14 @@ es_clp    = op_info["moneda"] == "CLP"
 trm_clp_cop = st.session_state.get("_trm_global", 4.2)
 
 # ═══════════════════════════════════════════════════════════
-# SIN ARCHIVO
+# SIN ARCHIVO / CARGA DE DATOS
 # ═══════════════════════════════════════════════════════════
+@st.cache_data
+def cargar(f):
+    df = pd.read_excel(f)
+    df.columns = [str(c).strip() for c in df.columns]
+    return df
+
 if archivo is None:
     html_bienvenida = (
         '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;'
@@ -790,19 +796,10 @@ if archivo is None:
         '</div>'
     )
     st.markdown(html_bienvenida, unsafe_allow_html=True)
-    st.stop()
-
-# ═══════════════════════════════════════════════════════════
-# CARGAR DATOS
-# ═══════════════════════════════════════════════════════════
-@st.cache_data
-def cargar(f):
-    df = pd.read_excel(f)
-    df.columns = [str(c).strip() for c in df.columns]
-    return df
-
-with st.spinner("Procesando datos..."):
-    df = cargar(archivo)
+    df = pd.DataFrame()
+else:
+    with st.spinner("Procesando datos..."):
+        df = cargar(archivo)
 
 for col_f in [C_FECHA, C_FECHA_MOV]:
     if col_f in df.columns:
