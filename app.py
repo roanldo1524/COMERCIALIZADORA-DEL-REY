@@ -6502,22 +6502,6 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
 
     # Usar datos filtrados en Operaciones
     df = df_op
-    if "Monitor" in vista_activa:
-        op_nav = "📊 Monitor de Estatus"
-    else:
-        op_nav = st.radio("", [
-            "🚨 Alertas de Pedidos",
-            "📦 Monitor de Pedidos",
-            "📊 Monitor de Estatus",
-            "📋 Monitor Financiero",
-            "🗓️ Calendario Estratégico",
-            "🚚 Transportadoras",
-            "👥 Proveedores",
-            "📦 Stock & Inventario",
-            "🔁 Devoluciones",
-            "📋 Novedades",
-            "🏷️ Tags",
-        ], horizontal=True, label_visibility="collapsed")
 
     # ══════════════════════════════════════════════════════
     # MONITOR DE ESTATUS — Tabla dinámica por semanas
@@ -7634,7 +7618,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
             with t6:
                 # ═══ Insights IA — CAN/ X DEVOLUCIONES, CAN/ DTOS INCOMP ═══
                 st.markdown('<div style="font-size:1rem;font-weight:800;color:#e8ecf7;margin-bottom:16px">🤖 Análisis de Tags con IA</div>', unsafe_allow_html=True)
-                tags_raw = df[C_TAGS].dropna().astype(str).str.lower() if C_TAGS in df.columns else pd.Series(dtype=str)
+                tags_raw = df[C_TAGS].fillna('').astype(str).str.lower() if C_TAGS in df.columns else pd.Series(['']*len(df))
                 n_can_dev = tags_raw.str.contains('devolucion|devoluciones', na=False).sum()
                 n_can_dtos = tags_raw.str.contains('dtos incom|datos incompletos|incompletos', na=False).sum()
                 n_total = len(df[df[C_TAGS].notna() & (df[C_TAGS].astype(str).str.strip() != '')]) if C_TAGS in df.columns else 0
@@ -7649,7 +7633,8 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                     for ins in insights:
                         st.markdown(f'<div style="background:rgba(124,58,237,0.12);border:1px solid #7c3aed44;border-radius:12px;padding:16px;margin-bottom:12px;font-size:0.88rem;line-height:1.6;color:#e8ecf7">{ins}</div>', unsafe_allow_html=True)
                     if C_CLIENTE in df.columns and n_can_dev > 0:
-                        df_can_dev = df[tags_raw.str.contains('devolucion|devoluciones', na=False)]
+                        mask_dev = tags_raw.str.contains('devolucion|devoluciones', na=False)
+                        df_can_dev = df[mask_dev].copy()
                         clientes_dev = df_can_dev[C_CLIENTE].value_counts().head(15)
                         st.markdown("**👥 Clientes con más cancelaciones por devoluciones:**")
                         cd_df = clientes_dev.reset_index()
