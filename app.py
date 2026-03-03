@@ -453,6 +453,18 @@ def clasificar_tag(tag):
     if any(x in t for x in TAGS_INF):  return 'informativo'
     return 'otro'
 
+# ═══════════════════════════════════════════════════════════
+# UMBRALES FLETE ELEVADO — ≥25.000 COP
+# ═══════════════════════════════════════════════════════════
+def umbral_flete_elevado(operacion, es_clp, trm_clp_cop, cantidad):
+    if es_clp:
+        return max(10000 * trm_clp_cop, 25000)  # Carrito Naranja: mínimo 25k COP
+    return 25000  # Lucid/Esencia/Toro: ≥25.000 COP
+
+def es_flete_elevado_tag(tags_str):
+    if pd.isna(tags_str) or str(tags_str).strip() == '': return False
+    return 'flete elevado' in str(tags_str).lower()
+
 def parse_tags(val):
     if pd.isna(val) or str(val).strip() == '': return []
     return [t.strip() for t in str(val).split(',') if t.strip()]
@@ -805,6 +817,9 @@ if C_FECHA in df.columns:
     df['_d_ped'] = df['_h_ped'].apply(lambda h: round(h/24,1) if h is not None else None)
     df['_mes']   = df[C_FECHA].dt.to_period('M').astype(str)
     df['_dia']   = df[C_FECHA].dt.day
+    df['_semana'] = df[C_FECHA].dt.isocalendar().week.astype(str)
+    df['_año']   = df[C_FECHA].dt.year.astype(str)
+    df['_mes_semana'] = df['_año'] + '-S' + df['_semana']
 
 for col_n in [C_TOTAL, C_GANANCIA, C_FLETE, C_CANTIDAD]:
     if col_n in df.columns:
@@ -819,6 +834,17 @@ if es_clp and trm_clp_cop > 0:
 
 if C_TAGS in df.columns:
     df['_tags_lista'] = df[C_TAGS].apply(parse_tags)
+else:
+    df['_tags_lista'] = [[] for _ in range(len(df))]
+
+# ── Marcar fletes elevados (tag O umbral ≥25.000) ──
+if C_FLETE in df.columns:
+    df['_umbral_flete'] = df.apply(lambda r: umbral_flete_elevado(operacion, es_clp, trm_clp_cop, r.get(C_CANTIDAD, 1)), axis=1)
+    df['_flete_supera_umbral'] = df[C_FLETE] >= df['_umbral_flete']
+    df['_flete_elevado_tag'] = df[C_TAGS].apply(es_flete_elevado_tag) if C_TAGS in df.columns else pd.Series([False] * len(df))
+    df['_es_flete_elevado'] = df['_flete_supera_umbral'] | df['_flete_elevado_tag']
+else:
+    df['_es_flete_elevado'] = df[C_TAGS].apply(es_flete_elevado_tag) if C_TAGS in df.columns else pd.Series([False] * len(df))
 
 total = len(df)
 
@@ -6433,7 +6459,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                   f"&#x1F4B1; CLP&#8594;COP @ {trm_clp_cop}</span>") if es_clp else ""
 
     st.markdown(
-        f'<div style="margin-bottom:28px;background:linear-gradient(135deg,#12151f,#161929);'
+        f'<div style="margin-bottom:20px;background:linear-gradient(135deg,#12151f,#161929);'
         f'border:1px solid #2e2558;border-radius:16px;padding:24px 28px">'
         f'<div style="display:flex;align-items:center;gap:16px">'
         f'<div style="width:4px;height:54px;background:{op_color};border-radius:4px"></div>'
@@ -6442,24 +6468,40 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
         f'text-transform:uppercase;margin-bottom:5px">{op_pais} &nbsp;·&nbsp; {op_moneda}</div>'
         f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-size:1.9rem;font-weight:800;'
         f'color:#e8ecf7;line-height:1;margin-bottom:6px">{op_nombre}</div>'
-        f'<div style="color:#a8b4d0;font-size:0.83rem">'
-        f'Operaciones &nbsp;·&nbsp; Centro de control &nbsp;·&nbsp; {total:,} pedidos{clp_badge2}'
+        f'<div style="color:#a8b4d0;font-size:0.83rem">Operaciones &nbsp;·&nbsp; Centro de control{clp_badge2}</div>'
         f'</div></div></div></div>',
         unsafe_allow_html=True
     )
 
-    # KPIs operativos
-    c1,c2,c3,c4,c5,c6 = st.columns(6)
-    with c1: st.markdown(kpi("blue","Total",f"{total:,}"), unsafe_allow_html=True)
-    with c2: st.markdown(kpi("green","✅ Entregados",f"{entregados:,}",f"{pct_ent}%"), unsafe_allow_html=True)
-    with c3: st.markdown(kpi("red","❌ Cancelados",f"{cancelados:,}"), unsafe_allow_html=True)
-    with c4: st.markdown(kpi("gold","🔄 En Proceso",f"{en_proceso:,}"), unsafe_allow_html=True)
-    with c5: st.markdown(kpi("purple","↩️ Devolución",f"{devolucion:,}"), unsafe_allow_html=True)
-    with c6: st.markdown(kpi("cyan","⚠️ Novedades",f"{novedades:,}"), unsafe_allow_html=True)
+    # ── Filtro por mes y semana ──
+    df_op = df.copy()
+    if '_mes' in df.columns:
+        meses_disponibles = ['Todos'] + sorted(df['_mes'].dropna().astype(str).unique().tolist(), reverse=True)
+        semanas_disponibles = ['Todas'] + sorted(df['_mes_semana'].dropna().astype(str).unique().tolist(), reverse=True) if '_mes_semana' in df.columns else ['Todas']
+        f1, f2, f3 = st.columns([1, 1, 2])
+        with f1:
+            filtro_mes = st.selectbox("📅 Mes", meses_disponibles, key="op_filtro_mes")
+            if filtro_mes != 'Todos':
+                df_op = df_op[df_op['_mes'].astype(str) == filtro_mes]
+        with f2:
+            filtro_semana = st.selectbox("📆 Semana", semanas_disponibles, key="op_filtro_semana")
+            if filtro_semana != 'Todas' and '_mes_semana' in df_op.columns:
+                df_op = df_op[df_op['_mes_semana'].astype(str) == filtro_semana]
+        st.markdown("<br>", unsafe_allow_html=True)
 
+    # ── Navegación operacional ──
+    MODULOS_OPS = [
+        "🚨 Alertas de Pedidos", "📦 Monitor de Pedidos", "📋 Monitor Financiero", "📊 Monitor de Estatus",
+        "🗓️ Calendario Estratégico", "🚚 Transportadoras", "👥 Proveedores", "📦 Stock & Inventario",
+        "🔁 Devoluciones", "📋 Novedades", "🏷️ Tags",
+    ]
+    idx_monitor = MODULOS_OPS.index("📊 Monitor de Estatus") if "📊 Monitor de Estatus" in MODULOS_OPS else 0
+    default_idx = idx_monitor if ("Monitor" in vista_activa and "Estatus" in str(vista_activa)) else 0
+    op_nav = st.radio("", MODULOS_OPS, index=default_idx, horizontal=True, label_visibility="collapsed", key="op_nav_radio")
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── Tabs de navegación operacional ──
+    # Usar datos filtrados en Operaciones
+    df = df_op
     if "Monitor" in vista_activa:
         op_nav = "📊 Monitor de Estatus"
     else:
@@ -7500,7 +7542,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
         if todos:
             tags_df = pd.DataFrame({'tag':todos})
             tags_df['cat'] = tags_df['tag'].apply(clasificar_tag)
-            t1,t2,t3,t4 = st.tabs(["🚨 Seguimiento","❌ Cancelaciones","📊 Estratégico","📋 Todos"])
+            t1,t2,t3,t4,t5,t6 = st.tabs(["🚨 Seguimiento","❌ Cancelaciones","📊 Estratégico","📋 Todos","🚚 Fletes Elevados","🤖 Insights IA"])
             def gtab(cat, paleta, titulo, h=320):
                 d = tags_df[tags_df['cat']==cat]['tag'].value_counts().reset_index()
                 d.columns = ['Tag','Cantidad']
@@ -7537,6 +7579,84 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                                 f'<span class="badge-r">{tcr} cancelaciones reales</span> &nbsp; '
                                 f'<span class="badge-v">{tnc} no son cancelaciones reales</span></div>', unsafe_allow_html=True)
             with t3: gtab('estrategico',['#12151f','#5b6cfc'],'Tags Estratégicos')
+            with t5:
+                # ═══ Fletes Elevados — diseño premium + descarga Word ═══
+                st.markdown(
+                    '<div style="background:linear-gradient(135deg,#1a1535,#12151f);border:1px solid #f59e0b44;'
+                    'border-radius:16px;padding:20px 24px;margin-bottom:20px;box-shadow:0 8px 32px rgba(0,0,0,0.4)">'
+                    '<div style="display:flex;align-items:center;gap:12px"><span style="font-size:1.8rem">🚚</span>'
+                    '<div><div style="font-family:Plus Jakarta Sans;font-weight:800;font-size:1.1rem;color:#fcd34d">Fletes Elevados ≥ $25.000 — Ciudades a Excluir</div>'
+                    '<div style="font-size:0.72rem;color:#a8b4d0">Análisis por ciudad y departamento para gestión de exclusiones</div></div></div></div>',
+                    unsafe_allow_html=True
+                )
+                if '_es_flete_elevado' in df.columns and df['_es_flete_elevado'].any():
+                    df_fe = df[df['_es_flete_elevado']].copy()
+                    n_fe = len(df_fe)
+                    if C_CIUDAD in df_fe.columns or C_DEPTO in df_fe.columns:
+                        grp_cols = [c for c in [C_CIUDAD, C_DEPTO] if c in df_fe.columns]
+                        agg_dict = {'Pedidos': ('_es_flete_elevado', 'count')}
+                        if C_FLETE in df_fe.columns:
+                            agg_dict.update({'Flete_Promedio': (C_FLETE, 'mean'), 'Flete_Max': (C_FLETE, 'max'), 'Flete_Total': (C_FLETE, 'sum')})
+                        resumen = df_fe.groupby(grp_cols, dropna=False).agg(**agg_dict).reset_index()
+                        resumen = resumen.sort_values('Flete_Total' if C_FLETE in df_fe.columns else 'Pedidos', ascending=False).head(20)
+                        if C_FLETE in df_fe.columns:
+                            resumen['Flete_Promedio'] = resumen['Flete_Promedio'].round(0)
+                            resumen['Flete_Max'] = resumen['Flete_Max'].round(0)
+                            resumen['Flete_Total'] = resumen['Flete_Total'].round(0)
+                        if C_FLETE in df_fe.columns and len(resumen) > 0:
+                            ciudad_lbl = resumen[C_CIUDAD].astype(str) + (", " + resumen[C_DEPTO].astype(str) if C_DEPTO in resumen.columns else "")
+                            fig_fe = go.Figure(go.Bar(x=resumen['Flete_Total'], y=ciudad_lbl, orientation='h',
+                                marker=dict(color=resumen['Flete_Total'], colorscale=[[0,'#1a1535'],[0.5,'#f59e0b'],[1,'#fcd34d']], line=dict(color='rgba(245,158,11,0.5)', width=1)),
+                                text=[f"${v:,.0f}" for v in resumen['Flete_Total']], textposition='outside', textfont=dict(color='#fcd34d', size=11)))
+                            fig_fe.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(family='DM Sans', color='#d4ccf0'),
+                                margin=dict(l=120, r=80, t=40, b=40), height=420, xaxis=dict(gridcolor='#2e2558', tickformat='$,.0f'),
+                                yaxis=dict(autorange='reversed', gridcolor='rgba(0,0,0,0)'))
+                            st.plotly_chart(fig_fe, use_container_width=True)
+                        col_cfg = {}
+                        if C_CIUDAD in resumen.columns: col_cfg[C_CIUDAD] = st.column_config.TextColumn("Ciudad")
+                        if C_DEPTO in resumen.columns: col_cfg[C_DEPTO] = st.column_config.TextColumn("Departamento")
+                        if C_FLETE in df_fe.columns:
+                            col_cfg.update({"Flete_Promedio": st.column_config.NumberColumn("Flete Prom ($)", format="$%.0f"),
+                                "Flete_Max": st.column_config.NumberColumn("Flete Máx ($)", format="$%.0f"),
+                                "Flete_Total": st.column_config.NumberColumn("Flete Total ($)", format="$%.0f")})
+                        st.dataframe(resumen, use_container_width=True, column_config=col_cfg)
+                        html_doc = f"<html><body><h2>Fletes Elevados — Ciudades a Excluir</h2><p>Umbral: ≥$25.000 COP. Total: {n_fe} pedidos.</p><table border='1'><tr><th>Ciudad</th><th>Departamento</th><th>Pedidos</th><th>Flete Prom</th><th>Flete Máx</th><th>Flete Total</th></tr>"
+                        for _, r in resumen.iterrows():
+                            html_doc += f"<tr><td>{r.get(C_CIUDAD,'')}</td><td>{r.get(C_DEPTO,'')}</td><td>{int(r['Pedidos'])}</td><td>${r.get('Flete_Promedio',0):,.0f}</td><td>${r.get('Flete_Max',0):,.0f}</td><td>${r.get('Flete_Total',0):,.0f}</td></tr>"
+                        html_doc += "</table></body></html>"
+                        st.download_button("📥 Descargar para Word", html_doc.encode('utf-8'), file_name="Fletes_Elevados_Ciudades_Excluir.html", mime="text/html", key="dl_flete")
+                        st.caption("Abre el archivo .html en Word y guarda como .docx para compartir con el equipo de exclusiones.")
+                    else:
+                        st.warning("No hay columna CIUDAD o DEPARTAMENTO en el Excel.")
+                    st.markdown('<div style="background:rgba(245,158,11,0.1);border:1px solid #f59e0b44;border-radius:10px;padding:12px;margin-top:10px;font-size:0.78rem;color:#fbbf24">💡 Ciudades con más pedidos y mayor flete total son candidatas a excluir.</div>', unsafe_allow_html=True)
+                else:
+                    st.info("No hay pedidos con flete elevado (umbral ≥$25.000 o tag 'flete elevado').")
+            with t6:
+                # ═══ Insights IA — CAN/ X DEVOLUCIONES, CAN/ DTOS INCOMP ═══
+                st.markdown('<div style="font-size:1rem;font-weight:800;color:#e8ecf7;margin-bottom:16px">🤖 Análisis de Tags con IA</div>', unsafe_allow_html=True)
+                tags_raw = df[C_TAGS].dropna().astype(str).str.lower() if C_TAGS in df.columns else pd.Series(dtype=str)
+                n_can_dev = tags_raw.str.contains('devolucion|devoluciones', na=False).sum()
+                n_can_dtos = tags_raw.str.contains('dtos incom|datos incompletos|incompletos', na=False).sum()
+                n_total = len(df[df[C_TAGS].notna() & (df[C_TAGS].astype(str).str.strip() != '')]) if C_TAGS in df.columns else 0
+                insights = []
+                if n_total > 0 and n_can_dev > 0:
+                    pct = round(n_can_dev / n_total * 100, 1)
+                    insights.append(f"📊 De <b>{n_total:,}</b> pedidos con tags, <b>{n_can_dev:,}</b> ({pct}%) fueron cancelados por <b>altas devoluciones</b> (CAN/ X DEVOLUCIONES). Clientes con muchas devoluciones podrían ser excluidos o requerir seguimiento especial.")
+                if n_total > 0 and n_can_dtos > 0:
+                    pct = round(n_can_dtos / n_total * 100, 1)
+                    insights.append(f"📋 <b>{n_can_dtos:,}</b> ({pct}%) cancelados por <b>datos incompletos</b> (CAN/ DTOS INCOMP). Revisa el proceso de captura de dirección y datos del cliente.")
+                if insights:
+                    for ins in insights:
+                        st.markdown(f'<div style="background:rgba(124,58,237,0.12);border:1px solid #7c3aed44;border-radius:12px;padding:16px;margin-bottom:12px;font-size:0.88rem;line-height:1.6;color:#e8ecf7">{ins}</div>', unsafe_allow_html=True)
+                    if C_CLIENTE in df.columns and n_can_dev > 0:
+                        df_can_dev = df[tags_raw.str.contains('devolucion|devoluciones', na=False)]
+                        clientes_dev = df_can_dev[C_CLIENTE].value_counts().head(15)
+                        st.markdown("**👥 Clientes con más cancelaciones por devoluciones:**")
+                        cd_df = clientes_dev.reset_index()
+                        cd_df.columns = ['Cliente', 'Cancelaciones']
+                        st.dataframe(cd_df, use_container_width=True)
+                else:
+                    st.info("No hay suficientes tags para generar insights. Sube datos con la columna TAGS.")
             with t4:
                 top50=tags_df['tag'].value_counts().head(50).reset_index()
                 top50.columns=['Tag','Cantidad']
@@ -7544,6 +7664,22 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                           color_continuous_scale=['#12151f','#f0c060'],title='Top Tags')
                 fig.update_layout(**PLOT_LAYOUT,height=900,coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
                 st.plotly_chart(fig,use_container_width=True)
+        else:
+            t5,t6 = st.tabs(["🚚 Fletes Elevados","🤖 Insights IA"])
+            with t5:
+                st.markdown('<div style="font-size:1rem;font-weight:800;color:#fcd34d;margin-bottom:12px">🚚 Fletes Elevados — Ciudades a Excluir</div>', unsafe_allow_html=True)
+                if '_es_flete_elevado' in df.columns and df['_es_flete_elevado'].any() and (C_CIUDAD in df.columns or C_DEPTO in df.columns):
+                    df_fe = df[df['_es_flete_elevado']].copy()
+                    grp_cols = [c for c in [C_CIUDAD, C_DEPTO] if c in df_fe.columns]
+                    resumen = df_fe.groupby(grp_cols, dropna=False).agg(Pedidos=('_es_flete_elevado','count'), Flete_Total=(C_FLETE,'sum') if C_FLETE in df_fe.columns else ('_es_flete_elevado','count')).reset_index()
+                    resumen = resumen.sort_values('Flete_Total' if C_FLETE in df_fe.columns else 'Pedidos', ascending=False).head(20)
+                    st.dataframe(resumen, use_container_width=True)
+                    st.download_button("📥 Descargar para Word", f"<html><body><h2>Fletes Elevados</h2><pre>{resumen.to_html()}</pre></body></html>".encode('utf-8'), file_name="Fletes_Elevados.html", mime="text/html", key="dl_flete_empty")
+                else:
+                    st.info("No hay pedidos con flete elevado o faltan columnas CIUDAD/DEPARTAMENTO.")
+            with t6:
+                st.markdown('<div style="font-size:1rem;font-weight:800;color:#e8ecf7;margin-bottom:12px">🤖 Insights IA</div>', unsafe_allow_html=True)
+                st.info("No hay tags en los datos. Sube un Excel con columna TAGS para ver análisis de cancelaciones.")
 
     elif "Monitor de Pedidos" in op_nav:
         st.markdown('<div class="seccion-titulo">📦 Monitor de Pedidos — Estatus Abiertos</div>', unsafe_allow_html=True)
