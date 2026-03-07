@@ -586,10 +586,11 @@ MENU_ITEMS = {
     "🤖 Asistente IA":      "operacional",
 }
 OPERACIONES = {
-    "🤖 LUCID BOT":      {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#a78bfa","dot":"#7c3aed","bg":"rgba(124,58,237,0.15)","border":"rgba(124,58,237,0.45)"},
-    "✨ ESSENTYA":        {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#f9a8d4","dot":"#ec4899","bg":"rgba(236,72,153,0.12)","border":"rgba(236,72,153,0.4)"},
-    "🐂 EL TORO":         {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#fca5a5","dot":"#ef4444","bg":"rgba(239,68,68,0.12)","border":"rgba(239,68,68,0.4)"},
-    "🛒 Carrito Naranja": {"pais":"🇨🇱 Chile",   "moneda":"CLP","color":"#fdba74","dot":"#f97316","bg":"rgba(249,115,22,0.12)","border":"rgba(249,115,22,0.4)"},
+    "🤖 LUCID BOT":      {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#a78bfa","dot":"#7c3aed","bg":"rgba(124,58,237,0.15)","border":"rgba(124,58,237,0.45)","label":"LUCID BOT"},
+    "✨ ESSENTYA":        {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#f9a8d4","dot":"#ec4899","bg":"rgba(236,72,153,0.12)","border":"rgba(236,72,153,0.4)","label":"ESSENTYA"},
+    "🐂 EL TORO":         {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#6ee7b7","dot":"#10b981","bg":"rgba(16,185,129,0.12)","border":"rgba(16,185,129,0.4)","label":"EL TORO"},
+    "🛒 Carrito Naranja": {"pais":"🇨🇱 Chile",   "moneda":"CLP","color":"#fdba74","dot":"#f97316","bg":"rgba(249,115,22,0.12)","border":"rgba(249,115,22,0.4)","label":"CARRITO NARANJA"},
+    "🏪 BODEGA":          {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#fca5a5","dot":"#ef4444","bg":"rgba(239,68,68,0.12)","border":"rgba(239,68,68,0.4)","label":"BODEGA"},
 }
 
 if "nav_activa"  not in st.session_state: st.session_state.nav_activa  = "📊 Panel Ejecutivo"
@@ -691,20 +692,132 @@ with st.sidebar:
 
     st.markdown('<div class="nav-sep"></div>', unsafe_allow_html=True)
 
-    # ── Importar datos ──
-    st.markdown('<span class="nav-section-lbl">Importar Datos</span>', unsafe_allow_html=True)
-    archivo = st.file_uploader(f"📁 {operacion.split(' ',1)[1]}", type=["xlsx","xls"])
-    if archivo is not None:
-        st.session_state["_archivo_guardado"] = archivo
-    archivo = st.session_state.get("_archivo_guardado", None)
-    if archivo:
+    # ── Repositorio de Tiendas ──
+    st.markdown('<span class="nav-section-lbl">📂 Repositorio de Tiendas</span>', unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+    /* Ocultar label de file_uploader para compactar */
+    section[data-testid="stSidebar"] .stFileUploader label { display:none !important; }
+    section[data-testid="stSidebar"] .stFileUploader section {
+        padding: 8px !important;
+        border-radius: 8px !important;
+    }
+    .repo-card {
+        border-radius: 11px;
+        padding: 10px 12px 4px;
+        margin-bottom: 8px;
+        border: 1px solid;
+        transition: all 0.2s;
+    }
+    .repo-card-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+    .repo-dot {
+        width: 9px; height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .repo-name {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        flex: 1;
+    }
+    .repo-badge {
+        font-size: 0.6rem;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 20px;
+        font-family: 'DM Sans', sans-serif;
+    }
+    .repo-status-ok {
+        font-size: 0.68rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 8px;
+        margin-bottom: 6px;
+        text-align: center;
+        font-family: 'DM Sans', sans-serif;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Tiendas del repositorio
+    TIENDAS_REPO = [
+        {"key": "🤖 LUCID BOT",      "ico": "🤖", "name": "LUCID BOT",       "pais": "COL", "flag": "🇨🇴"},
+        {"key": "✨ ESSENTYA",         "ico": "✨", "name": "ESSENTYA",         "pais": "COL", "flag": "🇨🇴"},
+        {"key": "🐂 EL TORO",          "ico": "🐂", "name": "EL TORO",          "pais": "COL", "flag": "🇨🇴"},
+        {"key": "🛒 Carrito Naranja",  "ico": "🛒", "name": "CARRITO NARANJA",  "pais": "CHL", "flag": "🇨🇱"},
+        {"key": "🏪 BODEGA",           "ico": "🏪", "name": "BODEGA",           "pais": "COL", "flag": "🇨🇴"},
+    ]
+
+    for tienda in TIENDAS_REPO:
+        op_t   = OPERACIONES[tienda["key"]]
+        col_t  = op_t["color"]
+        dot_t  = op_t["dot"]
+        bg_t   = op_t["bg"]
+        brd_t  = op_t["border"]
+        sk     = tienda["key"].replace(" ","_").replace("🤖","").replace("✨","").replace("🐂","").replace("🛒","").replace("🏪","")
+        sk     = f"_repo_{tienda['key']}"
+        es_act = (st.session_state.op_activa == tienda["key"])
+        tiene  = st.session_state.get(f"_file_{tienda['key']}", None) is not None
+
+        status_ok = (
+            f'<div class="repo-status-ok" style="background:{dot_t}22;color:{col_t}">✅ Archivo cargado</div>'
+            if tiene else ""
+        )
         st.markdown(
-            f'<div style="padding:8px 12px;border-radius:10px;text-align:center;margin-top:6px;'
-            f'background:{op_info["bg"]};border:1px solid {op_info["border"]};'
-            f'font-size:0.78rem;color:{op_info["color"]};font-weight:700;font-family:DM Sans,sans-serif">'
-            f'✅ {operacion.split(" ",1)[1]} · Cargado</div>',
+            f'<div class="repo-card" style="background:{bg_t};border-color:{brd_t};'
+            f'{"box-shadow:0 0 12px " + dot_t + "44;" if es_act else ""}">'
+            f'<div class="repo-card-header">'
+            f'<div class="repo-dot" style="background:{dot_t};'
+            f'{"box-shadow:0 0 6px " + dot_t + ";" if tiene else ""}"></div>'
+            f'<span class="repo-name" style="color:{col_t}">{tienda["ico"]} {tienda["name"]}</span>'
+            f'<span class="repo-badge" style="background:{dot_t}22;color:{col_t};border:1px solid {brd_t}">'
+            f'{tienda["flag"]} {tienda["pais"]}</span>'
+            f'</div>'
+            f'{status_ok}'
+            f'</div>',
             unsafe_allow_html=True
         )
+        uploaded = st.file_uploader(
+            f"Subir {tienda['name']}",
+            type=["xlsx","xls"],
+            key=f"_uploader_{tienda['key']}",
+            label_visibility="collapsed"
+        )
+        if uploaded is not None:
+            st.session_state[f"_file_{tienda['key']}"] = uploaded
+            if st.session_state.op_activa == tienda["key"]:
+                st.session_state["_archivo_guardado"] = uploaded
+
+    # Botón activar tienda seleccionada
+    st.markdown('<div class="nav-sep" style="margin:10px 0 6px"></div>', unsafe_allow_html=True)
+    st.markdown('<span class="nav-section-lbl">Tienda activa</span>', unsafe_allow_html=True)
+    for tienda in TIENDAS_REPO:
+        file_t = st.session_state.get(f"_file_{tienda['key']}", None)
+        if file_t is None:
+            continue
+        op_t  = OPERACIONES[tienda["key"]]
+        es_act = (st.session_state.op_activa == tienda["key"])
+        if st.button(
+            f'{"▶ " if es_act else ""}{tienda["ico"]} {tienda["name"]}',
+            key=f"_activa_{tienda['key']}",
+            use_container_width=True,
+            type="primary" if es_act else "secondary"
+        ):
+            st.session_state.op_activa = tienda["key"]
+            st.session_state["_archivo_guardado"] = file_t
+            st.rerun()
+
+    # Resolver archivo activo
+    archivo = st.session_state.get(f"_file_{st.session_state.op_activa}", None)
+    if archivo is None:
+        archivo = st.session_state.get("_archivo_guardado", None)
 
     st.markdown("""
     <div style="padding:14px 8px 8px;text-align:center">
@@ -723,10 +836,11 @@ with st.sidebar:
 vista_activa = st.session_state.get("nav_activa", "📊 Panel Ejecutivo")
 _op_key      = st.session_state.get("op_activa",  "🤖 LUCID BOT")
 OPERACIONES_GLOBAL = {
-    "🤖 LUCID BOT":      {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#a78bfa","dot":"#7c3aed","bg":"rgba(124,58,237,0.15)","border":"rgba(124,58,237,0.45)"},
-    "✨ ESSENTYA":        {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#f9a8d4","dot":"#ec4899","bg":"rgba(236,72,153,0.12)","border":"rgba(236,72,153,0.4)"},
-    "🐂 EL TORO":         {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#fca5a5","dot":"#ef4444","bg":"rgba(239,68,68,0.12)","border":"rgba(239,68,68,0.4)"},
-    "🛒 Carrito Naranja": {"pais":"🇨🇱 Chile",   "moneda":"CLP","color":"#fdba74","dot":"#f97316","bg":"rgba(249,115,22,0.12)","border":"rgba(249,115,22,0.4)"},
+    "🤖 LUCID BOT":      {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#a78bfa","dot":"#7c3aed","bg":"rgba(124,58,237,0.15)","border":"rgba(124,58,237,0.45)","label":"LUCID BOT"},
+    "✨ ESSENTYA":        {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#f9a8d4","dot":"#ec4899","bg":"rgba(236,72,153,0.12)","border":"rgba(236,72,153,0.4)","label":"ESSENTYA"},
+    "🐂 EL TORO":         {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#6ee7b7","dot":"#10b981","bg":"rgba(16,185,129,0.12)","border":"rgba(16,185,129,0.4)","label":"EL TORO"},
+    "🛒 Carrito Naranja": {"pais":"🇨🇱 Chile",   "moneda":"CLP","color":"#fdba74","dot":"#f97316","bg":"rgba(249,115,22,0.12)","border":"rgba(249,115,22,0.4)","label":"CARRITO NARANJA"},
+    "🏪 BODEGA":          {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#fca5a5","dot":"#ef4444","bg":"rgba(239,68,68,0.12)","border":"rgba(239,68,68,0.4)","label":"BODEGA"},
 }
 operacion = _op_key
 op_info   = OPERACIONES_GLOBAL.get(_op_key, list(OPERACIONES_GLOBAL.values())[0])
