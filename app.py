@@ -489,17 +489,19 @@ COLORES_ELEGANTES = ['#a855f7','#34d399','#fcd34d','#f87171','#22d3ee','#e040fb'
 
 st.markdown("""
 <style>
-/* FONDO SIDEBAR */
+/* ══════════════════════════════════════
+   SIDEBAR — Premium SaaS Dark Theme
+══════════════════════════════════════ */
 section[data-testid="stSidebar"] {
-    background: linear-gradient(160deg,
-        #1a0a2e 0%, #2d1060 25%, #1e0a40 55%, #0d0520 100%) !important;
-    border-right: 1px solid rgba(168,85,247,0.2) !important;
-    box-shadow: 4px 0 40px rgba(0,0,0,0.7) !important;
+    background: linear-gradient(172deg,
+        #130b28 0%, #1a0d35 30%, #150a2e 60%, #0c0618 100%) !important;
+    border-right: 1px solid rgba(139,92,246,0.12) !important;
+    box-shadow: 4px 0 48px rgba(0,0,0,0.6) !important;
 }
 section[data-testid="stSidebar"] > div { padding-top: 0 !important; }
 section[data-testid="stSidebar"] .block-container { padding: 0 8px !important; }
 
-/* ── BOTONES NAV ── */
+/* ── NAV BUTTONS — clean minimal ── */
 section[data-testid="stSidebar"] .stButton { margin: 0 !important; }
 section[data-testid="stSidebar"] .stButton > button {
     width: 100% !important;
@@ -507,66 +509,111 @@ section[data-testid="stSidebar"] .stButton > button {
     justify-content: flex-start !important;
     background: transparent !important;
     border: 1px solid transparent !important;
-    border-radius: 10px !important;
-    color: rgba(210,190,255,0.75) !important;
+    border-radius: 8px !important;
+    color: rgba(200,185,240,0.65) !important;
     font-family: 'DM Sans', sans-serif !important;
-    font-size: 0.86rem !important;
+    font-size: 0.84rem !important;
     font-weight: 500 !important;
-    padding: 8px 12px !important;
-    margin: 0 !important;
-    line-height: 1.2 !important;
+    padding: 9px 14px !important;
+    margin: 1px 0 !important;
+    line-height: 1.3 !important;
     min-height: 0 !important;
     height: auto !important;
-    transition: background 0.15s, color 0.15s, border-color 0.15s !important;
+    transition: all 0.18s cubic-bezier(0.4,0,0.2,1) !important;
     box-shadow: none !important;
     transform: none !important;
-    /* Eliminar el doble clic: quitar el outline de foco */
     outline: none !important;
+    letter-spacing: 0.01em !important;
 }
 section[data-testid="stSidebar"] .stButton > button:focus,
 section[data-testid="stSidebar"] .stButton > button:focus-visible {
     outline: none !important;
     box-shadow: none !important;
-    border-color: rgba(168,85,247,0.4) !important;
+    border-color: rgba(139,92,246,0.25) !important;
 }
 section[data-testid="stSidebar"] .stButton > button:hover {
-    background: rgba(168,85,247,0.18) !important;
-    border-color: rgba(168,85,247,0.3) !important;
-    color: '#1a1d2e' !important;
+    background: rgba(139,92,246,0.10) !important;
+    border-color: rgba(139,92,246,0.18) !important;
+    color: rgba(232,220,255,0.92) !important;
     transform: none !important;
     box-shadow: none !important;
 }
-/* BOTÓN ACTIVO — type=primary */
+
+/* ── ACTIVE STATE — subtle glow ── */
 section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, rgba(124,58,237,0.75), rgba(168,85,247,0.5)) !important;
-    border-color: rgba(168,85,247,0.6) !important;
-    color: #ffffff !important;
+    background: linear-gradient(135deg, rgba(124,58,237,0.55), rgba(139,92,246,0.35)) !important;
+    border-color: rgba(139,92,246,0.40) !important;
+    color: #f0ecff !important;
     font-weight: 700 !important;
-    box-shadow: 0 3px 14px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+    box-shadow: 0 2px 12px rgba(124,58,237,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.06) !important;
 }
 section[data-testid="stSidebar"] .stButton > button[kind="primary"]:hover {
-    background: linear-gradient(135deg, rgba(124,58,237,0.85), rgba(168,85,247,0.65)) !important;
+    background: linear-gradient(135deg, rgba(124,58,237,0.65), rgba(139,92,246,0.45)) !important;
     transform: none !important;
 }
 section[data-testid="stSidebar"] .stButton > button[kind="primary"]:focus {
     outline: none !important;
-    box-shadow: 0 3px 14px rgba(124,58,237,0.4) !important;
+    box-shadow: 0 2px 12px rgba(124,58,237,0.25) !important;
 }
+
+/* ── HUB BUTTON — special prominent style ── */
+.hub-btn-wrap .stButton > button {
+    background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
+    border: 1px solid rgba(168,85,247,0.5) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    font-size: 0.82rem !important;
+    padding: 10px 14px !important;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.35) !important;
+    letter-spacing: 0.02em !important;
+}
+.hub-btn-wrap .stButton > button:hover {
+    background: linear-gradient(135deg, #6d28d9, #9333ea) !important;
+    box-shadow: 0 6px 28px rgba(124,58,237,0.45) !important;
+    color: #fff !important;
+}
+
+/* ── TYPOGRAPHY TOKENS ── */
 .nav-section-lbl {
-    font-size: 0.56rem;
-    color: rgba(200,180,255,0.38);
+    font-size: 0.58rem;
+    color: rgba(180,160,230,0.35);
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    padding: 0 4px;
-    margin: 10px 0 2px;
+    padding: 0 6px;
+    margin: 12px 0 4px;
     font-family: 'DM Sans', sans-serif;
     display: block;
 }
 .nav-sep {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(168,85,247,0.3), transparent);
-    margin: 6px 0;
+    background: linear-gradient(90deg, transparent, rgba(139,92,246,0.18), transparent);
+    margin: 8px 4px;
+}
+.nav-sep-strong {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139,92,246,0.35), transparent);
+    margin: 10px 0;
+}
+
+/* ── SELECTBOX inside sidebar ── */
+section[data-testid="stSidebar"] .stSelectbox > div > div {
+    background: rgba(20,14,42,0.7) !important;
+    border: 1px solid rgba(139,92,246,0.25) !important;
+    border-radius: 10px !important;
+    color: #e8dcff !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    transition: border-color 0.2s !important;
+}
+section[data-testid="stSidebar"] .stSelectbox > div > div:hover {
+    border-color: rgba(139,92,246,0.45) !important;
+}
+section[data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] span {
+    color: #e8dcff !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -593,10 +640,15 @@ OPERACIONES = {
     "🏪 BODEGA":          {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#fca5a5","dot":"#ef4444","bg":"rgba(239,68,68,0.12)","border":"rgba(239,68,68,0.4)","label":"BODEGA"},
 }
 
-if "nav_activa"  not in st.session_state: st.session_state.nav_activa  = "📊 Panel Ejecutivo"
-if "op_activa"   not in st.session_state: st.session_state.op_activa   = "🤖 LUCID BOT"
+# Mapeo tienda → clave de datos en session_state
+DATA_KEYS = {
+    "🤖 LUCID BOT":      "data_lucid",
+    "✨ ESSENTYA":        "data_essentya",
+    "🐂 EL TORO":         "data_eltoro",
+    "🛒 Carrito Naranja": "data_carrito",
+    "🏪 BODEGA":          "data_bodega",
+}
 
-# ── Definiciones de tiendas para repositorio ──
 TIENDAS_REPO = [
     {"key": "🤖 LUCID BOT",      "ico": "🤖", "name": "LUCID BOT",       "pais": "COL", "flag": "🇨🇴"},
     {"key": "✨ ESSENTYA",         "ico": "✨", "name": "ESSENTYA",         "pais": "COL", "flag": "🇨🇴"},
@@ -605,92 +657,114 @@ TIENDAS_REPO = [
     {"key": "🏪 BODEGA",           "ico": "🏪", "name": "BODEGA",           "pais": "COL", "flag": "🇨🇴"},
 ]
 st.session_state["_tiendas_repo"] = TIENDAS_REPO
-
-# Lista de opciones para selectbox
 _TIENDA_OPCIONES = [t["key"] for t in TIENDAS_REPO]
 
-# Submenú de vistas
 SUBMENU_VISTAS = [
-    "📊 Panel Ejecutivo",
-    "📈 P&G",
-    "💹 Finanzas",
-    "🔮 Proyecciones",
-    "🧠 Asesor Financiero",
-    "📡 Tendencias & Clima",
-    "📦 Operaciones",
-    "🚦 Monitor de Estatus",
-    "📣 Marketing",
-    "🛍️ Catálogo",
-    "🤖 Asistente IA",
+    "📊 Panel Ejecutivo", "📈 P&G", "💹 Finanzas", "🔮 Proyecciones",
+    "🧠 Asesor Financiero", "📡 Tendencias & Clima", "📦 Operaciones",
+    "🚦 Monitor de Estatus", "📣 Marketing", "🛍️ Catálogo", "🤖 Asistente IA",
 ]
 
+# Vista especial del Hub
+_HUB_VIEW = "⚡ Centro de Datos"
+
+if "nav_activa" not in st.session_state: st.session_state.nav_activa = _HUB_VIEW
+if "op_activa"  not in st.session_state: st.session_state.op_activa  = "🤖 LUCID BOT"
+
+# ═══════════════════════════════════════════════════════════
+# SIDEBAR — Premium SaaS Navigation
+# ═══════════════════════════════════════════════════════════
 with st.sidebar:
     # ── Logo ──
     st.markdown("""
-    <div style="padding:16px 8px 10px;display:flex;align-items:center;gap:10px">
+    <div style="padding:18px 10px 6px;display:flex;align-items:center;gap:11px">
         <div style="display:inline-flex;align-items:center;justify-content:center;
-                    width:40px;height:40px;border-radius:12px;flex-shrink:0;
-                    background:linear-gradient(135deg,#7c3aed,#e040fb);
-                    box-shadow:0 4px 18px rgba(168,85,247,0.5)">
-            <span style="font-size:1.2rem">🌐</span>
+                    width:38px;height:38px;border-radius:11px;flex-shrink:0;
+                    background:linear-gradient(135deg,#7c3aed,#a855f7);
+                    box-shadow:0 4px 16px rgba(124,58,237,0.4)">
+            <span style="font-size:1.15rem">🌐</span>
         </div>
         <div>
-            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.15rem;font-weight:800;
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.1rem;font-weight:800;
                         letter-spacing:-0.02em;line-height:1;margin-bottom:2px">
-                <span style="color:#e8ecf7">Visió</span><span style="background:linear-gradient(90deg,#c084fc,#e040fb);
+                <span style="color:#f0ecff">Visió</span><span style="background:linear-gradient(90deg,#c084fc,#e040fb);
                 -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">N360</span>
             </div>
-            <div style="font-size:0.56rem;color:rgba(200,180,255,0.4);font-weight:600;
-                        letter-spacing:0.1em;text-transform:uppercase;font-family:'DM Sans',sans-serif">
+            <div style="font-size:0.52rem;color:rgba(180,160,230,0.38);font-weight:600;
+                        letter-spacing:0.12em;text-transform:uppercase;font-family:'DM Sans',sans-serif">
                 Inteligencia Comercial
             </div>
         </div>
     </div>
-    <div class="nav-sep"></div>
     """, unsafe_allow_html=True)
 
-    # ── Selector único de tienda ──
-    st.markdown('<span class="nav-section-lbl">🏪 Tienda</span>', unsafe_allow_html=True)
+    st.markdown('<div class="nav-sep-strong"></div>', unsafe_allow_html=True)
+
+    # ── Botón Centro de Datos (siempre visible, prominente) ──
+    _hub_is_active = st.session_state.nav_activa == _HUB_VIEW
+    _archivos_total = sum(1 for t in TIENDAS_REPO if st.session_state.get(f"_file_{t['key']}") is not None)
+
+    st.markdown('<div class="hub-btn-wrap">', unsafe_allow_html=True)
+    if st.button(
+        f"⚡ Centro de Datos  ·  {_archivos_total}/5",
+        key="_nav_hub",
+        use_container_width=True,
+        type="primary" if _hub_is_active else "secondary"
+    ):
+        st.session_state.nav_activa = _HUB_VIEW
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="nav-sep-strong"></div>', unsafe_allow_html=True)
+
+    # ── Selector de tienda ──
+    st.markdown('<span class="nav-section-lbl">Tienda activa</span>', unsafe_allow_html=True)
 
     _idx_actual = _TIENDA_OPCIONES.index(st.session_state.op_activa) if st.session_state.op_activa in _TIENDA_OPCIONES else 0
+
+    def _fmt_tienda(x):
+        _ico = x.split(' ', 1)[0]
+        _name = x.split(' ', 1)[1]
+        _mon = OPERACIONES[x]['moneda']
+        _has = "✓" if st.session_state.get(f"_file_{x}") else "○"
+        return f"{_ico}  {_name}  ·  {_mon}  {_has}"
+
     _tienda_sel = st.selectbox(
         "Seleccionar tienda",
         options=_TIENDA_OPCIONES,
         index=_idx_actual,
-        format_func=lambda x: f"{x.split(' ', 1)[0]}  {x.split(' ', 1)[1]}  ·  {OPERACIONES[x]['moneda']}",
+        format_func=_fmt_tienda,
         key="_sb_tienda",
         label_visibility="collapsed"
     )
     if _tienda_sel != st.session_state.op_activa:
         st.session_state.op_activa = _tienda_sel
-        _file_sel = st.session_state.get(f"_file_{_tienda_sel}", None)
-        if _file_sel is not None:
-            st.session_state["_archivo_guardado"] = _file_sel
+        # Si estamos en el Hub, quedarse; si no, ir a Panel Ejecutivo
+        if st.session_state.nav_activa != _HUB_VIEW:
+            st.session_state.nav_activa = "📊 Panel Ejecutivo"
         st.rerun()
 
     # Indicador visual de tienda activa
-    _op_sel_info = OPERACIONES[st.session_state.op_activa]
-    _file_activa = st.session_state.get(f"_file_{st.session_state.op_activa}", None)
-    _status_ico  = "🟢 Archivo cargado" if _file_activa else "○ Sin archivo"
+    _op_sel = OPERACIONES[st.session_state.op_activa]
+    _has_data = st.session_state.get(f"_file_{st.session_state.op_activa}") is not None
     st.markdown(
-        f'<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;margin:4px 0 6px;'
-        f'border-radius:10px;background:{_op_sel_info["bg"]};border:1px solid {_op_sel_info["border"]};'
-        f'font-family:DM Sans,sans-serif;font-size:0.78rem;color:{_op_sel_info["color"]}">'
-        f'<div style="width:8px;height:8px;border-radius:50%;background:{_op_sel_info["dot"]};'
-        f'box-shadow:0 0 8px {_op_sel_info["dot"]}88;flex-shrink:0"></div>'
-        f'<span style="font-weight:700;flex:1">{_op_sel_info["pais"]}</span>'
-        f'<span style="font-size:0.7rem;opacity:0.8">{_status_ico}</span>'
+        f'<div style="display:flex;align-items:center;gap:8px;padding:7px 12px;margin:5px 0 2px;'
+        f'border-radius:8px;background:{_op_sel["bg"]};border:1px solid {_op_sel["border"]};'
+        f'font-family:DM Sans,sans-serif;font-size:0.76rem;color:{_op_sel["color"]}">'
+        f'<div style="width:7px;height:7px;border-radius:50%;background:{_op_sel["dot"]};'
+        f'box-shadow:0 0 6px {_op_sel["dot"]}66;flex-shrink:0"></div>'
+        f'<span style="font-weight:600;flex:1">{_op_sel["pais"]}</span>'
+        f'<span style="font-size:0.68rem;opacity:0.85">{"🟢 Datos" if _has_data else "○ Sin datos"}</span>'
         f'</div>',
         unsafe_allow_html=True
     )
 
     st.markdown('<div class="nav-sep"></div>', unsafe_allow_html=True)
 
-    # ── Submenú dinámico de vistas ──
-    st.markdown(
-        f'<span class="nav-section-lbl">Vistas · {st.session_state.op_activa.split(" ",1)[1]}</span>',
-        unsafe_allow_html=True
-    )
+    # ── Submenú de vistas ──
+    _store_label = st.session_state.op_activa.split(" ", 1)[1]
+    st.markdown(f'<span class="nav-section-lbl">Vistas · {_store_label}</span>', unsafe_allow_html=True)
+
     for item in SUBMENU_VISTAS:
         is_active = st.session_state.nav_activa == item
         if is_active:
@@ -701,18 +775,15 @@ with st.sidebar:
             st.markdown('</div>', unsafe_allow_html=True)
         if clicked:
             st.session_state.nav_activa = item
+            st.rerun()
 
     st.markdown('<div class="nav-sep"></div>', unsafe_allow_html=True)
 
-    # ── Derivar variables de sesión ──
-    vista_activa = st.session_state.nav_activa
-    operacion    = st.session_state.op_activa
-    op_info      = OPERACIONES[operacion]
-    es_clp       = op_info["moneda"] == "CLP"
-
-    # TRM
+    # ── TRM (solo CLP) ──
+    _op_info_sb = OPERACIONES[st.session_state.op_activa]
+    _es_clp_sb = _op_info_sb["moneda"] == "CLP"
     trm_clp_cop = 4.2
-    if es_clp:
+    if _es_clp_sb:
         st.markdown('<span class="nav-section-lbl">💱 CLP → COP</span>', unsafe_allow_html=True)
         trm_clp_cop = st.number_input("1 CLP = ? COP", min_value=1.0, max_value=20.0,
                                        value=4.2, step=0.1)
@@ -720,112 +791,75 @@ with st.sidebar:
 
     st.markdown("""
     <div style="padding:14px 8px 8px;text-align:center">
-        <div style="font-size:0.58rem;color:rgba(200,180,255,0.25);font-family:'DM Sans',sans-serif">
+        <div style="font-size:0.55rem;color:rgba(180,160,230,0.2);font-family:'DM Sans',sans-serif">
             VisióN360 · v3.0 · Inteligencia Comercial
         </div>
     </div>""", unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════
-# VARIABLES GLOBALES
+# VARIABLES GLOBALES DERIVADAS
 # ═══════════════════════════════════════════════════════════
-
 vista_activa = st.session_state.get("nav_activa", "📊 Panel Ejecutivo")
 _op_key      = st.session_state.get("op_activa",  "🤖 LUCID BOT")
-OPERACIONES_GLOBAL = {
-    "🤖 LUCID BOT":      {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#a78bfa","dot":"#7c3aed","bg":"rgba(124,58,237,0.15)","border":"rgba(124,58,237,0.45)","label":"LUCID BOT"},
-    "✨ ESSENTYA":        {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#f9a8d4","dot":"#ec4899","bg":"rgba(236,72,153,0.12)","border":"rgba(236,72,153,0.4)","label":"ESSENTYA"},
-    "🐂 EL TORO":         {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#6ee7b7","dot":"#10b981","bg":"rgba(16,185,129,0.12)","border":"rgba(16,185,129,0.4)","label":"EL TORO"},
-    "🛒 Carrito Naranja": {"pais":"🇨🇱 Chile",   "moneda":"CLP","color":"#fdba74","dot":"#f97316","bg":"rgba(249,115,22,0.12)","border":"rgba(249,115,22,0.4)","label":"CARRITO NARANJA"},
-    "🏪 BODEGA":          {"pais":"🇨🇴 Colombia","moneda":"COP","color":"#fca5a5","dot":"#ef4444","bg":"rgba(239,68,68,0.12)","border":"rgba(239,68,68,0.4)","label":"BODEGA"},
-}
-operacion = _op_key
-op_info   = OPERACIONES_GLOBAL.get(_op_key, list(OPERACIONES_GLOBAL.values())[0])
-es_clp    = op_info["moneda"] == "CLP"
+OPERACIONES_GLOBAL = OPERACIONES  # alias para compatibilidad
+operacion   = _op_key
+op_info     = OPERACIONES.get(_op_key, list(OPERACIONES.values())[0])
+es_clp      = op_info["moneda"] == "CLP"
 trm_clp_cop = st.session_state.get("_trm_global", 4.2)
 
-# Resolver archivo activo
-archivo = st.session_state.get(f"_file_{st.session_state.get('op_activa','🤖 LUCID BOT')}", None)
-if archivo is None:
-    archivo = st.session_state.get("_archivo_guardado", None)
-
-_TIENDAS_SYNC = [
-    {"key": "🤖 LUCID BOT",      "ico": "🤖", "name": "LUCID BOT",       "pais": "COL", "flag": "🇨🇴"},
-    {"key": "✨ ESSENTYA",         "ico": "✨", "name": "ESSENTYA",         "pais": "COL", "flag": "🇨🇴"},
-    {"key": "🐂 EL TORO",          "ico": "🐂", "name": "EL TORO",          "pais": "COL", "flag": "🇨🇴"},
-    {"key": "🛒 Carrito Naranja",  "ico": "🛒", "name": "CARRITO NARANJA",  "pais": "CHL", "flag": "🇨🇱"},
-    {"key": "🏪 BODEGA",           "ico": "🏪", "name": "BODEGA",           "pais": "COL", "flag": "🇨🇴"},
-]
 
 # ═══════════════════════════════════════════════════════════
-# SIN ARCHIVO — Centro de Sincronización de Datos
+# ⚡ CENTRO DE SINCRONIZACIÓN DE DATOS (vista dedicada)
 # ═══════════════════════════════════════════════════════════
-if archivo is None:
-    # Header de bienvenida
+if vista_activa == _HUB_VIEW:
+    # Header
     st.markdown(
-        '<div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:30px 20px 10px">'
+        '<div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 20px 6px">'
         '<div style="display:inline-flex;align-items:center;justify-content:center;'
-        'width:72px;height:72px;border-radius:20px;margin-bottom:20px;'
-        'background:linear-gradient(135deg,#7c3aed 0%,#e040fb 100%);'
-        'box-shadow:0 12px 40px rgba(124,58,237,0.35)">'
-        '<span style="font-size:2.2rem;line-height:1">🌐</span>'
+        'width:64px;height:64px;border-radius:18px;margin-bottom:16px;'
+        'background:linear-gradient(135deg,#7c3aed,#a855f7);'
+        'box-shadow:0 10px 36px rgba(124,58,237,0.3)">'
+        '<span style="font-size:2rem;line-height:1">⚡</span>'
         '</div>'
-        '<div style="font-family:Plus Jakarta Sans,sans-serif;font-size:2.6rem;font-weight:800;'
-        'color:#e8ecf7;letter-spacing:-0.03em;line-height:1;margin-bottom:8px">'
-        'Visió<span style="background:linear-gradient(90deg,#c084fc,#e040fb);'
-        '-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">N360</span>'
-        '</div>'
-        '<div style="font-family:DM Sans,sans-serif;font-size:0.88rem;color:#7a8aaa;'
-        'font-weight:500;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px">'
-        'Todo tu negocio · Una sola vista'
-        '</div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
-
-    # ── Centro de Sincronización ──
-    st.markdown(
-        '<div style="max-width:960px;margin:0 auto">'
-        '<div style="display:flex;align-items:center;gap:12px;margin:20px 0 18px">'
-        '<div style="height:1px;flex:1;background:linear-gradient(90deg,transparent,rgba(168,85,247,0.3))"></div>'
-        '<div style="font-family:Plus Jakarta Sans,sans-serif;font-size:1.05rem;font-weight:800;'
-        'letter-spacing:-0.01em;white-space:nowrap">'
-        '<span style="background:linear-gradient(90deg,#c084fc,#e040fb);'
+        '<div style="font-family:Plus Jakarta Sans,sans-serif;font-size:2.2rem;font-weight:800;'
+        'color:#f0ecff;letter-spacing:-0.03em;line-height:1;margin-bottom:6px">'
+        'Centro de <span style="background:linear-gradient(90deg,#c084fc,#e040fb);'
         '-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">'
-        '⚡ Centro de Sincronización de Datos</span></div>'
-        '<div style="height:1px;flex:1;background:linear-gradient(90deg,rgba(168,85,247,0.3),transparent)"></div>'
-        '</div>'
-        '<div style="text-align:center;font-family:DM Sans,sans-serif;font-size:0.82rem;'
-        'color:#8878b8;margin-bottom:22px">'
-        'Arrastra los reportes Excel de cada tienda para activar el dashboard'
-        '</div>'
+        'Sincronización</span></div>'
+        '<div style="font-family:DM Sans,sans-serif;font-size:0.84rem;color:#8878b8;'
+        'font-weight:400;margin-bottom:6px">'
+        'Carga los reportes Excel de cada tienda para activar el dashboard completo</div>'
         '</div>',
         unsafe_allow_html=True
     )
 
-    # Conteo de archivos cargados
-    _archivos_cargados = sum(1 for t in _TIENDAS_SYNC if st.session_state.get(f"_file_{t['key']}") is not None)
-
-    # Barra de progreso visual
+    # Barra de progreso
+    _archivos_cargados = sum(1 for t in TIENDAS_REPO if st.session_state.get(f"_file_{t['key']}") is not None)
+    _pct = _archivos_cargados * 20
+    _prog_color = "#34d399" if _archivos_cargados == 5 else "#a855f7"
     st.markdown(
-        f'<div style="max-width:960px;margin:0 auto 20px;text-align:center">'
-        f'<div style="font-family:DM Mono,monospace;font-size:0.78rem;color:#b8b0d8;margin-bottom:8px">'
-        f'{_archivos_cargados}/5 tiendas sincronizadas</div>'
-        f'<div style="background:rgba(46,37,88,0.5);border-radius:10px;height:6px;overflow:hidden;'
-        f'border:1px solid rgba(168,85,247,0.15);max-width:400px;margin:0 auto">'
-        f'<div style="height:100%;width:{_archivos_cargados*20}%;border-radius:10px;'
-        f'background:linear-gradient(90deg,#7c3aed,#e040fb);'
+        f'<div style="max-width:480px;margin:12px auto 24px;text-align:center">'
+        f'<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px">'
+        f'<span style="font-family:DM Mono,monospace;font-size:0.82rem;color:#b8b0d8;font-weight:500">'
+        f'{_archivos_cargados} / 5</span>'
+        f'<span style="font-family:DM Sans,sans-serif;font-size:0.75rem;color:#7a6aaa">tiendas sincronizadas</span>'
+        f'</div>'
+        f'<div style="background:rgba(30,24,60,0.6);border-radius:10px;height:6px;overflow:hidden;'
+        f'border:1px solid rgba(139,92,246,0.12)">'
+        f'<div style="height:100%;width:{_pct}%;border-radius:10px;'
+        f'background:linear-gradient(90deg,#7c3aed,{_prog_color});'
         f'transition:width 0.4s ease"></div>'
         f'</div></div>',
         unsafe_allow_html=True
     )
 
-    # ── Grilla de uploaders: 3 + 2 ──
+    # ── Grilla de uploaders 3 + 2 ──
     _fila1 = st.columns(3)
-    _fila2_pad, _fila2_a, _fila2_b, _fila2_pad2 = st.columns([0.5, 1, 1, 0.5])
+    _pad_l, _fila2_a, _fila2_b, _pad_r = st.columns([0.5, 1, 1, 0.5])
     _upload_cols = [_fila1[0], _fila1[1], _fila1[2], _fila2_a, _fila2_b]
 
-    for idx, _t in enumerate(_TIENDAS_SYNC):
-        _op_t  = OPERACIONES_GLOBAL[_t["key"]]
+    for idx, _t in enumerate(TIENDAS_REPO):
+        _op_t  = OPERACIONES[_t["key"]]
         _dot   = _op_t["dot"]
         _col   = _op_t["color"]
         _bg    = _op_t["bg"]
@@ -834,24 +868,30 @@ if archivo is None:
         _is_act = st.session_state.get("op_activa") == _t["key"]
 
         with _upload_cols[idx]:
-            # Card header
-            _glow = f"box-shadow:0 0 20px {_dot}44;" if _is_act else ""
-            _check = "✅" if _tiene else ""
+            _glow = f"box-shadow:0 0 18px {_dot}33;" if _is_act else ""
+            _badge = (
+                f'<div style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;'
+                f'background:{_dot}18;color:{_col};padding:2px 8px;border-radius:12px;'
+                f'font-size:0.65rem;font-weight:700;font-family:DM Sans,sans-serif;'
+                f'border:1px solid {_brd}">✅ Sincronizado</div>'
+            ) if _tiene else ""
+
             st.markdown(
-                f'<div style="background:linear-gradient(145deg,{_bg},{_bg.replace("0.1","0.06")});'
-                f'border:1px solid {_brd};border-radius:16px;padding:18px 16px 10px;'
+                f'<div style="background:linear-gradient(145deg,{_bg},{_bg.replace("0.1","0.05")});'
+                f'border:1px solid {_brd};border-radius:14px;padding:16px 14px 10px;'
                 f'position:relative;overflow:hidden;{_glow}transition:all 0.25s">'
                 f'<div style="position:absolute;top:0;left:0;right:0;height:2px;'
                 f'background:linear-gradient(90deg,{_dot},{_col})"></div>'
-                f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
-                f'<span style="font-size:1.5rem">{_t["ico"]}</span>'
+                f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">'
+                f'<span style="font-size:1.4rem">{_t["ico"]}</span>'
                 f'<div style="flex:1">'
-                f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-size:0.92rem;'
-                f'font-weight:800;color:{_col};letter-spacing:0.02em">{_t["name"]} {_check}</div>'
-                f'<div style="font-size:0.65rem;color:{_col};opacity:0.6;font-weight:600;'
+                f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-size:0.88rem;'
+                f'font-weight:800;color:{_col}">{_t["name"]}</div>'
+                f'<div style="font-size:0.62rem;color:{_col};opacity:0.55;font-weight:600;'
                 f'font-family:DM Sans,sans-serif">{_t["flag"]} {_t["pais"]} · {_op_t["moneda"]}</div>'
                 f'</div>'
                 f'</div>'
+                f'{_badge}'
                 f'</div>',
                 unsafe_allow_html=True
             )
@@ -863,37 +903,98 @@ if archivo is None:
             )
             if _uploaded is not None:
                 st.session_state[f"_file_{_t['key']}"] = _uploaded
-                st.session_state["_archivo_guardado"] = _uploaded
-                if st.session_state.get("op_activa") == _t["key"]:
-                    archivo = _uploaded
+                # Pre-procesar y guardar DataFrame
+                try:
+                    _df_temp = pd.read_excel(_uploaded)
+                    _df_temp.columns = [str(c).strip() for c in _df_temp.columns]
+                    st.session_state[DATA_KEYS[_t["key"]]] = _df_temp
+                except Exception as _e:
+                    st.error(f"Error al leer archivo de {_t['name']}: {_e}")
                 st.rerun()
 
-    # Mensaje inferior
+    # Tip inferior
     st.markdown(
-        '<div style="text-align:center;margin-top:30px;padding:16px;'
-        'background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(224,64,251,0.06));'
-        'border:1px solid rgba(168,85,247,0.15);border-radius:14px">'
-        '<div style="font-family:DM Sans,sans-serif;font-size:0.85rem;color:#b8b0d8">'
+        '<div style="text-align:center;margin-top:28px;padding:14px 20px;'
+        'background:linear-gradient(135deg,rgba(124,58,237,0.06),rgba(168,85,247,0.04));'
+        'border:1px solid rgba(139,92,246,0.12);border-radius:12px;max-width:600px;margin-left:auto;margin-right:auto">'
+        '<div style="font-family:DM Sans,sans-serif;font-size:0.82rem;color:#9888c8">'
         '💡 <span style="color:#c084fc;font-weight:600">Tip:</span> '
-        'Selecciona la tienda en la barra lateral y sube su archivo aquí para activar todas las vistas del dashboard'
-        '</div></div>',
+        'Después de cargar, selecciona una tienda en la barra lateral para explorar sus datos</div></div>',
+        unsafe_allow_html=True
+    )
+    st.markdown('<div style="text-align:center;color:#4a4070;font-size:0.68rem;margin-top:24px">'
+                '🚀 VisióN360 · Inteligencia Comercial</div>', unsafe_allow_html=True)
+    st.stop()
+
+
+# ═══════════════════════════════════════════════════════════
+# RESOLVER DATOS PARA LA TIENDA ACTIVA
+# ═══════════════════════════════════════════════════════════
+
+# Intentar obtener archivo de la tienda activa
+archivo = st.session_state.get(f"_file_{_op_key}", None)
+
+# ── Si no hay datos: advertencia premium + botón al Hub ──
+if archivo is None:
+    _op_warn = OPERACIONES[_op_key]
+    _nombre_t = _op_key.split(" ", 1)[1]
+
+    st.markdown(
+        f'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;'
+        f'min-height:60vh;text-align:center;padding:40px 20px">'
+        # Icono de tienda grande
+        f'<div style="display:inline-flex;align-items:center;justify-content:center;'
+        f'width:80px;height:80px;border-radius:22px;margin-bottom:24px;'
+        f'background:{_op_warn["bg"]};border:2px solid {_op_warn["border"]};'
+        f'box-shadow:0 8px 32px rgba(0,0,0,0.3)">'
+        f'<span style="font-size:2.5rem">{_op_key.split(" ")[0]}</span></div>'
+        # Título
+        f'<div style="font-family:Plus Jakarta Sans,sans-serif;font-size:1.4rem;font-weight:800;'
+        f'color:#f0ecff;margin-bottom:8px">Sin datos para '
+        f'<span style="color:{_op_warn["color"]}">{_nombre_t}</span></div>'
+        # Subtítulo
+        f'<div style="font-family:DM Sans,sans-serif;font-size:0.9rem;color:#8878b8;'
+        f'max-width:400px;line-height:1.7;margin-bottom:28px">'
+        f'Necesitas cargar el reporte Excel de <strong style="color:{_op_warn["color"]}">{_nombre_t}</strong> '
+        f'desde el Centro de Datos para visualizar sus métricas</div>'
+        f'</div>',
         unsafe_allow_html=True
     )
 
-    st.markdown('<div style="text-align:center;color:#6b7a9e;font-size:0.7rem;margin-top:30px">🚀 VisióN360 · Inteligencia Comercial</div>', unsafe_allow_html=True)
+    # Botón que redirige al Hub
+    _c_pad1, _c_btn, _c_pad2 = st.columns([1, 1, 1])
+    with _c_btn:
+        if st.button("⚡  Ir al Centro de Datos", key="_goto_hub", use_container_width=True, type="primary"):
+            st.session_state.nav_activa = _HUB_VIEW
+            st.rerun()
+
+    st.markdown(
+        '<div style="text-align:center;color:#4a4070;font-size:0.68rem;margin-top:20px">'
+        '🚀 VisióN360 · Inteligencia Comercial</div>',
+        unsafe_allow_html=True
+    )
     st.stop()
 
 # ═══════════════════════════════════════════════════════════
 # CARGAR DATOS
 # ═══════════════════════════════════════════════════════════
-@st.cache_data
-def cargar(f):
-    df = pd.read_excel(f)
-    df.columns = [str(c).strip() for c in df.columns]
-    return df
 
-with st.spinner("Procesando datos..."):
-    df = cargar(archivo)
+# Intentar usar DataFrame pre-cacheado del Hub
+_data_key = DATA_KEYS.get(_op_key)
+if _data_key and _data_key in st.session_state:
+    df = st.session_state[_data_key].copy()
+else:
+    @st.cache_data
+    def cargar(f):
+        _df = pd.read_excel(f)
+        _df.columns = [str(c).strip() for c in _df.columns]
+        return _df
+
+    with st.spinner("Procesando datos..."):
+        df = cargar(archivo)
+    # Guardar en session_state para futuras cargas
+    if _data_key:
+        st.session_state[_data_key] = df.copy()
 
 for col_f in [C_FECHA, C_FECHA_MOV]:
     if col_f in df.columns:
