@@ -16,7 +16,7 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
     --bg: #0B0E14; --bg-deep: #070A0F;
@@ -126,8 +126,26 @@ hr { border-color: var(--border) !important; }
 #MainMenu, footer, header { visibility: hidden; }
 .stDeployButton { display: none; }
 
-/* ── FUENTE PREMIUM ADICIONAL ───────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+/* ── SIDEBAR SIEMPRE VISIBLE — Fix crítico ──────────────────────────────── */
+section[data-testid="stSidebar"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+    width: auto !important;
+    min-width: 230px !important;
+}
+/* Botón colapsar/expandir siempre visible */
+[data-testid="collapsedControl"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+button[kind="headerNoPadding"],
+button[data-testid="baseButton-headerNoPadding"] {
+    display: flex !important;
+    visibility: visible !important;
+}
 
 /* ── KCARD — Tarjetas KPI mejoradas con acento de línea superior ────────── */
 .kcard {
