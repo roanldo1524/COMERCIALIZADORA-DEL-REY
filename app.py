@@ -593,11 +593,53 @@ def ring(value, title, bar_color, max_v=100, suffix="%", reference=None):
             threshold=dict(line=dict(color=bar_color, width=3), thickness=0.32, value=value),
         ),
     ))
+    def ring(value, title, bar_color, max_v=100, suffix="%", reference=None):
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number+delta" if reference else "gauge+number",
+        value=value,
+        number=dict(
+            suffix=suffix,
+            font=dict(family="Outfit, sans-serif", size=40, color="#EAECF4"),
+            valueformat=".1f",
+        ),
+        delta=dict(
+            reference=reference,
+            increasing=dict(color="#00FF85"),
+            decreasing=dict(color="#FF4D6A"),
+            font=dict(size=13, family="JetBrains Mono"),
+        ) if reference else None,
+        title=dict(
+            text=(
+                f"<span style='font-family:JetBrains Mono;font-size:10px;"
+                f"color:#4E5474;text-transform:uppercase;letter-spacing:0.12em'>"
+                f"{title}</span>"
+            ),
+        ),
+        gauge=dict(
+            axis=dict(range=[0, max_v], visible=False, showticklabels=False),
+            bar=dict(color=bar_color, thickness=0.28, line=dict(width=0, color="rgba(0,0,0,0)")),
+            bgcolor="rgba(0,0,0,0)",
+            borderwidth=0,
+            steps=[dict(range=[0, max_v], color="rgba(255,255,255,0.05)")],
+            threshold=dict(
+                line=dict(color=bar_color, width=3),
+                thickness=0.32,
+                value=value,
+            ),
+        ),
+    ))
+
     fig.update_layout(
-        **{k: v for k, v in PBASE.items() if k not in ("xaxis", "yaxis")},
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="white"),
+        margin=dict(t=20, b=20, l=20, r=20),
         height=215,
-        margin=dict(l=22, r=22, t=30, b=8),
-        xaxis=dict(visible=False), yaxis=dict(visible=False),
+        hoverlabel=dict(
+            bgcolor="#27293D",
+            bordercolor="rgba(0,242,255,0.3)",
+            font=dict(family="JetBrains Mono, monospace", size=12, color="#EAECF4"),
+        ),
     )
     return fig
 
