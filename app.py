@@ -19,31 +19,34 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-    --bg: #0B0E14; --bg-deep: #070A0F;
-    --bg-card: rgba(15,20,30,0.65); --bg-card-2: rgba(20,28,42,0.55);
-    --bg-card-3: rgba(25,35,52,0.5); --bg-glass: rgba(15,22,36,0.45);
-    --border: rgba(0,242,255,0.08); --border-2: rgba(0,242,255,0.15);
-    --border-glow: rgba(0,242,255,0.25);
+    --bg: #12131f; --bg-deep: #0d0e1a;
+    --bg-card: rgba(22,24,40,0.75); --bg-card-2: rgba(26,28,48,0.65);
+    --bg-card-3: rgba(30,34,60,0.55); --bg-glass: rgba(18,22,42,0.6);
+    --border: rgba(0,242,255,0.07); --border-2: rgba(0,242,255,0.14);
+    --border-glow: rgba(0,242,255,0.30);
     --cyan: #00F2FF; --emerald: #00FF85; --magenta: #FF3CAC;
     --amber: #FFB347; --red: #FF4D6A; --blue: #4D8DFF;
-    --purple: #A855F7; --gold: #FFD700;
-    --text-1: #E8EDF5; --text-2: #8899B2; --text-3: #556680;
-    --font-main: 'Inter', sans-serif; --font-mono: 'JetBrains Mono', monospace;
-    --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 22px;
-    --blur: 20px;
-    --shadow-card: 0 4px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
+    --purple: #A855F7; --gold: #FFD700; --teal: #00E5CC;
+    --text-1: #EEF2F9; --text-2: #8899B2; --text-3: #4A5570;
+    --font-main: 'Outfit', 'Inter', sans-serif; --font-mono: 'JetBrains Mono', monospace;
+    --r-sm: 10px; --r-md: 14px; --r-lg: 18px; --r-xl: 24px;
+    --blur: 24px;
+    --shadow-card: 0 8px 40px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.04) inset;
+    --glow-cyan:  0 0 24px rgba(0,242,255,0.12), 0 0 60px rgba(0,242,255,0.04);
+    --glow-green: 0 0 24px rgba(0,255,133,0.12), 0 0 60px rgba(0,255,133,0.04);
 }
 
 html, body, [class*="css"] { font-family: var(--font-main) !important; color: var(--text-1); }
 
 .stApp {
-    background-color: var(--bg-deep) !important;
+    background-color: #0d0e1a !important;
     background-image:
-        radial-gradient(ellipse 80% 50% at 10% 0%, rgba(0,242,255,0.06) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 90% 5%, rgba(0,255,133,0.04) 0%, transparent 50%),
-        radial-gradient(ellipse 50% 35% at 50% 100%, rgba(77,141,255,0.03) 0%, transparent 50%);
+        radial-gradient(ellipse 100% 60% at 0% 0%,   rgba(0,242,255,0.055) 0%, transparent 55%),
+        radial-gradient(ellipse  70% 50% at 100% 0%,  rgba(168,85,247,0.04) 0%, transparent 50%),
+        radial-gradient(ellipse  60% 40% at 50% 100%, rgba(0,229,204,0.03)  0%, transparent 45%),
+        linear-gradient(180deg, #0d0e1a 0%, #101220 100%);
 }
-.block-container { padding: 1.2rem 2rem !important; max-width: 100% !important; }
+.block-container { padding: 1.4rem 2.2rem !important; max-width: 100% !important; }
 
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0D1117 0%, #0B0E14 50%, #070A0F 100%) !important;
@@ -55,76 +58,139 @@ section[data-testid="stSidebar"] * { color: var(--text-1) !important; }
 h1, h2, h3 { font-family: var(--font-main) !important; letter-spacing: -0.03em; color: var(--text-1) !important; font-weight: 800 !important; }
 
 .kpi {
-    background: var(--bg-glass); backdrop-filter: blur(var(--blur));
-    border: 1px solid var(--border); border-radius: var(--r-lg);
-    padding: 20px 16px; text-align: center; position: relative; overflow: hidden;
-    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    background: rgba(22,24,40,0.82);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(0,242,255,0.07);
+    border-radius: var(--r-xl);
+    padding: 22px 18px; text-align: center;
+    position: relative; overflow: hidden;
+    transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), box-shadow 0.3s, border-color 0.3s;
     box-shadow: var(--shadow-card);
 }
-.kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; border-radius: var(--r-lg) var(--r-lg) 0 0; z-index:1; }
-.kpi:hover { transform: translateY(-3px); border-color: var(--border-glow); box-shadow: 0 0 40px rgba(0,242,255,0.10); }
-.kpi.cyan::before   { background: linear-gradient(90deg, #00F2FF, #4D8DFF); }
-.kpi.green::before  { background: linear-gradient(90deg, #00FF85, #00C896); }
+.kpi::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    border-radius: var(--r-xl) var(--r-xl) 0 0; z-index:1;
+}
+.kpi::after {
+    content:''; position:absolute; inset:0; border-radius: var(--r-xl);
+    background: linear-gradient(145deg, rgba(255,255,255,0.025) 0%, transparent 60%);
+    pointer-events:none;
+}
+.kpi:hover {
+    transform: translateY(-6px);
+    border-color: rgba(0,242,255,0.22);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), var(--glow-cyan);
+}
+.kpi.cyan::before   { background: linear-gradient(90deg, #00F2FF, #00b8ff); }
+.kpi.green::before  { background: linear-gradient(90deg, #00FF85, #00E5CC); }
 .kpi.red::before    { background: linear-gradient(90deg, #FF4D6A, #FF3CAC); }
 .kpi.blue::before   { background: linear-gradient(90deg, #4D8DFF, #00F2FF); }
-.kpi.purple::before { background: linear-gradient(90deg, #A855F7, #FF3CAC); }
+.kpi.purple::before { background: linear-gradient(90deg, #A855F7, #6366f1); }
 .kpi.gold::before   { background: linear-gradient(90deg, #FFD700, #FFB347); }
-.kpi-num { font-family: var(--font-main); font-size: 1.8rem; font-weight: 800; color: var(--text-1); margin: 8px 0 4px; letter-spacing: -0.03em; line-height: 1; }
-.kpi-label { font-family: var(--font-main); font-size: 0.67rem; color: var(--text-2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
-.kpi-sub { font-size: 0.77rem; color: var(--emerald); font-weight: 500; margin-top: 5px; }
+.kpi-num {
+    font-family: var(--font-main); font-size: 2rem; font-weight: 900;
+    color: var(--text-1); margin: 8px 0 4px;
+    letter-spacing: -0.04em; line-height: 1;
+    text-shadow: 0 2px 20px rgba(0,242,255,0.08);
+}
+.kpi-label {
+    font-family: var(--font-mono); font-size: 0.6rem;
+    color: var(--text-3); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.14em;
+}
+.kpi-sub { font-size: 0.75rem; color: var(--emerald); font-weight: 600; margin-top: 6px; }
 
-.prod-card { background: var(--bg-glass); backdrop-filter: blur(var(--blur)); border: 1px solid var(--border); border-radius: var(--r-md); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 14px; transition: all 0.2s; box-shadow: var(--shadow-card); }
-.prod-card:hover { border-color: var(--border-glow); transform: translateX(3px); }
-.prod-rank { font-family: var(--font-main); font-size: 1.5rem; font-weight: 800; color: var(--gold); min-width: 36px; }
-.prod-name { font-size: 0.87rem; font-weight: 600; color: var(--text-1); }
-.prod-val  { font-size: 0.75rem; color: var(--text-2); margin-top: 2px; }
+.prod-card {
+    background: rgba(22,24,40,0.82); backdrop-filter: blur(24px);
+    border: 1px solid rgba(0,242,255,0.07); border-radius: var(--r-lg);
+    padding: 14px 16px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 14px;
+    transition: all 0.25s cubic-bezier(.34,1.56,.64,1); box-shadow: var(--shadow-card);
+}
+.prod-card:hover { border-color: rgba(0,242,255,0.22); transform: translateX(4px); box-shadow: var(--glow-cyan), var(--shadow-card); }
+.prod-rank { font-family: var(--font-main); font-size: 1.5rem; font-weight: 900; color: var(--gold); min-width: 36px; text-shadow: 0 0 20px rgba(255,215,0,0.3); }
+.prod-name { font-size: 0.87rem; font-weight: 700; color: var(--text-1); letter-spacing: -0.01em; }
+.prod-val  { font-size: 0.73rem; color: var(--text-3); margin-top: 2px; font-family: var(--font-mono); }
 
-.alerta-r { background: rgba(255,77,106,0.06); border: 1px solid rgba(255,77,106,0.18); border-left: 3px solid var(--red); border-radius: var(--r-sm); padding: 10px 14px; margin: 5px 0; font-size: 0.82rem; color: var(--text-1); }
-.alerta-a { background: rgba(255,179,71,0.06); border: 1px solid rgba(255,179,71,0.18); border-left: 3px solid var(--amber); border-radius: var(--r-sm); padding: 10px 14px; margin: 5px 0; font-size: 0.82rem; color: var(--text-1); }
+.alerta-r { background: rgba(255,77,106,0.05); border: 1px solid rgba(255,77,106,0.15); border-left: 3px solid #FF4D6A; border-radius: var(--r-md); padding: 11px 16px; margin: 6px 0; font-size: 0.82rem; color: var(--text-1); backdrop-filter: blur(12px); }
+.alerta-a { background: rgba(255,183,71,0.05); border: 1px solid rgba(255,183,71,0.15); border-left: 3px solid #FFB347; border-radius: var(--r-md); padding: 11px 16px; margin: 6px 0; font-size: 0.82rem; color: var(--text-1); backdrop-filter: blur(12px); }
 
-.insight { background: var(--bg-glass); backdrop-filter: blur(var(--blur)); border: 1px solid var(--border); border-radius: var(--r-md); padding: 18px; margin-bottom: 10px; box-shadow: var(--shadow-card); }
-.insight-titulo { font-family: var(--font-main); font-size: 0.9rem; color: var(--cyan); font-weight: 700; margin-bottom: 7px; }
-.insight-texto { font-size: 0.83rem; color: var(--text-2); line-height: 1.65; }
+.insight { background: rgba(22,24,40,0.82); backdrop-filter: blur(24px); border: 1px solid rgba(0,242,255,0.07); border-radius: var(--r-lg); padding: 20px; margin-bottom: 10px; box-shadow: var(--shadow-card); }
+.insight-titulo { font-family: var(--font-main); font-size: 0.9rem; color: var(--cyan); font-weight: 800; margin-bottom: 8px; letter-spacing: -0.01em; }
+.insight-texto { font-size: 0.82rem; color: var(--text-2); line-height: 1.7; font-family: var(--font-mono); }
 
-.badge-r { background:rgba(255,77,106,0.1); color:#FF8090; border:1px solid rgba(255,77,106,0.25); border-radius:20px; padding:2px 10px; font-size:0.7rem; font-weight:700; }
-.badge-a { background:rgba(255,179,71,0.1); color:#FFD080; border:1px solid rgba(255,179,71,0.25); border-radius:20px; padding:2px 10px; font-size:0.7rem; font-weight:700; }
-.badge-v { background:rgba(0,255,133,0.1); color:#66FFB8; border:1px solid rgba(0,255,133,0.25); border-radius:20px; padding:2px 10px; font-size:0.7rem; font-weight:700; }
-.badge-g { background:rgba(255,215,0,0.1); color:#FFE680; border:1px solid rgba(255,215,0,0.25); border-radius:20px; padding:2px 10px; font-size:0.7rem; font-weight:700; }
+.badge-r { background:rgba(255,77,106,0.10); color:#ff8096; border:1px solid rgba(255,77,106,0.22); border-radius:30px; padding:3px 11px; font-size:0.68rem; font-weight:700; font-family:var(--font-mono); letter-spacing:0.04em; }
+.badge-a { background:rgba(255,183,71,0.10); color:#ffd080; border:1px solid rgba(255,183,71,0.22); border-radius:30px; padding:3px 11px; font-size:0.68rem; font-weight:700; font-family:var(--font-mono); letter-spacing:0.04em; }
+.badge-v { background:rgba(0,255,133,0.10); color:#66ffb8; border:1px solid rgba(0,255,133,0.22); border-radius:30px; padding:3px 11px; font-size:0.68rem; font-weight:700; font-family:var(--font-mono); letter-spacing:0.04em; }
+.badge-g { background:rgba(255,215,0,0.10); color:#ffe680; border:1px solid rgba(255,215,0,0.22); border-radius:30px; padding:3px 11px; font-size:0.68rem; font-weight:700; font-family:var(--font-mono); letter-spacing:0.04em; }
 
-.seccion-titulo { font-family: var(--font-main); font-size: 1.15rem; font-weight: 800; color: var(--text-1); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin: 22px 0 15px 0; letter-spacing: -0.02em; background: linear-gradient(90deg, #E8EDF5, #00F2FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.seccion-titulo {
+    font-family: var(--font-main); font-size: 1.05rem; font-weight: 800; letter-spacing: -0.03em;
+    border-bottom: 1px solid rgba(0,242,255,0.06); padding-bottom: 11px; margin: 26px 0 16px;
+    background: linear-gradient(90deg, #EEF2F9 0%, #00F2FF 60%, #00E5CC 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
 
-.stTabs [data-baseweb="tab-list"] { background: var(--bg-card) !important; border-radius: var(--r-md) !important; padding: 4px !important; border: 1px solid var(--border) !important; }
-.stTabs [data-baseweb="tab"] { background: transparent !important; border-radius: var(--r-sm) !important; color: var(--text-2) !important; font-family: var(--font-main) !important; font-size: 0.81rem !important; font-weight: 600 !important; padding: 8px 14px !important; }
-.stTabs [aria-selected="true"] { background: rgba(0,242,255,0.1) !important; color: #fff !important; border: 1px solid rgba(0,242,255,0.2) !important; box-shadow: 0 2px 16px rgba(0,242,255,0.1) !important; }
+.stTabs [data-baseweb="tab-list"] { background: rgba(16,18,32,0.90) !important; border-radius: var(--r-lg) !important; padding: 5px !important; border: 1px solid rgba(0,242,255,0.06) !important; backdrop-filter: blur(20px) !important; }
+.stTabs [data-baseweb="tab"] { background: transparent !important; border-radius: var(--r-md) !important; color: var(--text-3) !important; font-family: var(--font-main) !important; font-size: 0.82rem !important; font-weight: 600 !important; padding: 9px 16px !important; transition: all 0.2s !important; }
+.stTabs [data-baseweb="tab"]:hover { color: var(--text-2) !important; background: rgba(0,242,255,0.04) !important; }
+.stTabs [aria-selected="true"] { background: rgba(0,242,255,0.09) !important; color: #00F2FF !important; border: 1px solid rgba(0,242,255,0.18) !important; box-shadow: 0 2px 20px rgba(0,242,255,0.08), 0 0 0 1px rgba(0,242,255,0.12) inset !important; }
 
-.stSelectbox > div > div, .stMultiSelect > div > div { background: var(--bg-card) !important; border: 1px solid var(--border) !important; border-radius: var(--r-sm) !important; color: var(--text-1) !important; }
-.stNumberInput > div > div > input, .stTextInput > div > div > input { background: var(--bg-card) !important; border: 1px solid var(--border) !important; border-radius: var(--r-sm) !important; color: var(--text-1) !important; font-family: var(--font-mono) !important; }
+.stSelectbox > div > div, .stMultiSelect > div > div { background: rgba(18,20,36,0.9) !important; border: 1px solid rgba(0,242,255,0.08) !important; border-radius: var(--r-md) !important; color: var(--text-1) !important; backdrop-filter: blur(12px) !important; }
+.stSelectbox > div > div:focus-within, .stMultiSelect > div > div:focus-within { border-color: rgba(0,242,255,0.25) !important; box-shadow: 0 0 0 3px rgba(0,242,255,0.06) !important; }
+.stNumberInput > div > div > input, .stTextInput > div > div > input { background: rgba(18,20,36,0.9) !important; border: 1px solid rgba(0,242,255,0.08) !important; border-radius: var(--r-md) !important; color: var(--text-1) !important; font-family: var(--font-mono) !important; }
+.stNumberInput > div > div > input:focus, .stTextInput > div > div > input:focus { border-color: rgba(0,242,255,0.3) !important; box-shadow: 0 0 0 3px rgba(0,242,255,0.07) !important; }
 
-.stButton > button { background: linear-gradient(135deg, rgba(0,242,255,0.12), rgba(0,255,133,0.06)) !important; border: 1px solid rgba(0,242,255,0.2) !important; border-radius: var(--r-sm) !important; color: var(--cyan) !important; font-family: var(--font-main) !important; font-weight: 700 !important; font-size: 0.83rem !important; padding: 9px 20px !important; transition: all 0.2s !important; box-shadow: 0 2px 16px rgba(0,242,255,0.06) !important; }
-.stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0 6px 24px rgba(0,242,255,0.15) !important; border-color: rgba(0,242,255,0.35) !important; }
+.stButton > button {
+    background: rgba(0,242,255,0.07) !important;
+    border: 1px solid rgba(0,242,255,0.15) !important;
+    border-radius: var(--r-md) !important;
+    color: var(--cyan) !important;
+    font-family: var(--font-main) !important;
+    font-weight: 700 !important; font-size: 0.83rem !important;
+    padding: 9px 20px !important;
+    transition: all 0.25s cubic-bezier(.34,1.56,.64,1) !important;
+    backdrop-filter: blur(12px) !important;
+    letter-spacing: 0.01em !important;
+}
+.stButton > button:hover {
+    background: rgba(0,242,255,0.12) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 28px rgba(0,242,255,0.12), 0 0 0 1px rgba(0,242,255,0.2) !important;
+    border-color: rgba(0,242,255,0.30) !important;
+}
 
-.stDataFrame { border-radius: var(--r-lg) !important; overflow: hidden !important; border: 1px solid var(--border) !important; }
-.stFileUploader { background: var(--bg-card) !important; border: 2px dashed rgba(0,242,255,0.12) !important; border-radius: var(--r-lg) !important; }
-.stFileUploader:hover { border-color: var(--cyan) !important; }
-.stExpander { background: var(--bg-card) !important; border: 1px solid var(--border) !important; border-radius: var(--r-md) !important; box-shadow: var(--shadow-card) !important; }
+.stDataFrame { border-radius: var(--r-xl) !important; overflow: hidden !important; border: 1px solid rgba(0,242,255,0.07) !important; box-shadow: var(--shadow-card) !important; }
+.stFileUploader { background: rgba(18,20,36,0.7) !important; border: 2px dashed rgba(0,242,255,0.10) !important; border-radius: var(--r-xl) !important; backdrop-filter: blur(16px) !important; transition: border-color 0.2s !important; }
+.stFileUploader:hover { border-color: rgba(0,242,255,0.30) !important; background: rgba(0,242,255,0.02) !important; }
+.stExpander { background: rgba(18,20,36,0.80) !important; border: 1px solid rgba(0,242,255,0.07) !important; border-radius: var(--r-lg) !important; box-shadow: var(--shadow-card) !important; backdrop-filter: blur(20px) !important; }
+.stExpander:hover { border-color: rgba(0,242,255,0.14) !important; }
 
 div[data-testid="stMetricValue"] { font-family: var(--font-main) !important; font-weight: 800 !important; color: var(--text-1) !important; }
 div[data-testid="stMetricLabel"] { font-family: var(--font-main) !important; color: var(--text-2) !important; }
 
-label, .stRadio label, .stSelectbox label, .stMultiSelect label, .stNumberInput label, .stTextInput label, .stSlider label, div[data-testid="stWidgetLabel"] p, div[data-testid="stWidgetLabel"], p, li { color: #B8C4D8 !important; font-family: var(--font-main) !important; }
-.stRadio [data-testid="stMarkdownContainer"] p { color: #B8C4D8 !important; font-size: 0.85rem !important; font-weight: 500 !important; }
-.stSelectbox div[data-baseweb="select"] span, .stSelectbox div[data-baseweb="select"] div { color: #E8EDF5 !important; }
-small, .stCaption, div[data-testid="stCaptionContainer"] { color: #6680A0 !important; }
-.stExpander summary p, .stExpander details summary span { color: #B8C4D8 !important; font-weight: 600 !important; }
+label, .stRadio label, .stSelectbox label, .stMultiSelect label, .stNumberInput label, .stTextInput label, .stSlider label, div[data-testid="stWidgetLabel"] p, div[data-testid="stWidgetLabel"], p, li { color: #8899B2 !important; font-family: var(--font-main) !important; }
+.stRadio [data-testid="stMarkdownContainer"] p { color: #8899B2 !important; font-size: 0.84rem !important; font-weight: 500 !important; }
+.stSelectbox div[data-baseweb="select"] span, .stSelectbox div[data-baseweb="select"] div { color: #EEF2F9 !important; }
+small, .stCaption, div[data-testid="stCaptionContainer"] { color: #4A5570 !important; }
+.stExpander summary p, .stExpander details summary span { color: #8899B2 !important; font-weight: 700 !important; }
 
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: var(--bg-deep); }
-::-webkit-scrollbar-thumb { background: rgba(0,242,255,0.12); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+div[data-testid="stMetricValue"] { font-family: var(--font-main) !important; font-weight: 900 !important; color: var(--text-1) !important; font-size: 1.8rem !important; letter-spacing: -0.04em !important; }
+div[data-testid="stMetricLabel"] { font-family: var(--font-mono) !important; color: var(--text-3) !important; font-size: 0.65rem !important; text-transform: uppercase !important; letter-spacing: 0.1em !important; }
+div[data-testid="stMetricDelta"] { font-family: var(--font-mono) !important; font-size: 0.78rem !important; font-weight: 700 !important; }
 
-hr { border-color: var(--border) !important; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #0d0e1a; }
+::-webkit-scrollbar-thumb { background: rgba(0,242,255,0.10); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,242,255,0.30); }
+
+hr { border-color: rgba(0,242,255,0.05) !important; }
 #MainMenu, footer, header { visibility: hidden; }
 .stDeployButton { display: none; }
+
+/* ── COLORES NEON EN PLOTLY ──────────────────────────────────────────────── */
+.js-plotly-plot .plotly .gridlayer path { stroke: rgba(0,242,255,0.04) !important; }
+.js-plotly-plot .plotly .zerolinelayer path { stroke: rgba(0,242,255,0.08) !important; }
 
 /* ── SIDEBAR SIEMPRE VISIBLE — Fix crítico ──────────────────────────────── */
 section[data-testid="stSidebar"] {
@@ -314,12 +380,37 @@ def kpi(color, label, num, sub=""):
 PLOT_LAYOUT = dict(
     plot_bgcolor='rgba(0,0,0,0)',
     paper_bgcolor='rgba(0,0,0,0)',
-    font=dict(family='Inter', color='#B8C4D8', size=12),
-    title_font=dict(family='Inter', color='#E8EDF5', size=15),
-    legend=dict(font=dict(color='#8899B2', size=11), bgcolor='rgba(0,0,0,0)'),
-    margin=dict(l=10, r=10, t=48, b=10)
+    font=dict(family='Outfit, Inter, sans-serif', color='#8899B2', size=12),
+    title_font=dict(family='Outfit, Inter, sans-serif', color='#EEF2F9', size=14, x=0.01),
+    margin=dict(l=12, r=12, t=44, b=12),
+    hoverlabel=dict(
+        bgcolor='rgba(18,19,35,0.98)',
+        bordercolor='rgba(0,242,255,0.25)',
+        font=dict(family='JetBrains Mono, monospace', size=12, color='#EEF2F9'),
+    ),
 )
-AXIS_STYLE = dict(gridcolor='rgba(0,242,255,0.06)', linecolor='rgba(0,242,255,0.06)', tickfont=dict(color='#6680A0', family='JetBrains Mono'))
+# legend separado para evitar duplicado en update_layout(**PLOT_LAYOUT, legend=…)
+_LEG_BASE = dict(
+    font=dict(color='#6680A0', size=11, family='JetBrains Mono'),
+    bgcolor='rgba(0,0,0,0)',
+    bordercolor='rgba(255,255,255,0.05)',
+    borderwidth=1,
+)
+AXIS_STYLE = dict(
+    gridcolor='rgba(0,242,255,0.05)',
+    linecolor='rgba(0,242,255,0.08)',
+    zeroline=False,
+    tickfont=dict(color='#4A5570', family='JetBrains Mono', size=10),
+    showgrid=True,
+)
+
+def _pl(**kw):
+    """Merge PLOT_LAYOUT con overrides; garantiza legend siempre presente."""
+    merged = {**PLOT_LAYOUT}
+    if 'legend' not in kw:
+        merged['legend'] = _LEG_BASE
+    merged.update(kw)
+    return merged
 COLORES_ELEGANTES = ['#00F2FF','#00FF85','#FFD700','#FF4D6A','#4D8DFF','#FF3CAC','#FFB347','#A855F7','#14b8a6','#fb923c']
 
 
@@ -1463,13 +1554,13 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             name="% Neto",yaxis="y2",mode="lines+markers",
             line=dict(color="#00FF85",width=3),marker=dict(size=8,color="#00FF85")
         ))
-        fig_pg.update_layout(**PLOT_LAYOUT,barmode="group",height=380,
+        fig_pg.update_layout(**_pl(barmode="group",height=380,
             title="P&G por Período — Millones COP",
             xaxis=AXIS_STYLE,
             yaxis=dict(title="M COP",**AXIS_STYLE),
             yaxis2=dict(title="% Neto",overlaying="y",side="right",
                         ticksuffix="%",gridcolor="rgba(0,0,0,0)",
-                        tickfont=dict(color="#00FF85")))
+                        tickfont=dict(color="#00FF85"))))
         st.plotly_chart(fig_pg, use_container_width=True)
 
 
@@ -1682,11 +1773,11 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 y=_base_c1 / 1e6, line_dash="dot", line_color="#00C8DD",
                 annotation_text=f"Base: {fmt_money(_base_c1)}", annotation_font_color="#a08afd"
             )
-            _fig_c1.update_layout(
-                **PLOT_LAYOUT, height=340,
+            _fig_c1.update_layout(**_pl(
+                height=340,
                 title=f"Proyección Autónoma {_n_meses_c1} meses · {_pais_c1.split()[-1]}",
                 xaxis=AXIS_STYLE, yaxis=dict(title="Millones COP", **AXIS_STYLE)
-            )
+            ))
             st.plotly_chart(_fig_c1, use_container_width=True)
 
             # ── KPIs resumen ──
@@ -1980,13 +2071,14 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     marker_color=['#10b981' if fp['Utilidad'] >= 0 else '#ef4444' for fp in filas_proy],
                     opacity=0.6, yaxis='y'
                 ))
-                fig_proy.update_layout(
-                    **PLOT_LAYOUT, height=420,
+                fig_proy.update_layout(**_pl(
+                    height=420,
                     title=f"Proyección {n_meses_proy} meses · Base: {base_proy} · +{crecimiento_proy:.0f}%/mes",
                     xaxis=AXIS_STYLE,
-                    yaxis=dict(title='Millones COP', **AXIS_STYLE),
+                    yaxis=dict(title='Millones COP', **AXIS_STYLE)),
                     barmode='overlay'
                 )
+
                 st.plotly_chart(fig_proy, use_container_width=True)
 
                 # ── KPIs RESUMEN ──
@@ -2190,9 +2282,10 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 text=[f"{v:,}" for v in _cod_values], textposition='auto',
                 textfont=dict(color='#E8EDF5', size=11, family='Inter'),
             ))
-            fig_cod.update_layout(**PLOT_LAYOUT, height=380,
-                yaxis=dict(autorange="reversed", **AXIS_STYLE), xaxis=dict(**AXIS_STYLE),
+            fig_cod.update_layout(**_pl( height=380,
+                yaxis=dict(autorange="reversed", **AXIS_STYLE)), xaxis=dict(**AXIS_STYLE),
                 showlegend=False, title=None)
+
             st.plotly_chart(fig_cod, use_container_width=True)
 
         with _col_line:
@@ -2215,11 +2308,12 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                         fig_line.add_trace(go.Scatter(x=_daily['fecha'], y=[pauta_tk/_nd]*len(_daily),
                             mode='lines', name='TikTok Ads/día',
                             line=dict(color='#FF3CAC', width=1.5, dash='dot', shape='spline')))
-                fig_line.update_layout(**PLOT_LAYOUT, height=380,
-                    xaxis=dict(**AXIS_STYLE), yaxis=dict(**AXIS_STYLE),
+                fig_line.update_layout(**_pl( height=380,
+                    xaxis=dict(**AXIS_STYLE)), yaxis=dict(**AXIS_STYLE),
                     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0,
                                 font=dict(size=10, color='#8899B2'), bgcolor='rgba(0,0,0,0)'),
                     title=None)
+
                 st.plotly_chart(fig_line, use_container_width=True)
             else:
                 st.info("No hay datos de fechas para graficar la serie temporal.")
@@ -2808,15 +2902,15 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
             line=dict(color='#f0c060', width=3),
             marker=dict(size=8, color='#f0c060')
         ))
-        fig.update_layout(
-            **PLOT_LAYOUT,
+        fig.update_layout(**_pl(
             barmode='group', height=420,
             title='Evolución Mensual de Ventas',
             xaxis=AXIS_STYLE,
-            yaxis=dict(title='Millones COP', **AXIS_STYLE),
+            yaxis=dict(title='Millones COP', **AXIS_STYLE)),
             yaxis2=dict(title='Órdenes', overlaying='y', side='right',
                        gridcolor='rgba(0,0,0,0)', tickfont=dict(color='#f0c060'))
         )
+
         st.plotly_chart(fig, use_container_width=True)
 
         # Días pico
@@ -2827,7 +2921,8 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                            title='Ventas por Día del Mes (patrón quincenas)',
                            color_discrete_sequence=['#f0c060'])
             fig_d.update_traces(fillcolor='rgba(201,168,76,0.15)', line=dict(color='#f0c060',width=2))
-            fig_d.update_layout(**PLOT_LAYOUT, height=280, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+            fig_d.update_layout(**_pl( height=280, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
+
             st.plotly_chart(fig_d, use_container_width=True)
 
     # ══════════════════════════════════════════════════════════════════
@@ -2903,8 +2998,9 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                         mapbox_style='carto-darkmatter',
                         title='Distribución Geográfica de Pedidos'
                     )
-                    fig_map.update_layout(**PLOT_LAYOUT, height=550,
-                                          mapbox=dict(center=dict(lat=4.5, lon=-74.3)))
+                    fig_map.update_layout(**_pl( height=550,
+                                          mapbox=dict(center=dict(lat=4.5, lon=-74.3))))
+
                     st.plotly_chart(fig_map, use_container_width=True)
 
                 # Tabla top departamentos
@@ -2960,7 +3056,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                         color_continuous_scale=['#12151f','#4D8DFF','#f0c060'],
                         title=f'Top 10 — {titulo}'
                     )
-                    fig_prod.update_layout(**PLOT_LAYOUT, height=480, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                    fig_prod.update_layout(**_pl( height=480, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
                     fig_prod.update_traces(texttemplate='%{x:,.0f}', textposition='outside',
                                            textfont=dict(color='#8892b0', size=10))
                     st.plotly_chart(fig_prod, use_container_width=True)
@@ -4367,8 +4463,9 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                         x=rent_prod.values, y=rent_prod.index.str[:25], orientation='h',
                         marker_color=['#10b981' if v>0 else '#ef4444' for v in rent_prod.values]
                     ))
-                    fig_rp.update_layout(**PLOT_LAYOUT, height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
-                                         title='Rentabilidad por Producto (Ganancia)')
+                    fig_rp.update_layout(**_pl( height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
+                                         title='Rentabilidad por Producto (Ganancia))'))
+
                     st.plotly_chart(fig_rp, use_container_width=True)
 
             with g2:
@@ -4378,8 +4475,8 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                         x=rent_ciudad.values, y=rent_ciudad.index.str[:20], orientation='h',
                         marker_color=['#10b981' if v>0 else '#ef4444' for v in rent_ciudad.values]
                     ))
-                    fig_rc.update_layout(**PLOT_LAYOUT, height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
-                                         title='Rentabilidad por Ciudad')
+                    fig_rc.update_layout(**_pl( height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
+                                         title='Rentabilidad por Ciudad'))
                     st.plotly_chart(fig_rc, use_container_width=True)
 
         # ══════════════════════════════════════════════════════
@@ -4492,9 +4589,9 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 text=[fmt_money(abs(v)) for v in vals_wf],
                 textposition="outside"
             ))
-            fig_wf.update_layout(**PLOT_LAYOUT, height=420,
+            fig_wf.update_layout(**_pl( height=420,
                                   title="Cascada de Flujo de Caja",
-                                  yaxis={**AXIS_STYLE, "tickprefix":"$"})
+                                  yaxis={**AXIS_STYLE, "tickprefix":"$"}))
             st.plotly_chart(fig_wf, use_container_width=True)
 
             # ══════════════════════════════════════════════════════
@@ -4656,10 +4753,10 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 text=[fmt_money(abs(v)) for v in valores_wf],
                 textposition="outside"
             ))
-            fig_cwf.update_layout(**PLOT_LAYOUT, height=440,
+            fig_cwf.update_layout(**_pl( height=440,
                                    title="Cascada — Cómo los Costos Reducen el Ingreso",
                                    yaxis={**AXIS_STYLE, "tickprefix":"$"},
-                                   xaxis={**AXIS_STYLE})
+                                   xaxis={**AXIS_STYLE}))
             st.plotly_chart(fig_cwf, use_container_width=True)
 
             # ── Barras comparativas mes a mes ──
@@ -4720,15 +4817,14 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                         line={"color":"#10b981","width":2,"dash":"dot"},
                         marker={"size":7,"color":"#10b981"},
                     ))
-                    fig_mes.update_layout(
-                        **PLOT_LAYOUT,
+                    fig_mes.update_layout(**_pl(
                         height=420,
                         barmode='stack',
                         title='Costos Apilados vs Ingresos — Mes a Mes',
                         yaxis={**AXIS_STYLE, "tickprefix":"$"},
                         xaxis=AXIS_STYLE,
-                        legend={"orientation":"h","y":-0.18,"x":0,"font":{"size":11,"color":"#8892b0"},"bgcolor":"rgba(0,0,0,0)"},
-                    )
+                        legend={"orientation":"h","y":-0.18,"x":0,"font":{"size":11,"color":"#8892b0"},"bgcolor":"rgba(0,0,0,0))"},
+                    ))
                     st.plotly_chart(fig_mes, use_container_width=True)
 
                     # ── Mini tabla resumen mes a mes ──
@@ -5145,8 +5241,9 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 fig_ut.add_trace(go.Bar(x=top_p['UT. BRT'], y=top_p['PRODUCTO'].str[:25],
                                         orientation='h', name='UT. BRT',
                                         marker_color=['#10b981' if v >= 0 else '#ef4444' for v in top_p['UT. BRT']]))
-                fig_ut.update_layout(**PLOT_LAYOUT, height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
-                                     title='Utilidad Bruta por Producto (UT. BRT)')
+                fig_ut.update_layout(**_pl( height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
+                                     title='Utilidad Bruta por Producto (UT. BRT))'))
+
                 st.plotly_chart(fig_ut, use_container_width=True)
 
             with g2:
@@ -5159,9 +5256,9 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                     textposition='outside'
                 ))
                 fig_dv.add_vline(x=0, line_color='#a8b8d0', line_width=1)
-                fig_dv.update_layout(**PLOT_LAYOUT, height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
+                fig_dv.update_layout(**_pl( height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
                                      title='Delta Venta — Eficiencia de Pauta por Producto',
-                                     xaxis_ticksuffix='%')
+                                     xaxis_ticksuffix='%'))
                 st.plotly_chart(fig_dv, use_container_width=True)
 
             # ════════════════════════════════
@@ -6045,7 +6142,7 @@ elif "Tendencias" in vista_activa:
                         color_continuous_scale=["#12151f","#4D8DFF","#f0c060"],
                         title="Top Productos por Volumen"
                     )
-                fig_ai.update_layout(**PLOT_LAYOUT, height=380, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                fig_ai.update_layout(**_pl( height=380, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
                 st.plotly_chart(fig_ai, use_container_width=True)
 
             with _ai2:
@@ -6646,11 +6743,10 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                         textposition="outside",
                         textfont={"size":10,"color":"#8892b0"},
                     ))
-                    fig_ef.update_layout(
-                        **PLOT_LAYOUT, height=320,
-                        title="Valor ($) por Estatus Financiero",
+                    fig_ef.update_layout(**_pl(
+                        title="Valor ($)) por Estatus Financiero",
                         xaxis=AXIS_STYLE, yaxis={**AXIS_STYLE, "tickprefix":"$"}
-                    )
+                    ))
                     st.plotly_chart(fig_ef, use_container_width=True)
 
             # ── Renderizar cada tab ──
@@ -6841,8 +6937,8 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 fig_t.add_trace(go.Bar(x=grp_t[C_TRANSP], y=grp_t['Tasa Dev'], name='Tasa Devolución %',
                                        marker_color='#ef4444', text=grp_t['Tasa Dev'].astype(str)+'%',
                                        textposition='outside'))
-                fig_t.update_layout(**PLOT_LAYOUT, barmode='group', height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
-                                    title='Tasa de Entrega vs Devolución por Transportadora', yaxis_ticksuffix='%')
+                fig_t.update_layout(**_pl( barmode='group', height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
+                                    title='Tasa de Entrega vs Devolución por Transportadora', yaxis_ticksuffix='%'))
                 st.plotly_chart(fig_t, use_container_width=True)
 
             with g2:
@@ -6851,8 +6947,8 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 fig_t2.add_trace(go.Bar(x=grp_t[C_TRANSP], y=grp_t['Entregados'], name='Entregados', marker_color='#10b981'))
                 fig_t2.add_trace(go.Bar(x=grp_t[C_TRANSP], y=grp_t['Devoluciones'], name='Devoluciones', marker_color='#f59e0b'))
                 fig_t2.add_trace(go.Bar(x=grp_t[C_TRANSP], y=grp_t['Novedades'], name='Novedades', marker_color='#00C8DD'))
-                fig_t2.update_layout(**PLOT_LAYOUT, barmode='group', height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
-                                     title='Volumen de Pedidos por Transportadora')
+                fig_t2.update_layout(**_pl( barmode='group', height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
+                                     title='Volumen de Pedidos por Transportadora'))
                 st.plotly_chart(fig_t2, use_container_width=True)
 
             # Tabla detallada
@@ -6917,7 +7013,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
             fig_p = px.bar(grp_p.head(10), x=C_PROVE, y=['Tasa Entrega','Tasa Cancel','Tasa Dev'],
                            barmode='group', color_discrete_sequence=['#10b981','#ef4444','#f59e0b'],
                            title='Top 10 Proveedores — Tasas de Entrega, Cancelación y Devolución')
-            fig_p.update_layout(**PLOT_LAYOUT, height=380, xaxis=AXIS_STYLE, yaxis=dict(ticksuffix='%', **AXIS_STYLE))
+            fig_p.update_layout(**_pl( height=380, xaxis=AXIS_STYLE, yaxis=dict(ticksuffix='%', **AXIS_STYLE)))
             st.plotly_chart(fig_p, use_container_width=True)
 
             # Tabla
@@ -6986,8 +7082,8 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 fig_inv.add_trace(go.Bar(x=top10[C_PROD], y=top10['Entregados'], name='Entregados', marker_color='#10b981'))
                 fig_inv.add_trace(go.Bar(x=top10[C_PROD], y=top10['Devoluciones'], name='Devoluciones', marker_color='#f59e0b'))
                 fig_inv.add_trace(go.Bar(x=top10[C_PROD], y=top10['Cancelados'], name='Cancelados', marker_color='#ef4444'))
-                fig_inv.update_layout(**PLOT_LAYOUT, barmode='stack', height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
-                                      title='Top 10 Productos — Entregados vs Devoluciones vs Cancelados')
+                fig_inv.update_layout(**_pl( barmode='stack', height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE,
+                                      title='Top 10 Productos — Entregados vs Devoluciones vs Cancelados'))
                 st.plotly_chart(fig_inv, use_container_width=True)
 
             with g2:
@@ -6996,7 +7092,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                                      x='Ganancia', y=C_PROD, orientation='h',
                                      color='Ganancia', color_continuous_scale=['#ef4444','#f59e0b','#10b981'],
                                      title='Ganancia por Producto (Top 10)')
-                    fig_gan.update_layout(**PLOT_LAYOUT, height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                    fig_gan.update_layout(**_pl( height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
                     st.plotly_chart(fig_gan, use_container_width=True)
 
             # Tabla
@@ -7050,7 +7146,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                                     orientation='h', color='Devoluciones',
                                     color_continuous_scale=['#fbbf24','#f59e0b','#ef4444'],
                                     title='Top Ciudades con Más Devoluciones')
-                    fig_dc.update_layout(**PLOT_LAYOUT, height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                    fig_dc.update_layout(**_pl( height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
                     st.plotly_chart(fig_dc, use_container_width=True)
                 else:
                     st.info("Columna Ciudad no encontrada.")
@@ -7064,7 +7160,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                     fig_tend = px.line(tend, x='_semana', y='Devoluciones',
                                        title='Tendencia Semanal de Devoluciones',
                                        markers=True, color_discrete_sequence=['#f59e0b'])
-                    fig_tend.update_layout(**PLOT_LAYOUT, height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                    fig_tend.update_layout(**_pl( height=400, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
                     fig_tend.update_traces(line=dict(width=3), marker=dict(size=9))
                     st.plotly_chart(fig_tend, use_container_width=True)
 
@@ -7077,7 +7173,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                                 orientation='h', color='Devoluciones',
                                 color_continuous_scale=['#fbbf24','#ef4444'],
                                 title='Top 10 Productos con Más Devoluciones')
-                fig_dp.update_layout(**PLOT_LAYOUT, height=360, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                fig_dp.update_layout(**_pl( height=360, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
                 st.plotly_chart(fig_dp, use_container_width=True)
 
     # ══════════════════════════════════════════════════════════════════
@@ -7112,7 +7208,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                     tipo_nov.columns = ['Tipo Novedad','Cantidad']
                     fig_tn = px.pie(tipo_nov, values='Cantidad', names='Tipo Novedad', hole=0.4,
                                     color_discrete_sequence=COLORES_ELEGANTES, title='Tipos de Novedad')
-                    fig_tn.update_layout(**PLOT_LAYOUT, height=360)
+                    fig_tn.update_layout(**_pl( height=360))
                     fig_tn.update_traces(textposition='inside', textinfo='percent+label')
                     st.plotly_chart(fig_tn, use_container_width=True)
                 with g2:
@@ -7120,7 +7216,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                         nov_mes = df_nov.groupby('_mes').size().reset_index(name='Novedades')
                         fig_nm = px.bar(nov_mes, x='_mes', y='Novedades',
                                         color_discrete_sequence=['#00C8DD'], title='Novedades por Mes')
-                        fig_nm.update_layout(**PLOT_LAYOUT, height=360, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                        fig_nm.update_layout(**_pl( height=360, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
                         st.plotly_chart(fig_nm, use_container_width=True)
 
             # Tabla historial
@@ -7137,7 +7233,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
             ed.columns = ['Estatus','Cantidad']
             fig = px.pie(ed, values='Cantidad', names='Estatus', hole=0.4,
                         color_discrete_sequence=COLORES_ELEGANTES, title='Distribución de Estados')
-            fig.update_layout(**PLOT_LAYOUT, height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+            fig.update_layout(**_pl( height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
             fig.update_traces(textposition='inside', textinfo='percent+label')
             st.plotly_chart(fig, use_container_width=True)
         with g2:
@@ -7145,7 +7241,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 em = df.groupby(['_mes', C_ESTATUS]).size().reset_index(name='Cantidad')
                 fig2 = px.bar(em, x='_mes', y='Cantidad', color=C_ESTATUS, barmode='stack',
                              color_discrete_sequence=COLORES_ELEGANTES, title='Estados por Mes')
-                fig2.update_layout(**PLOT_LAYOUT, height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                fig2.update_layout(**_pl( height=380, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
                 st.plotly_chart(fig2, use_container_width=True)
 
     elif "Novedades" in op_nav and C_NOVEDAD in df.columns:
@@ -7164,7 +7260,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
             fig_n = px.bar(tipos, x='Cantidad', y='Novedad', orientation='h',
                           color='Cantidad', color_continuous_scale=['#12151f','#f59e0b','#ef4444'],
                           title='Top Tipos de Novedad')
-            fig_n.update_layout(**PLOT_LAYOUT, height=380, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+            fig_n.update_layout(**_pl( height=380, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
             st.plotly_chart(fig_n, use_container_width=True)
         else:
             st.success("✅ Sin novedades registradas")
@@ -7182,7 +7278,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 if len(d):
                     fig = px.bar(d, x='Cantidad', y='Tag', orientation='h', color='Cantidad',
                                 color_continuous_scale=paleta, title=titulo)
-                    fig.update_layout(**PLOT_LAYOUT, height=h, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                    fig.update_layout(**_pl( height=h, coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
                     st.plotly_chart(fig, use_container_width=True)
                 else: st.info("Sin tags en esta categoría")
             with t1: gtab('seguimiento',['#12151f','#ef4444'],'Tags Seguimiento Activo')
@@ -7196,13 +7292,13 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                     if len(cr):
                         fig=px.bar(cr,x='Cantidad',y='Tag',orientation='h',color='Cantidad',
                                   color_continuous_scale=['#12151f','#ef4444'],title='❌ Reales')
-                        fig.update_layout(**PLOT_LAYOUT,height=300,coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                        fig.update_layout(**_pl(height=300,coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
                         st.plotly_chart(fig,use_container_width=True)
                 with cb:
                     if len(nc):
                         fig=px.bar(nc,x='Cantidad',y='Tag',orientation='h',color='Cantidad',
                                   color_continuous_scale=['#12151f','#10b981'],title='✅ No son cancelaciones')
-                        fig.update_layout(**PLOT_LAYOUT,height=300,coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                        fig.update_layout(**_pl(height=300,coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
                         st.plotly_chart(fig,use_container_width=True)
                 tcr=len(tags_df[tags_df['cat']=='cancelacion_real'])
                 tnc=len(tags_df[tags_df['cat']=='no_cancelacion'])
@@ -7217,7 +7313,7 @@ elif "Operaciones" in vista_activa or "Asistente" in vista_activa or "Monitor" i
                 top50.columns=['Tag','Cantidad']
                 fig=px.bar(top50,x='Cantidad',y='Tag',orientation='h',color='Cantidad',
                           color_continuous_scale=['#12151f','#f0c060'],title='Top Tags')
-                fig.update_layout(**PLOT_LAYOUT,height=900,coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE)
+                fig.update_layout(**_pl(height=900,coloraxis_showscale=False, xaxis=AXIS_STYLE, yaxis=AXIS_STYLE))
                 st.plotly_chart(fig,use_container_width=True)
 
     elif "Monitor de Pedidos" in op_nav:
