@@ -443,7 +443,7 @@ PLOT_LAYOUT = dict(
     plot_bgcolor='rgba(0,0,0,0)',
     paper_bgcolor='rgba(0,0,0,0)',
     font=dict(family='Outfit, Inter, sans-serif', color='#8899B2', size=12),
-    title_font=dict(family='Outfit, Inter, sans-serif', color='#EEF2F9', size=14, x=0.01),
+    title_font=dict(family='Outfit, Inter, sans-serif', color='#EEF2F9', size=14),
     margin=dict(l=12, r=12, t=44, b=12),
     hoverlabel=dict(
         bgcolor='rgba(18,19,35,0.98)',
@@ -451,6 +451,8 @@ PLOT_LAYOUT = dict(
         font=dict(family='JetBrains Mono, monospace', size=12, color='#EEF2F9'),
     ),
 )
+_TITLE_BASE = dict(x=0.01, xanchor='left',
+                   font=dict(family='Outfit, Inter, sans-serif', color='#EEF2F9', size=14))
 # legend separado para evitar duplicado en update_layout(**PLOT_LAYOUT, legend=…)
 _LEG_BASE = dict(
     font=dict(color='#6680A0', size=11, family='JetBrains Mono'),
@@ -467,10 +469,21 @@ AXIS_STYLE = dict(
 )
 
 def _pl(**kw):
-    """Merge PLOT_LAYOUT con overrides; garantiza legend siempre presente."""
+    """Merge PLOT_LAYOUT con overrides. Maneja title/legend sin duplicados."""
     merged = {**PLOT_LAYOUT}
+    # Legend base cuando no se pasa override
     if 'legend' not in kw:
         merged['legend'] = _LEG_BASE
+    # Title: manejar None, str y dict
+    if 'title' in kw:
+        t = kw.pop('title')
+        if t is None or t == '':
+            pass  # sin title en merged
+        elif isinstance(t, str):
+            merged['title'] = {**_TITLE_BASE, 'text': t}
+        elif isinstance(t, dict):
+            merged['title'] = {**_TITLE_BASE, **t}
+        # else: ignorar valores inválidos
     merged.update(kw)
     return merged
 COLORES_ELEGANTES = [
@@ -2384,8 +2397,9 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                 textfont=dict(color='#E8EDF5', size=11, family='Inter'),
             ))
             fig_cod.update_layout(**_pl( height=380,
-                yaxis=dict(autorange="reversed", **AXIS_STYLE)), xaxis=dict(**AXIS_STYLE),
-                showlegend=False, title=None)
+                yaxis=dict(autorange="reversed", **AXIS_STYLE),
+                xaxis=dict(**AXIS_STYLE),
+                showlegend=False, title=None))
 
             st.plotly_chart(fig_cod, use_container_width=True)
 
