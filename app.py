@@ -642,13 +642,6 @@ TIENDAS_REPO = [
 st.session_state["_tiendas_repo"] = TIENDAS_REPO
 _TIENDA_OPCIONES = [t["key"] for t in TIENDAS_REPO]
 
-# ── Auto-recover: si nav_activa es HUB pero ya hay datos cargados, ir al panel ──
-_any_data_loaded = any(st.session_state.get(f"_file_{t['key']}") is not None for t in TIENDAS_REPO)
-if _any_data_loaded and st.session_state.get("nav_activa") == _HUB_VIEW:
-    _first_with_data = next((t["key"] for t in TIENDAS_REPO if st.session_state.get(f"_file_{t['key']}") is not None), None)
-    if _first_with_data:
-        st.session_state.op_activa  = _first_with_data
-        st.session_state.nav_activa = "📊 Panel Ejecutivo"
 
 SUBMENU_VISTAS = [
     "📊 Panel Ejecutivo", "📈 P&G", "💹 Finanzas", "🔮 Proyecciones",
@@ -659,6 +652,19 @@ SUBMENU_VISTAS = [
 _HUB_VIEW = "⚡ Centro de Datos"
 if "nav_activa" not in st.session_state: st.session_state.nav_activa = _HUB_VIEW
 if "op_activa"  not in st.session_state: st.session_state.op_activa  = "🤖 LUCID BOT"
+
+# ── Auto-recover: si hay datos cargados pero nav sigue en HUB → ir al panel ──
+_any_data_loaded = any(
+    st.session_state.get(f"_file_{t['key']}") is not None for t in TIENDAS_REPO
+)
+if _any_data_loaded and st.session_state.get("nav_activa") == _HUB_VIEW:
+    _first_with_data = next(
+        (t["key"] for t in TIENDAS_REPO
+         if st.session_state.get(f"_file_{t['key']}") is not None), None
+    )
+    if _first_with_data:
+        st.session_state.op_activa  = _first_with_data
+        st.session_state.nav_activa = "📊 Panel Ejecutivo"
 
 with st.sidebar:
     st.markdown("""
