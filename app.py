@@ -2424,10 +2424,10 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
                             mode='lines', name='TikTok Ads/día',
                             line=dict(color='#FF3CAC', width=1.5, dash='dot', shape='spline')))
                 fig_line.update_layout(**_pl( height=380,
-                    xaxis=dict(**AXIS_STYLE)), yaxis=dict(**AXIS_STYLE),
+                    xaxis=dict(**AXIS_STYLE), yaxis=dict(**AXIS_STYLE),
                     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0,
                                 font=dict(size=10, color='#8899B2'), bgcolor='rgba(0,0,0,0)'),
-                    title=None)
+                    title=None))
 
                 st.plotly_chart(fig_line, use_container_width=True)
             else:
