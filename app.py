@@ -85,13 +85,20 @@ html, body, [class*="css"] {
 /* ─── SIDEBAR ────────────────────────────────────────────────── */
 section[data-testid="stSidebar"] {
     display: block !important; visibility: visible !important;
-    min-width: 230px !important;
+    min-width: 240px !important; width: 240px !important;
     background: linear-gradient(180deg, #0f1020 0%, #0d0e1a 50%, #090a16 100%) !important;
     border-right: 1px solid rgba(0,242,255,0.05) !important;
     box-shadow: 6px 0 60px rgba(0,0,0,0.8) !important;
+    transform: none !important; opacity: 1 !important;
+}
+section[data-testid="stSidebar"][aria-expanded="false"] {
+    display: block !important; visibility: visible !important;
+    transform: none !important; min-width: 240px !important;
 }
 section[data-testid="stSidebar"] * { color: var(--text-1) !important; }
 [data-testid="collapsedControl"] { display: flex !important; visibility: visible !important; opacity: 1 !important; }
+/* Forzar visibilidad del botón de colapso */
+button[data-testid="baseButton-headerNoPadding"] { opacity: 1 !important; visibility: visible !important; display: flex !important; }
 
 /* ─── HEADINGS ───────────────────────────────────────────────── */
 h1, h2, h3 {
@@ -635,6 +642,14 @@ TIENDAS_REPO = [
 st.session_state["_tiendas_repo"] = TIENDAS_REPO
 _TIENDA_OPCIONES = [t["key"] for t in TIENDAS_REPO]
 
+# ── Auto-recover: si nav_activa es HUB pero ya hay datos cargados, ir al panel ──
+_any_data_loaded = any(st.session_state.get(f"_file_{t['key']}") is not None for t in TIENDAS_REPO)
+if _any_data_loaded and st.session_state.get("nav_activa") == _HUB_VIEW:
+    _first_with_data = next((t["key"] for t in TIENDAS_REPO if st.session_state.get(f"_file_{t['key']}") is not None), None)
+    if _first_with_data:
+        st.session_state.op_activa  = _first_with_data
+        st.session_state.nav_activa = "📊 Panel Ejecutivo"
+
 SUBMENU_VISTAS = [
     "📊 Panel Ejecutivo", "📈 P&G", "💹 Finanzas", "🔮 Proyecciones",
     "🧠 Asesor Financiero", "📡 Tendencias & Clima", "📦 Operaciones",
@@ -806,17 +821,32 @@ if vista_activa == _HUB_VIEW:
                     _dft = pd.read_excel(_up)
                     _dft.columns = [str(c).strip() for c in _dft.columns]
                     st.session_state[DATA_KEYS[_t["key"]]] = _dft
+                    # Seleccionar la tienda cargada y navegar al panel
+                    st.session_state.op_activa  = _t["key"]
+                    st.session_state.nav_activa = "📊 Panel Ejecutivo"
                 except Exception as _e:
                     st.error(f"Error leyendo {_t['name']}: {_e}")
                 st.rerun()
-    st.markdown(
-        '<div style="text-align:center;margin-top:24px;padding:12px 20px;max-width:560px;margin-left:auto;margin-right:auto;'
-        'background:rgba(0,242,255,0.03);border:1px solid rgba(0,242,255,0.08);border-radius:10px">'
-        '<div style="font-family:Inter,sans-serif;font-size:0.8rem;color:#6680A0">'
-        '💡 <span style="color:#00F2FF;font-weight:600">Tip:</span> '
-        'Selecciona una tienda en la barra lateral para explorar sus datos</div></div>',
-        unsafe_allow_html=True
-    )
+    # ── Botón navegación hacia el dashboard ──
+    _any_loaded = sum(1 for t in TIENDAS_REPO if st.session_state.get(f"_file_{t['key']}") is not None) > 0
+    if _any_loaded:
+        _first = next((t['key'] for t in TIENDAS_REPO if st.session_state.get(f"_file_{t['key']}") is not None), None)
+        _c1, _c2, _c3 = st.columns([1.2, 1, 1.2])
+        with _c2:
+            if st.button('🚀  Ver Dashboard →', key='_hub_go_panel', use_container_width=True, type='primary'):
+                if _first:
+                    st.session_state.op_activa = _first
+                st.session_state.nav_activa = '📊 Panel Ejecutivo'
+                st.rerun()
+    else:
+        st.markdown(
+            '<div style="text-align:center;margin-top:22px;padding:12px 20px;max-width:540px;margin:12px auto;'
+            'background:rgba(0,242,255,0.03);border:1px solid rgba(0,242,255,0.08);border-radius:12px">'
+            '<div style="font-family:Outfit,sans-serif;font-size:0.8rem;color:#6680A0">'
+            '💡 <span style="color:#00F2FF;font-weight:600">Tip:</span> '
+            'Carga al menos un Excel para activar el dashboard</div></div>',
+            unsafe_allow_html=True
+        )
     st.stop()
 
 # ── RESOLVER DATOS ──
