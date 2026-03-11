@@ -16,7 +16,7 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Outfit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 /* ═══════════════════════════════════════════════════════════════
    TOKENS GLOBALES — Paleta Premium Índigo Neon
@@ -48,7 +48,7 @@ st.markdown("""
     --text-2:  #8090B8;
     --text-3:  #3D4E7A;
 
-    --font-main: 'Outfit', system-ui, sans-serif;
+    --font-main: 'Inter', 'Outfit', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Mono', monospace;
 
     --r-xs: 8px; --r-sm: 12px; --r-md: 16px; --r-lg: 20px; --r-xl: 26px;
@@ -66,19 +66,19 @@ st.markdown("""
 
 /* ─── RESET BASE ───────────────────────────────────────────── */
 html, body, [class*="css"] {
-    font-family: var(--font-main) !important;
+    font-family: 'Inter', 'Outfit', system-ui, sans-serif !important;
     color: var(--text-1);
     -webkit-font-smoothing: antialiased;
 }
 
 /* ─── FONDO GENERAL ─────────────────────────────────────────── */
 .stApp {
-    background-color: #0a0a12 !important;
+    background-color: #080812 !important;
     background-image:
-        radial-gradient(ellipse 80% 70% at 100% 0%,   rgba(120,60,220,0.18) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 50% at 0%   100%, rgba(80,30,160,0.14)  0%, transparent 55%),
-        radial-gradient(ellipse 50% 40% at 50%  50%,  rgba(100,50,200,0.06) 0%, transparent 50%),
-        linear-gradient(160deg, #0a0a12 0%, #0f0a1e 40%, #130a24 70%, #0a0a12 100%) !important;
+        radial-gradient(ellipse 90% 80% at 100% 0%,   rgba(130,50,255,0.22) 0%, transparent 58%),
+        radial-gradient(ellipse 70% 60% at 0%   100%, rgba(90,20,180,0.18)  0%, transparent 52%),
+        radial-gradient(ellipse 55% 45% at 50%  45%,  rgba(110,40,210,0.08) 0%, transparent 50%),
+        linear-gradient(155deg, #080812 0%, #100b22 35%, #150930 65%, #080812 100%) !important;
 }
 
 /* ─── CONTAINER ──────────────────────────────────────────────── */
@@ -91,9 +91,9 @@ html, body, [class*="css"] {
 section[data-testid="stSidebar"] {
     display: block !important; visibility: visible !important;
     min-width: 240px !important; width: 240px !important;
-    background: #111318 !important;
-    border-right: 1px solid rgba(255,255,255,0.05) !important;
-    box-shadow: 4px 0 40px rgba(0,0,0,0.9) !important;
+    background: linear-gradient(180deg, #0d0d18 0%, #110d22 45%, #0f0a1c 100%) !important;
+    border-right: 1px solid rgba(140,80,255,0.10) !important;
+    box-shadow: 4px 0 40px rgba(0,0,0,0.85) !important;
     transform: none !important; opacity: 1 !important;
 }
 section[data-testid="stSidebar"][aria-expanded="false"] {
@@ -107,7 +107,7 @@ button[data-testid="baseButton-headerNoPadding"] { opacity: 1 !important; visibi
 
 /* ─── HEADINGS ───────────────────────────────────────────────── */
 h1, h2, h3 {
-    font-family: var(--font-main) !important;
+    font-family: 'Inter', 'Outfit', system-ui, sans-serif !important;
     letter-spacing: -0.04em !important;
     color: var(--text-1) !important;
     font-weight: 800 !important;
@@ -260,7 +260,7 @@ h1, h2, h3 {
     background: rgba(78,205,196,0.06) !important;
     border: 1px solid rgba(78,205,196,0.14) !important;
     border-radius: var(--r-md) !important; color: var(--cyan) !important;
-    font-family: var(--font-main) !important; font-weight: 700 !important;
+    font-family: 'Inter', 'Outfit', system-ui, sans-serif !important; font-weight: 700 !important;
     font-size: 0.83rem !important; padding: 9px 20px !important; letter-spacing: 0.01em !important;
     transition: all 0.3s cubic-bezier(.34,1.56,.64,1) !important;
     backdrop-filter: blur(14px) !important;
@@ -564,21 +564,21 @@ def ring(value, title, bar_color, max_v=100, suffix="%", reference=None):
 
 st.markdown("""
 <style>
-/* ══════════════════════════════════════════════
-   SIDEBAR — ESTILO GRAND LINE (oscuro, compacto)
-══════════════════════════════════════════════ */
+/* ══════════════════════════════════════════
+   SIDEBAR PREMIUM — Negro/Morado degradado
+══════════════════════════════════════════ */
+
+/* Fondo degradado negro-morado */
 section[data-testid="stSidebar"] {
-    background: #111318 !important;
-    border-right: 1px solid rgba(255,255,255,0.05) !important;
-    box-shadow: 4px 0 40px rgba(0,0,0,0.9) !important;
+    background: linear-gradient(180deg, #0d0d18 0%, #110d22 45%, #0f0a1c 100%) !important;
+    border-right: 1px solid rgba(140,80,255,0.10) !important;
+    box-shadow: 4px 0 40px rgba(0,0,0,0.85) !important;
 }
 section[data-testid="stSidebar"] > div {
-    padding-top: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    padding: 0 !important;
 }
 
-/* ── Todos los botones del nav sidebar ── */
+/* ── Botones nav — tipografía Inter, izquierda, con icono ── */
 section[data-testid="stSidebar"] .stButton { margin: 0 !important; }
 section[data-testid="stSidebar"] .stButton > button {
     display: flex !important;
@@ -588,110 +588,119 @@ section[data-testid="stSidebar"] .stButton > button {
     justify-content: flex-start !important;
     background: transparent !important;
     border: none !important;
-    border-left: 3px solid transparent !important;
-    border-radius: 0 6px 6px 0 !important;
-    color: rgba(140,152,175,0.75) !important;
-    font-family: 'Outfit', sans-serif !important;
-    font-size: 0.82rem !important;
+    border-left: 2px solid transparent !important;
+    border-radius: 0 8px 8px 0 !important;
+    color: rgba(160,155,185,0.70) !important;
+    font-family: 'Inter', 'Outfit', system-ui, sans-serif !important;
+    font-size: 0.78rem !important;
     font-weight: 400 !important;
-    padding: 9px 16px 9px 14px !important;
-    margin: 1px 0 !important;
-    line-height: 1.3 !important;
+    padding: 7px 16px 7px 18px !important;
+    margin: 0 !important;
+    line-height: 1.4 !important;
     min-height: 0 !important;
     height: auto !important;
-    transition: all 0.18s ease !important;
+    transition: all 0.15s ease !important;
     box-shadow: none !important;
     transform: none !important;
     outline: none !important;
-    letter-spacing: 0.01em !important;
+    letter-spacing: 0.015em !important;
 }
+
+/* Icono (primer char del label) — más grande y coloreado */
+section[data-testid="stSidebar"] .stButton > button p {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0 !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+}
+
 section[data-testid="stSidebar"] .stButton > button:hover {
-    background: rgba(255,255,255,0.04) !important;
-    border-left-color: rgba(78,205,196,0.40) !important;
-    color: #E8EDF8 !important;
+    background: rgba(140,80,255,0.07) !important;
+    border-left-color: rgba(140,80,255,0.45) !important;
+    color: #D8D0F8 !important;
     transform: none !important;
 }
+
+/* Item activo */
 section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
-    background: rgba(78,205,196,0.07) !important;
-    border-left: 3px solid #4ECDC4 !important;
+    background: linear-gradient(90deg, rgba(78,205,196,0.09) 0%, transparent 100%) !important;
+    border-left: 2px solid #4ECDC4 !important;
     color: #E8EDF8 !important;
     font-weight: 600 !important;
 }
 section[data-testid="stSidebar"] .stButton > button[kind="primary"]:hover {
-    background: rgba(78,205,196,0.10) !important;
-    border-left-color: #4ECDC4 !important;
-}
-section[data-testid="stSidebar"] .stButton > button:focus,
-section[data-testid="stSidebar"] .stButton > button:focus-visible {
-    outline: none !important; box-shadow: none !important;
+    background: linear-gradient(90deg, rgba(78,205,196,0.13) 0%, transparent 100%) !important;
 }
 
-/* ── Hub button (Centro de Datos) ── */
+section[data-testid="stSidebar"] .stButton > button:focus,
+section[data-testid="stSidebar"] .stButton > button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* ── Hub button ── */
 .hub-btn-wrap .stButton > button {
-    background: rgba(78,205,196,0.06) !important;
-    border-left: 3px solid rgba(78,205,196,0.35) !important;
-    color: rgba(78,205,196,0.85) !important;
-    font-weight: 600 !important;
-    font-size: 0.80rem !important;
+    background: transparent !important;
+    border-left: 2px solid rgba(78,205,196,0.30) !important;
+    color: rgba(78,205,196,0.80) !important;
+    font-weight: 500 !important;
+    font-size: 0.78rem !important;
+    letter-spacing: 0.02em !important;
 }
 .hub-btn-wrap .stButton > button:hover {
-    background: rgba(78,205,196,0.10) !important;
+    background: rgba(78,205,196,0.06) !important;
     border-left-color: #4ECDC4 !important;
     color: #4ECDC4 !important;
 }
 
-/* ── Labels de sección ── */
+/* ── Labels de sección — letras pequeñas separadas ── */
 .nav-section-lbl {
     display: block;
+    font-family: 'Inter', 'JetBrains Mono', monospace;
     font-size: 0.50rem;
-    color: rgba(120,130,155,0.45);
     font-weight: 700;
-    letter-spacing: 0.20em;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
+    color: rgba(140,120,200,0.40);
     padding: 0 18px;
-    margin: 20px 0 6px;
-    font-family: 'JetBrains Mono', monospace;
+    margin: 18px 0 4px;
 }
 .nav-sep {
     height: 1px;
-    background: rgba(255,255,255,0.05);
-    margin: 10px 16px;
+    background: linear-gradient(90deg, transparent, rgba(140,80,255,0.08), transparent);
+    margin: 8px 12px;
 }
 .nav-sep-strong {
     height: 1px;
-    background: rgba(255,255,255,0.07);
-    margin: 12px 0;
+    background: linear-gradient(90deg, transparent, rgba(140,80,255,0.12), transparent);
+    margin: 10px 0;
 }
 
 /* ── Selectbox tienda ── */
 section[data-testid="stSidebar"] .stSelectbox > div > div {
-    background: rgba(255,255,255,0.04) !important;
-    border: 1px solid rgba(255,255,255,0.07) !important;
+    background: rgba(20,14,40,0.80) !important;
+    border: 1px solid rgba(140,80,255,0.12) !important;
     border-radius: 8px !important;
-    color: #E8EDF8 !important;
-    font-family: 'Outfit', sans-serif !important;
-    font-weight: 600 !important;
+    color: #E0D8F8 !important;
+    font-family: 'Inter', 'Outfit', sans-serif !important;
+    font-weight: 500 !important;
     font-size: 0.78rem !important;
 }
 section[data-testid="stSidebar"] .stSelectbox > div > div:hover {
     border-color: rgba(78,205,196,0.22) !important;
 }
 section[data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] span {
-    color: #E8EDF8 !important;
+    color: #E0D8F8 !important;
 }
 
-
-
-/* ── Quitar padding excesivo de elementos markdown del sidebar ── */
-section[data-testid="stSidebar"] .stMarkdown {
-    padding: 0 !important;
-    margin: 0 !important;
-}
-section[data-testid="stSidebar"] .element-container {
-    margin: 0 !important;
-    padding: 0 !important;
-}
+/* ── Quitar espaciados extra de Streamlit ── */
+section[data-testid="stSidebar"] .stMarkdown { padding: 0 !important; margin: 0 !important; }
+section[data-testid="stSidebar"] .element-container { margin: 0 !important; padding: 0 !important; }
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 0 !important; }
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlockBorderWrapper"] { border: none !important; padding: 0 !important; }
 </style>
+
 """, unsafe_allow_html=True)
 
 # ── Session state navegación ──
@@ -741,17 +750,17 @@ SUBMENU_VISTAS = [
 
 # Labels limpios para mostrar (sin emoji) y su ícono CSS
 _NAV_LABELS = {
-    "📊 Panel Ejecutivo":   "Panel Ejecutivo",
-    "📈 P&G":               "P&G",
-    "💹 Finanzas":          "Finanzas",
-    "🔮 Proyecciones":      "Proyecciones",
-    "🧠 Asesor Financiero": "Asesor Financiero",
-    "📡 Tendencias & Clima":"Tendencias & Clima",
-    "📦 Operaciones":       "Operaciones",
-    "🚦 Monitor de Estatus":"Monitor de Estatus",
-    "📣 Marketing":         "Marketing",
-    "🛍️ Catálogo":          "Catálogo",
-    "🤖 Asistente IA":      "Asistente IA",
+    "📊 Panel Ejecutivo":   "⬡  Panel Ejecutivo",
+    "📈 P&G":               "◈  P&G",
+    "💹 Finanzas":          "◉  Finanzas",
+    "🔮 Proyecciones":      "◎  Proyecciones",
+    "🧠 Asesor Financiero": "⬢  Asesor Financiero",
+    "📡 Tendencias & Clima":"◆  Tendencias & Clima",
+    "📦 Operaciones":       "▣  Operaciones",
+    "🚦 Monitor de Estatus":"◫  Monitor de Estatus",
+    "📣 Marketing":         "◐  Marketing",
+    "🛍️ Catálogo":          "▤  Catálogo",
+    "🤖 Asistente IA":      "◑  Asistente IA",
 }
 _NAV_ICONS = {
     "📊 Panel Ejecutivo":   "panel",
