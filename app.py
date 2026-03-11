@@ -16,366 +16,443 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-/* ═══════════════════════════════════════════════════════════════
-   TOKENS GLOBALES — Paleta Premium Índigo Neon
-═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   TOKENS GLOBALES — VisióN360 Premium Dark
+═══════════════════════════════════════════════════════ */
 :root {
-    /* ── Fondos negro-morado ── */
-    --bg:          #0f0a1e;
-    --bg-deep:     #0a0a12;
-    --bg-card:     rgba(20,14,40,0.90);
-    --bg-glass:    rgba(18,12,36,0.85);
-    --bg-sidebar:  #111318;
-    --border:      rgba(99,120,255,0.10);
-    --border-2:    rgba(99,120,255,0.22);
-    --border-glow: rgba(78,205,196,0.35);
+    --bg:          #0B0914;
+    --bg-deep:     #07060F;
+    --bg-card:     rgba(18,14,32,0.72);
+    --bg-glass:    rgba(15,11,28,0.65);
+    --border:      rgba(155,127,255,0.09);
+    --border-2:    rgba(155,127,255,0.20);
+    --border-glow: rgba(0,242,255,0.35);
 
-    /* ── Acentos inspirados en la referencia ── */
-    --cyan:    #4ECDC4; --cyan-dim:    rgba(78,205,196,0.10);
-    --emerald: #00E5B0; --emerald-dim: rgba(0,229,176,0.10);
-    --magenta: #FF6B8A; --magenta-dim: rgba(255,107,138,0.10);
-    --amber:   #FFB347; --amber-dim:   rgba(255,179,71,0.10);
-    --red:     #FF6B8A; --red-dim:     rgba(255,107,138,0.10);
-    --blue:    #6C8EFF; --blue-dim:    rgba(108,142,255,0.10);
+    --cyan:    #00F2FF; --cyan-dim:    rgba(0,242,255,0.10);
+    --magenta: #FF007F; --magenta-dim: rgba(255,0,127,0.10);
+    --emerald: #00FF85; --emerald-dim: rgba(0,255,133,0.10);
     --purple:  #9B7FFF; --purple-dim:  rgba(155,127,255,0.10);
-    --coral:   #FF8C69; --coral-dim:   rgba(255,140,105,0.10);
-    --gold:    #FFD700; --teal: #4ECDC4;
+    --amber:   #FFB347; --amber-dim:   rgba(255,179,71,0.10);
+    --red:     #FF3366; --red-dim:     rgba(255,51,102,0.10);
+    --blue:    #4D8DFF; --teal: #00E5CC;
 
-    /* ── Texto ── */
-    --text-1:  #E8EDF8;
-    --text-2:  #8090B8;
-    --text-3:  #3D4E7A;
+    --text-1:  #EEF2FA;
+    --text-2:  #7A8BAD;
+    --text-3:  #3D4A6A;
 
-    --font-main: 'Inter', 'Outfit', system-ui, sans-serif;
-    --font-mono: 'JetBrains Mono', 'Fira Mono', monospace;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body:    'Inter', system-ui, sans-serif;
+    --font-mono:    'JetBrains Mono', monospace;
 
     --r-xs: 8px; --r-sm: 12px; --r-md: 16px; --r-lg: 20px; --r-xl: 26px;
-    --blur: 24px;
+    --blur: 32px;
 
-    --shadow-sm:   0 2px 16px rgba(0,0,0,0.40);
-    --shadow-md:   0 6px 32px rgba(0,0,0,0.50), 0 1px 0 rgba(255,255,255,0.03) inset;
-    --shadow-lg:   0 12px 56px rgba(0,0,0,0.65), 0 1px 0 rgba(255,255,255,0.03) inset;
+    --shadow-sm: 0 2px 16px rgba(0,0,0,0.50);
+    --shadow-md: 0 8px 40px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.05);
+    --shadow-lg: 0 16px 64px rgba(0,0,0,0.80), inset 0 1px 0 rgba(255,255,255,0.05);
 
-    --glow-c:  0 0 28px rgba(78,205,196,0.18),  0 0 80px rgba(78,205,196,0.06);
-    --glow-g:  0 0 28px rgba(0,229,176,0.18),   0 0 80px rgba(0,229,176,0.06);
-    --glow-r:  0 0 28px rgba(255,107,138,0.18), 0 0 80px rgba(255,107,138,0.06);
-    --glow-p:  0 0 28px rgba(155,127,255,0.18), 0 0 80px rgba(155,127,255,0.06);
+    --glow-c: 0 0 32px rgba(0,242,255,0.18),  0 0 96px rgba(0,242,255,0.06);
+    --glow-m: 0 0 32px rgba(255,0,127,0.18),  0 0 96px rgba(255,0,127,0.06);
+    --glow-g: 0 0 32px rgba(0,255,133,0.18),  0 0 96px rgba(0,255,133,0.06);
+    --glow-p: 0 0 32px rgba(155,127,255,0.18), 0 0 96px rgba(155,127,255,0.06);
 }
 
-/* ─── RESET BASE ───────────────────────────────────────────── */
-html, body, [class*="css"] {
-    font-family: 'Inter', 'Outfit', system-ui, sans-serif !important;
+/* ── TIPOGRAFÍA BASE ─────────────────────────────────── */
+body, [class*="css"] {
+    font-family: var(--font-body) !important;
     color: var(--text-1);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }
 
-/* ─── FONDO GENERAL ─────────────────────────────────────────── */
+/* ── FONDO PRINCIPAL — espacio profundo con glow púrpura ── */
 .stApp {
-    background-color: #080812 !important;
+    background-color: var(--bg-deep) !important;
     background-image:
-        radial-gradient(ellipse 90% 80% at 100% 0%,   rgba(130,50,255,0.22) 0%, transparent 58%),
-        radial-gradient(ellipse 70% 60% at 0%   100%, rgba(90,20,180,0.18)  0%, transparent 52%),
-        radial-gradient(ellipse 55% 45% at 50%  45%,  rgba(110,40,210,0.08) 0%, transparent 50%),
-        linear-gradient(155deg, #080812 0%, #100b22 35%, #150930 65%, #080812 100%) !important;
+        radial-gradient(ellipse 90% 75% at 95%  5%,  rgba(155,127,255,0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 60% at  5% 95%,  rgba(0,127,255,0.16)   0%, transparent 52%),
+        radial-gradient(ellipse 55% 45% at 50% 50%,  rgba(255,0,127,0.05)   0%, transparent 48%),
+        linear-gradient(150deg, #0B0914 0%, #0F0A1E 45%, #120830 75%, #0B0914 100%) !important;
 }
 
-/* ─── CONTAINER ──────────────────────────────────────────────── */
-.block-container {
-    padding: 1.4rem 2rem 2rem !important;
-    max-width: 100% !important;
-}
+/* ── CONTAINER ────────────────────────────────────────── */
+.block-container { padding: 1.2rem 1.8rem 2rem !important; max-width: 100% !important; }
 
-/* ─── SIDEBAR ────────────────────────────────────────────────── */
-section[data-testid="stSidebar"] {
+/* ── SIDEBAR ─────────────────────────────────────────── */
+[data-testid="stSidebar"] {
     display: block !important; visibility: visible !important;
     min-width: 240px !important; width: 240px !important;
-    background: linear-gradient(180deg, #0d0d18 0%, #110d22 45%, #0f0a1c 100%) !important;
-    border-right: 1px solid rgba(140,80,255,0.10) !important;
-    box-shadow: 4px 0 40px rgba(0,0,0,0.85) !important;
+    background: linear-gradient(180deg, #0D0B18 0%, #0B0916 50%, #080712 100%) !important;
+    border-right: 1px solid rgba(155,127,255,0.08) !important;
+    box-shadow: 4px 0 48px rgba(0,0,0,0.90) !important;
     transform: none !important; opacity: 1 !important;
 }
 section[data-testid="stSidebar"][aria-expanded="false"] {
     display: block !important; visibility: visible !important;
     transform: none !important; min-width: 240px !important;
 }
-section[data-testid="stSidebar"] * { color: var(--text-1) !important; }
-[data-testid="collapsedControl"] { display: flex !important; visibility: visible !important; opacity: 1 !important; }
-/* Forzar visibilidad del botón de colapso */
-button[data-testid="baseButton-headerNoPadding"] { opacity: 1 !important; visibility: visible !important; display: flex !important; }
 
-/* ─── HEADINGS ───────────────────────────────────────────────── */
-h1, h2, h3 {
-    font-family: 'Inter', 'Outfit', system-ui, sans-serif !important;
-    letter-spacing: -0.04em !important;
-    color: var(--text-1) !important;
-    font-weight: 800 !important;
-}
-
-/* ─── KPI CARD ───────────────────────────────────────────────── */
+/* ── KPI CARDS ────────────────────────────────────────── */
 .kpi {
-    background: rgba(22,14,46,0.85);
-    backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur));
-    border: 1px solid rgba(120,60,220,0.12); border-radius: var(--r-xl);
-    padding: 22px 18px; text-align: center;
+    background: var(--bg-card);
+    backdrop-filter: blur(var(--blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 22px 18px;
+    text-align: center;
     position: relative; overflow: hidden;
-    transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), box-shadow 0.35s, border-color 0.3s;
+    transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), box-shadow 0.3s, border-color 0.25s;
     box-shadow: var(--shadow-md);
 }
 .kpi::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    border-radius: var(--r-xl) var(--r-xl) 0 0; z-index: 1;
+    background: linear-gradient(90deg, transparent, rgba(155,127,255,0.35), transparent);
 }
-.kpi::after {
-    content: ''; position: absolute; inset: 0; border-radius: var(--r-xl);
-    background: linear-gradient(145deg, rgba(255,255,255,0.028) 0%, transparent 58%);
-    pointer-events: none;
-}
-.kpi:hover {
-    transform: translateY(-7px);
-    border-color: rgba(78,205,196,0.22);
-    box-shadow: var(--shadow-lg), var(--glow-c);
-}
-.kpi.cyan::before   { background: linear-gradient(90deg, #4ECDC4, #00b8ff); }
-.kpi.cyan:hover     { box-shadow: var(--shadow-lg), var(--glow-c); }
-.kpi.green::before  { background: linear-gradient(90deg, #00E5B0, #00E5CC); }
-.kpi.green:hover    { box-shadow: var(--shadow-lg), var(--glow-g); border-color: rgba(0,229,176,0.22); }
-.kpi.red::before    { background: linear-gradient(90deg, #FF4D6A, #FF6B8A); }
-.kpi.red:hover      { box-shadow: var(--shadow-lg), var(--glow-r); border-color: rgba(255,77,106,0.22); }
-.kpi.blue::before   { background: linear-gradient(90deg, #4D8DFF, #4ECDC4); }
-.kpi.purple::before { background: linear-gradient(90deg, #9B7FFF, #6366f1); }
-.kpi.purple:hover   { box-shadow: var(--shadow-lg), var(--glow-p); border-color: rgba(155,127,255,0.22); }
-.kpi.gold::before   { background: linear-gradient(90deg, #FFD700, #FFB347); }
+.kpi:hover { transform: translateY(-3px); border-color: var(--border-2); box-shadow: var(--shadow-lg); }
+.kpi.c { border-color: var(--cyan-dim); }
+.kpi.c::before { background: linear-gradient(90deg, transparent, var(--cyan), transparent); }
+.kpi.c:hover { box-shadow: var(--shadow-lg), var(--glow-c); border-color: rgba(0,242,255,0.22); }
+.kpi.g { border-color: var(--emerald-dim); }
+.kpi.g::before { background: linear-gradient(90deg, transparent, var(--emerald), transparent); }
+.kpi.g:hover { box-shadow: var(--shadow-lg), var(--glow-g); border-color: rgba(0,255,133,0.22); }
+.kpi.r { border-color: var(--red-dim); }
+.kpi.r::before { background: linear-gradient(90deg, transparent, var(--red), transparent); }
+.kpi.r:hover { box-shadow: var(--shadow-lg), 0 0 32px rgba(255,51,102,0.18); }
+.kpi.a { border-color: var(--amber-dim); }
+.kpi.a::before { background: linear-gradient(90deg, transparent, var(--amber), transparent); }
+.kpi.p { border-color: var(--purple-dim); }
+.kpi.p::before { background: linear-gradient(90deg, transparent, var(--purple), transparent); }
+.kpi.p:hover { box-shadow: var(--shadow-lg), var(--glow-p); }
+.kpi.m { border-color: var(--magenta-dim); }
+.kpi.m::before { background: linear-gradient(90deg, transparent, var(--magenta), transparent); }
+.kpi.m:hover { box-shadow: var(--shadow-lg), var(--glow-m); }
 
-.kpi-num {
-    font-family: var(--font-main); font-size: 2.05rem; font-weight: 900;
-    color: var(--text-1); margin: 8px 0 4px;
-    letter-spacing: -0.05em; line-height: 1;
-    text-shadow: 0 2px 24px rgba(78,205,196,0.10);
-}
+/* ── KPI TIPOGRAFÍA ─────────────────────────────────── */
 .kpi-label {
-    font-family: var(--font-mono); font-size: 0.59rem;
-    color: var(--text-3); font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.14em;
+    font-family: var(--font-body) !important;
+    font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.10em; text-transform: uppercase;
+    color: var(--text-2); margin-bottom: 10px;
 }
-.kpi-sub { font-size: 0.75rem; color: var(--emerald); font-weight: 600; margin-top: 7px; }
-
-/* ─── PROD CARD ──────────────────────────────────────────────── */
-.prod-card {
-    background: var(--bg-card); backdrop-filter: blur(var(--blur));
-    border: 1px solid var(--border); border-radius: var(--r-lg);
-    padding: 13px 15px; margin-bottom: 7px;
-    display: flex; align-items: center; gap: 13px;
-    transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
-    box-shadow: var(--shadow-sm);
+.kpi-num {
+    font-family: var(--font-display) !important;
+    font-size: 2.1rem; font-weight: 700;
+    letter-spacing: -0.04em; line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-1); margin-bottom: 8px;
 }
-.prod-card:hover {
-    border-color: rgba(78,205,196,0.20); transform: translateX(5px);
-    box-shadow: var(--shadow-md), var(--glow-c);
-}
-.prod-rank  { font-family: var(--font-main); font-size: 1.55rem; font-weight: 900; color: var(--gold); min-width: 36px; text-shadow: 0 0 24px rgba(255,215,0,0.35); }
-.prod-name  { font-size: 0.86rem; font-weight: 700; color: var(--text-1); letter-spacing: -0.01em; }
-.prod-val   { font-size: 0.72rem; color: var(--text-3); margin-top: 2px; font-family: var(--font-mono); }
-
-/* ─── ALERTAS ────────────────────────────────────────────────── */
-.alerta-r { background: rgba(255,77,106,0.05); border: 1px solid rgba(255,77,106,0.14); border-left: 3px solid #FF4D6A; border-radius: var(--r-md); padding: 11px 16px; margin: 6px 0; font-size: 0.81rem; color: var(--text-1); backdrop-filter: blur(12px); }
-.alerta-a { background: rgba(255,183,71,0.05); border: 1px solid rgba(255,183,71,0.14); border-left: 3px solid #FFB347; border-radius: var(--r-md); padding: 11px 16px; margin: 6px 0; font-size: 0.81rem; color: var(--text-1); backdrop-filter: blur(12px); }
-
-/* ─── INSIGHT ────────────────────────────────────────────────── */
-.insight {
-    background: var(--bg-card); backdrop-filter: blur(var(--blur));
-    border: 1px solid var(--border); border-radius: var(--r-lg);
-    padding: 20px; margin-bottom: 10px; box-shadow: var(--shadow-sm);
-    position: relative; overflow: hidden;
-}
-.insight::before { content:''; position:absolute; top:0; left:0; width:3px; bottom:0; background: var(--cyan); border-radius:4px 0 0 4px; opacity:0.6; }
-.insight-titulo { font-family: var(--font-main); font-size: 0.88rem; color: var(--cyan); font-weight: 800; margin-bottom: 8px; letter-spacing: -0.01em; }
-.insight-texto  { font-size: 0.80rem; color: var(--text-2); line-height: 1.72; font-family: var(--font-mono); }
-
-/* ─── BADGES ─────────────────────────────────────────────────── */
-.badge-r { background: var(--red-dim);    color: #ff8096; border: 1px solid rgba(255,77,106,0.22);  border-radius: 30px; padding: 3px 11px; font-size: 0.67rem; font-weight: 700; font-family: var(--font-mono); letter-spacing: 0.04em; }
-.badge-a { background: var(--amber-dim);  color: #ffd080; border: 1px solid rgba(255,183,71,0.22); border-radius: 30px; padding: 3px 11px; font-size: 0.67rem; font-weight: 700; font-family: var(--font-mono); letter-spacing: 0.04em; }
-.badge-v { background: var(--emerald-dim);color: #66ffb8; border: 1px solid rgba(0,229,176,0.22);  border-radius: 30px; padding: 3px 11px; font-size: 0.67rem; font-weight: 700; font-family: var(--font-mono); letter-spacing: 0.04em; }
-.badge-g { background: rgba(255,215,0,.08);color:#ffe680; border: 1px solid rgba(255,215,0,0.22);  border-radius: 30px; padding: 3px 11px; font-size: 0.67rem; font-weight: 700; font-family: var(--font-mono); letter-spacing: 0.04em; }
-
-/* ─── SECTION TITLE ──────────────────────────────────────────── */
-.seccion-titulo {
-    font-family: var(--font-main); font-size: 1.05rem; font-weight: 800;
-    letter-spacing: -0.03em; border-bottom: 1px solid rgba(78,205,196,0.06);
-    padding-bottom: 11px; margin: 26px 0 16px;
-    background: linear-gradient(100deg, #EEF2FA 0%, #4ECDC4 55%, #00E5CC 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-
-/* ─── TABS ───────────────────────────────────────────────────── */
-.stTabs [data-baseweb="tab-list"] {
-    background: rgba(13,14,26,0.92) !important;
-    border-radius: var(--r-lg) !important; padding: 5px !important;
-    border: 1px solid var(--border) !important; backdrop-filter: blur(20px) !important;
-    gap: 3px !important;
-}
-.stTabs [data-baseweb="tab"] {
-    background: transparent !important; border-radius: var(--r-md) !important;
-    color: var(--text-3) !important; font-family: var(--font-main) !important;
-    font-size: 0.82rem !important; font-weight: 600 !important; padding: 9px 16px !important;
-    transition: all 0.2s !important; border: 1px solid transparent !important;
-}
-.stTabs [data-baseweb="tab"]:hover  { color: var(--text-2) !important; background: rgba(78,205,196,0.04) !important; }
-.stTabs [aria-selected="true"]  {
-    background: rgba(78,205,196,0.09) !important; color: #4ECDC4 !important;
-    border: 1px solid rgba(78,205,196,0.18) !important;
-    box-shadow: 0 2px 22px rgba(78,205,196,0.08), 0 0 0 1px rgba(78,205,196,0.10) inset !important;
-}
-
-/* ─── INPUTS / SELECT ────────────────────────────────────────── */
-.stSelectbox > div > div, .stMultiSelect > div > div {
-    background: rgba(14,16,30,0.92) !important;
-    border: 1px solid rgba(78,205,196,0.08) !important;
-    border-radius: var(--r-md) !important; color: var(--text-1) !important;
-    backdrop-filter: blur(14px) !important; transition: border-color 0.2s !important;
-}
-.stSelectbox > div > div:focus-within, .stMultiSelect > div > div:focus-within {
-    border-color: rgba(78,205,196,0.28) !important;
-    box-shadow: 0 0 0 3px rgba(78,205,196,0.07) !important;
-}
-.stSelectbox div[data-baseweb="select"] span,
-.stSelectbox div[data-baseweb="select"] div { color: var(--text-1) !important; }
-
-.stNumberInput > div > div > input,
-.stTextInput  > div > div > input {
-    background: rgba(14,16,30,0.92) !important;
-    border: 1px solid rgba(78,205,196,0.08) !important;
-    border-radius: var(--r-md) !important; color: var(--text-1) !important;
+.kpi-sub {
     font-family: var(--font-mono) !important;
+    font-size: 0.72rem; color: var(--text-2);
 }
-.stNumberInput > div > div > input:focus,
-.stTextInput  > div > div > input:focus {
-    border-color: rgba(78,205,196,0.30) !important;
-    box-shadow: 0 0 0 3px rgba(78,205,196,0.07) !important;
-}
+.kpi.c .kpi-num { color: var(--cyan); }
+.kpi.g .kpi-num { color: var(--emerald); }
+.kpi.m .kpi-num { color: var(--magenta); }
+.kpi.p .kpi-num { color: var(--purple); }
+.kpi.a .kpi-num { color: var(--amber); }
+.kpi.r .kpi-num { color: var(--red); }
 
-/* ─── BUTTONS ────────────────────────────────────────────────── */
-.stButton > button {
-    background: rgba(78,205,196,0.06) !important;
-    border: 1px solid rgba(78,205,196,0.14) !important;
-    border-radius: var(--r-md) !important; color: var(--cyan) !important;
-    font-family: 'Inter', 'Outfit', system-ui, sans-serif !important; font-weight: 700 !important;
-    font-size: 0.83rem !important; padding: 9px 20px !important; letter-spacing: 0.01em !important;
-    transition: all 0.3s cubic-bezier(.34,1.56,.64,1) !important;
-    backdrop-filter: blur(14px) !important;
-}
-.stButton > button:hover {
-    background: rgba(78,205,196,0.12) !important; transform: translateY(-3px) !important;
-    box-shadow: 0 8px 32px rgba(78,205,196,0.14) !important;
-    border-color: rgba(78,205,196,0.32) !important;
-}
-.stButton > button[kind="primary"] {
-    background: rgba(78,205,196,0.10) !important;
-    border-color: rgba(78,205,196,0.24) !important;
-    box-shadow: 0 0 24px rgba(78,205,196,0.10), inset 0 1px 0 rgba(255,255,255,0.05) !important;
-}
-
-/* ─── DATA / FILE / EXPANDER ─────────────────────────────────── */
-.stDataFrame      { border-radius: var(--r-xl) !important; overflow: hidden !important; border: 1px solid var(--border) !important; box-shadow: var(--shadow-md) !important; }
-.stFileUploader   { background: rgba(14,16,30,0.75) !important; border: 2px dashed rgba(78,205,196,0.10) !important; border-radius: var(--r-xl) !important; backdrop-filter: blur(16px) !important; transition: all 0.2s !important; }
-.stFileUploader:hover { border-color: rgba(78,205,196,0.28) !important; background: rgba(78,205,196,0.02) !important; }
-.stExpander       { background: rgba(16,18,32,0.82) !important; border: 1px solid var(--border) !important; border-radius: var(--r-lg) !important; box-shadow: var(--shadow-sm) !important; backdrop-filter: blur(20px) !important; transition: border-color 0.2s !important; }
-.stExpander:hover { border-color: rgba(78,205,196,0.13) !important; }
-
-/* ─── LABELS / TEXT ──────────────────────────────────────────── */
-label, .stRadio label, .stSelectbox label, .stMultiSelect label,
-.stNumberInput label, .stTextInput label, .stSlider label,
-div[data-testid="stWidgetLabel"] p, div[data-testid="stWidgetLabel"],
-p, li { color: #7A8BAD !important; font-family: var(--font-main) !important; }
-.stRadio [data-testid="stMarkdownContainer"] p { color: #8899B2 !important; font-size: 0.84rem !important; font-weight: 500 !important; }
-small, .stCaption, div[data-testid="stCaptionContainer"] { color: var(--text-3) !important; }
-.stExpander summary p, .stExpander details summary span { color: #8899B2 !important; font-weight: 700 !important; }
-
-/* ─── METRICS ────────────────────────────────────────────────── */
-div[data-testid="stMetricValue"] { font-family: var(--font-main) !important; font-weight: 900 !important; color: var(--text-1) !important; font-size: 1.85rem !important; letter-spacing: -0.05em !important; }
-div[data-testid="stMetricLabel"] { font-family: var(--font-mono) !important; color: var(--text-3) !important; font-size: 0.62rem !important; text-transform: uppercase !important; letter-spacing: 0.12em !important; }
-div[data-testid="stMetricDelta"] { font-family: var(--font-mono) !important; font-size: 0.78rem !important; font-weight: 700 !important; }
-
-/* ─── SCROLLBAR ──────────────────────────────────────────────── */
-::-webkit-scrollbar       { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: #090b20; }
-::-webkit-scrollbar-thumb { background: rgba(78,205,196,0.10); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(78,205,196,0.28); }
-
-/* ─── MISC ───────────────────────────────────────────────────── */
-hr { border-color: rgba(78,205,196,0.05) !important; }
-#MainMenu, footer, header { visibility: hidden; }
-.stDeployButton { display: none; }
-
-/* ─── CHART WRAPPER .cw ─────────────────────────────────────── */
+/* ── CHART WRAPPER ───────────────────────────────────── */
 .cw {
-    background: rgba(20,12,42,0.88);
-    backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur));
-    border: 1px solid rgba(120,60,220,0.10); border-radius: var(--r-xl);
-    padding: 22px 20px 14px; box-shadow: var(--shadow-md);
+    background: rgba(14,10,26,0.75);
+    backdrop-filter: blur(var(--blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(160%);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 22px 20px 14px;
+    box-shadow: var(--shadow-md);
     position: relative; overflow: hidden;
-    transition: border-color 0.3s, box-shadow 0.3s;
+    transition: border-color 0.25s, box-shadow 0.25s;
 }
 .cw::after {
-    content: ''; position: absolute; inset: 0; border-radius: var(--r-xl);
-    background: linear-gradient(145deg, rgba(255,255,255,0.022) 0%, transparent 58%);
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(155,127,255,0.04) 0%, transparent 70%);
     pointer-events: none;
 }
-.cw:hover { border-color: rgba(78,205,196,0.12); box-shadow: var(--shadow-lg), var(--glow-c); }
-.cw-title { font-size: 1.0rem; font-weight: 800; color: var(--text-1); letter-spacing: -0.03em; margin-bottom: 2px; font-family: var(--font-main); }
-.cw-sub   { font-size: 0.62rem; font-weight: 600; font-family: var(--font-mono); color: var(--text-3); letter-spacing: 0.09em; text-transform: uppercase; margin-bottom: 14px; }
+.cw:hover { border-color: var(--border-2); }
+.cw-title {
+    font-family: var(--font-body) !important;
+    font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-1); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+}
+.cw-title::before {
+    content: ''; display: inline-block;
+    width: 3px; height: 14px; border-radius: 2px;
+    background: linear-gradient(180deg, var(--cyan), var(--purple));
+    flex-shrink: 0;
+}
 
-/* ─── KCARD ─────────────────────────────────────────────────── */
+/* ── KCARD ───────────────────────────────────────────── */
 .kcard {
-    background: rgba(22,14,46,0.85); backdrop-filter: blur(var(--blur));
-    border: 1px solid rgba(120,60,220,0.12); border-radius: var(--r-xl);
-    padding: 20px 18px 16px; position: relative; overflow: hidden;
-    transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), border-color 0.3s, box-shadow 0.3s;
+    background: rgba(16,12,30,0.78);
+    backdrop-filter: blur(var(--blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(160%);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 20px 18px 16px;
+    position: relative; overflow: hidden;
+    transition: transform 0.3s, border-color 0.25s, box-shadow 0.25s;
     box-shadow: var(--shadow-md);
 }
-.kcard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: var(--r-xl) var(--r-xl) 0 0; }
-.kcard::after  { content: ''; position: absolute; inset: 0; border-radius: var(--r-xl); background: linear-gradient(145deg, rgba(255,255,255,0.022) 0%, transparent 58%); pointer-events: none; }
-.kcard:hover   { transform: translateY(-6px); box-shadow: var(--shadow-lg), var(--glow-c); }
-.kcard.c  { border-color: rgba(78,205,196,0.10);  } .kcard.c::before  { background: linear-gradient(90deg,#4ECDC4,#00b8ff); } .kcard.c:hover  { border-color: rgba(78,205,196,0.24); }
-.kcard.g  { border-color: rgba(0,229,176,0.10);  } .kcard.g::before  { background: linear-gradient(90deg,#00E5B0,#00E5CC); } .kcard.g:hover  { border-color: rgba(0,229,176,0.24); box-shadow: var(--shadow-lg),var(--glow-g); }
-.kcard.r  { border-color: rgba(255,77,106,0.10); } .kcard.r::before  { background: linear-gradient(90deg,#FF4D6A,#FF6B8A); } .kcard.r:hover  { border-color: rgba(255,77,106,0.24); box-shadow: var(--shadow-lg),var(--glow-r); }
-.kcard.a  { border-color: rgba(255,183,71,0.10); } .kcard.a::before  { background: linear-gradient(90deg,#FFB347,#FF9100); }
-.kcard.i  { border-color: rgba(77,141,255,0.10); } .kcard.i::before  { background: linear-gradient(90deg,#4D8DFF,#4ECDC4); }
-.kcard.v  { border-color: rgba(155,127,255,0.10); } .kcard.v::before  { background: linear-gradient(90deg,#9B7FFF,#6366f1); } .kcard.v:hover  { border-color: rgba(155,127,255,0.24); box-shadow: var(--shadow-lg),var(--glow-p); }
-.kcard-lbl { font-size: 0.58rem; font-weight: 700; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.13em; color: var(--text-3); margin-bottom: 3px; }
-.kcard-val { font-size: 2.05rem; font-weight: 900; color: var(--text-1); letter-spacing: -0.05em; line-height: 1; margin: 6px 0 5px; font-family: var(--font-main); }
-.kcard-sub { font-size: 0.73rem; font-weight: 600; }
-.kcard-ico { position: absolute; top: 16px; right: 16px; font-size: 1.7rem; opacity: 0.10; }
-.kcard-pos { color: var(--emerald); } .kcard-neg { color: var(--red); } .kcard-neu { color: var(--text-3); }
+.kcard::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+}
+.kcard:hover { transform: translateY(-2px); border-color: var(--border-2); box-shadow: var(--shadow-lg); }
 
-/* ─── SECTION DIVIDER ────────────────────────────────────────── */
-.sec-div { display: flex; align-items: center; gap: 12px; margin: 28px 0 18px; }
-.sec-div-dot  { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-.sec-div-label { font-size: 0.61rem; font-weight: 700; font-family: var(--font-mono); letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-3); white-space: nowrap; }
-.sec-div-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(78,205,196,0.10), transparent); }
+/* ── STATUS PILLS ────────────────────────────────────── */
+.pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 20px;
+    font-family: var(--font-mono) !important;
+    font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.04em;
+}
+.pill-ent  { background: rgba(0,255,133,0.10);  color: #00FF85; border: 1px solid rgba(0,255,133,0.18); }
+.pill-can  { background: rgba(255,51,102,0.10);  color: #FF3366; border: 1px solid rgba(255,51,102,0.18); }
+.pill-dev  { background: rgba(255,179,71,0.10);  color: #FFB347; border: 1px solid rgba(255,179,71,0.18); }
+.pill-nov  { background: rgba(77,141,255,0.10);  color: #4D8DFF; border: 1px solid rgba(77,141,255,0.18); }
+.pill-proc { background: rgba(155,127,255,0.10); color: #9B7FFF; border: 1px solid rgba(155,127,255,0.18); }
+.pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 
-/* ─── BADGE LIVE ─────────────────────────────────────────────── */
-.badge-live { display: inline-flex; align-items: center; gap: 7px; padding: 5px 14px; border-radius: 30px; background: rgba(0,229,176,0.07); border: 1px solid rgba(0,229,176,0.16); font-family: var(--font-mono); font-size: 0.67rem; font-weight: 700; color: #00E5B0; letter-spacing: 0.08em; text-transform: uppercase; }
-.badge-live::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #00E5B0; box-shadow: 0 0 10px #00E5B0; animation: mc-blink 2s ease-in-out infinite; }
-@keyframes mc-blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.65)} }
+/* ── ALERTA INTELIGENTE ──────────────────────────────── */
+.smart-alert {
+    border-radius: var(--r-md);
+    padding: 13px 16px; margin: 8px 0;
+    display: flex; gap: 12px; align-items: flex-start;
+    backdrop-filter: blur(12px);
+}
+.smart-alert.critical { background: rgba(255,51,102,0.07);  border-left: 3px solid #FF3366; }
+.smart-alert.warning  { background: rgba(255,179,71,0.07);  border-left: 3px solid #FFB347; }
+.smart-alert.info     { background: rgba(0,242,255,0.06);   border-left: 3px solid #00F2FF; }
+.smart-alert.success  { background: rgba(0,255,133,0.07);   border-left: 3px solid #00FF85; }
+.alert-title { font-family: var(--font-body); font-weight: 700; font-size: 0.82rem; margin-bottom: 2px; }
+.alert-body  { font-family: var(--font-body); font-size: 0.74rem; color: var(--text-2); }
 
-/* ─── PROGRESS BAR ───────────────────────────────────────────── */
-.pb-wrap { display: flex; align-items: center; gap: 8px; }
-.pb-bg   { flex: 1; height: 4px; border-radius: 4px; background: rgba(255,255,255,0.05); overflow: hidden; }
-.pb-fill { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(.34,1.56,.64,1); }
+/* ── HEADER CARD (módulos) ───────────────────────────── */
+.hdr-card {
+    background: rgba(14,10,26,0.60);
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    border: 1px solid rgba(155,127,255,0.09);
+    border-radius: var(--r-xl); padding: 20px 24px 0;
+    margin-bottom: 0; position: relative; overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+.hdr-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,242,255,0.25), rgba(155,127,255,0.20), transparent);
+}
 
-/* ─── COURIER TABLE ──────────────────────────────────────────── */
-.ct-row { display: grid; grid-template-columns: 160px 1fr 72px 78px 70px; gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid rgba(78,205,196,0.05); font-size: 0.80rem; transition: background 0.15s; }
-.ct-row:hover { background: rgba(255,255,255,0.015); }
-.ct-row:last-child { border-bottom: none; }
-.ct-hdr  { font-size: 0.58rem; font-family: var(--font-mono); letter-spacing: 0.10em; text-transform: uppercase; color: var(--text-3); background: rgba(255,255,255,0.02); border-radius: var(--r-sm) var(--r-sm) 0 0; }
-.ct-name { font-weight: 700; color: var(--text-1); }
+/* ── TABS FILTRO ─────────────────────────────────────── */
+.ftab-wrap {
+    display: flex; gap: 5px;
+    background: rgba(0,0,0,0.40); border-radius: var(--r-sm);
+    padding: 5px; width: fit-content;
+    border: 1px solid rgba(155,127,255,0.07);
+}
+.ftab {
+    display: flex; align-items: center; gap: 7px;
+    padding: 8px 18px; border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.82rem; font-weight: 600;
+    cursor: pointer; color: rgba(122,139,173,0.60);
+    border: 1px solid transparent; transition: all 0.18s; white-space: nowrap;
+}
+.ftab.active {
+    background: rgba(0,242,255,0.09); color: #00F2FF;
+    border-color: rgba(0,242,255,0.18);
+    box-shadow: 0 4px 18px rgba(0,242,255,0.10); font-weight: 700;
+}
+.ftab .ficon {
+    font-size: 0.95rem; display: flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 7px;
+    background: rgba(255,255,255,0.04);
+}
+.ftab.active .ficon { background: rgba(0,242,255,0.12); }
 
-/* ─── SIDEBAR SIEMPRE VISIBLE ────────────────────────────────── */
-section[data-testid="stSidebar"] { display: block !important; }
-button[kind="headerNoPadding"], button[data-testid="baseButton-headerNoPadding"] { display: flex !important; visibility: visible !important; }
+/* ── MONTH/PERIOD PILLS ──────────────────────────────── */
+.mes-pills { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
+.mes-pill {
+    padding: 5px 13px; border-radius: 20px;
+    font-family: var(--font-body); font-size: 0.76rem; font-weight: 600;
+    background: rgba(255,255,255,0.03); color: rgba(122,139,173,0.55);
+    border: 1px solid rgba(155,127,255,0.07); cursor: pointer; transition: all 0.15s;
+}
+.mes-pill.active {
+    background: rgba(0,242,255,0.09); color: #00F2FF;
+    border-color: rgba(0,242,255,0.20);
+    box-shadow: 0 2px 12px rgba(0,242,255,0.10);
+}
+.sem-pill {
+    padding: 5px 13px; border-radius: 20px;
+    font-family: var(--font-body); font-size: 0.76rem; font-weight: 600;
+    border: 1px solid; cursor: pointer; transition: all 0.15s;
+}
+.periodo-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 14px; border-radius: 20px;
+    font-family: var(--font-body); font-size: 0.76rem; font-weight: 700;
+    background: rgba(0,242,255,0.06); color: #00F2FF;
+    border: 1px solid rgba(0,242,255,0.16);
+    margin-top: 10px; margin-bottom: 14px;
+}
 
+/* ── P&G COMPONENTES ─────────────────────────────────── */
+.pg-header {
+    font-family: var(--font-display);
+    font-size: 1.5rem; font-weight: 700;
+    background: linear-gradient(90deg, #EEF2FA, #00F2FF);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin-bottom: 6px;
+}
+.input-card {
+    background: linear-gradient(145deg, rgba(18,14,32,0.60), rgba(14,10,26,0.70));
+    border: 1px solid var(--border); border-radius: var(--r-md);
+    padding: 16px; position: relative; overflow: hidden;
+}
+.input-card::before {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+        linear-gradient(rgba(155,127,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(155,127,255,0.02) 1px, transparent 1px);
+    background-size: 16px 16px; pointer-events: none;
+}
+.input-card-title {
+    font-family: var(--font-body);
+    font-size: 0.68rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+}
+.input-total {
+    margin-top: 10px; padding: 8px 12px; border-radius: 10px;
+    text-align: center; font-family: var(--font-body);
+    font-size: 0.82rem; font-weight: 700;
+}
+.pg-semana-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; border-radius: var(--r-sm);
+    background: linear-gradient(135deg, rgba(0,242,255,0.12), rgba(0,242,255,0.06));
+    border: 1px solid rgba(0,242,255,0.22); margin-bottom: 2px;
+    font-family: var(--font-body); font-size: 0.88rem; font-weight: 700;
+}
+.pg-row-seccion {
+    font-family: var(--font-body); font-size: 0.68rem;
+    font-weight: 800; text-transform: uppercase; letter-spacing: 0.10em;
+    padding: 8px 12px 6px; border-bottom: 1px solid rgba(46,37,88,0.6);
+}
+.pg-row {
+    display: grid; padding: 8px 12px;
+    border-bottom: 1px solid rgba(46,37,88,0.25);
+    font-family: var(--font-body); font-size: 0.82rem; align-items: center;
+}
+.pg-row:hover { background: rgba(0,242,255,0.03); }
+.pg-val { text-align: right; color: #B8C4D8; }
+.pg-pct { text-align: right; font-size: 0.74rem; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
+.pg-highlight {
+    background: rgba(0,242,255,0.10); border-radius: 8px;
+    padding: 10px 12px; margin: 4px 0;
+    font-family: var(--font-body); font-weight: 800;
+}
+
+/* ── DATAFRAMES ──────────────────────────────────────── */
+[data-testid="stDataFrame"] {
+    font-family: var(--font-mono) !important;
+    border-radius: var(--r-md) !important;
+}
+[data-testid="stDataFrame"] thead tr th {
+    background: rgba(12,8,24,0.90) !important;
+    font-family: var(--font-body) !important;
+    font-size: 0.70rem !important; font-weight: 700 !important;
+    letter-spacing: 0.08em !important; text-transform: uppercase !important;
+    color: var(--text-2) !important; border-bottom: 1px solid var(--border) !important;
+}
+[data-testid="stDataFrame"] tbody tr:hover td { background: rgba(155,127,255,0.05) !important; }
+[data-testid="stDataFrame"] tbody tr td {
+    font-family: var(--font-mono) !important;
+    font-size: 0.78rem !important; color: var(--text-1) !important;
+    border-bottom: 1px solid rgba(155,127,255,0.04) !important;
+}
+
+/* ── INPUTS / WIDGETS ────────────────────────────────── */
+[data-testid="stSelectbox"] > div > div,
+[data-testid="stMultiSelect"] > div > div,
+[data-testid="stNumberInput"] > div > div > input,
+[data-testid="stTextInput"] > div > div > input {
+    background: rgba(14,10,26,0.70) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--r-sm) !important;
+    color: var(--text-1) !important;
+    font-family: var(--font-body) !important;
+    font-size: 0.82rem !important;
+}
+[data-testid="stSelectbox"] > div > div:hover,
+[data-testid="stNumberInput"] > div > div > input:focus {
+    border-color: var(--border-2) !important;
+}
+
+/* ── BOTONES ─────────────────────────────────────────── */
+button[kind="primary"] {
+    background: linear-gradient(135deg, rgba(0,242,255,0.12), rgba(155,127,255,0.10)) !important;
+    border: 1px solid rgba(0,242,255,0.22) !important;
+    color: #00F2FF !important; font-family: var(--font-body) !important;
+    font-weight: 700 !important; border-radius: var(--r-sm) !important;
+    transition: all 0.20s !important;
+}
+button[kind="primary"]:hover {
+    background: linear-gradient(135deg, rgba(0,242,255,0.20), rgba(155,127,255,0.16)) !important;
+    box-shadow: var(--glow-c) !important; transform: translateY(-1px) !important;
+}
+button[kind="secondary"] {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-2) !important; font-family: var(--font-body) !important;
+    border-radius: var(--r-sm) !important; transition: all 0.18s !important;
+}
+button[kind="secondary"]:hover {
+    border-color: var(--border-2) !important; color: var(--text-1) !important;
+    background: rgba(155,127,255,0.06) !important;
+}
+
+/* ── SEPARADORES ─────────────────────────────────────── */
+hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+/* ── SPINNER ─────────────────────────────────────────── */
+[data-testid="stStatusWidget"] { color: var(--cyan) !important; }
+
+/* ── SCROLLBAR ───────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(155,127,255,0.25); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(155,127,255,0.45); }
+
+/* ── NAV SIDEBAR — botones nav invisibles, superpuestos al HTML custom ── */
+/* Ocultar SOLO los botones de navegación de vistas (generados por el loop) */
+[data-testid="stSidebar"] button[kind="secondary"]:not(.hub-visible) {
+    position: relative !important;
+    font-size: 0 !important;          /* texto invisible */
+    color: transparent !important;
+    background: transparent !important;
+    border: none !important;
+    height: 44px !important;
+    margin-top: -44px !important;     /* superponer sobre el nav-item-wrap */
+    z-index: 9 !important;
+    cursor: pointer !important;
+    opacity: 0 !important;
+}
+
+/* ── MISC ────────────────────────────────────────────── */
+.nav-titulo {
+    font-family: var(--font-display) !important;
+    font-size: 1.35rem; font-weight: 700; color: var(--text-1);
+}
+.nav-sep-strong { height: 1px; background: linear-gradient(90deg, transparent, rgba(155,127,255,0.12), transparent); margin: 10px 0; }
+.nav-sep        { height: 1px; background: rgba(255,255,255,0.04); margin: 8px 12px; }
+.nav-section-lbl { display: block; font-family: var(--font-mono); font-size: 0.50rem; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(155,127,255,0.40); padding: 0 18px; margin: 18px 0 4px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -447,29 +524,29 @@ def kpi(color, label, num, sub=""):
 PLOT_LAYOUT = dict(
     plot_bgcolor='rgba(0,0,0,0)',
     paper_bgcolor='rgba(0,0,0,0)',
-    font=dict(family='Outfit, Inter, sans-serif', color='#8090B8', size=12),
-    title_font=dict(family='Outfit, Inter, sans-serif', color='#E8EDF8', size=14),
+    font=dict(family='Space Grotesk, Inter, sans-serif', color='#7A8BAD', size=12),
+    title_font=dict(family='Space Grotesk, Inter, sans-serif', color='#EEF2FA', size=14),
     margin=dict(l=12, r=12, t=44, b=12),
     hoverlabel=dict(
-        bgcolor='rgba(9,11,32,0.98)',
-        bordercolor='rgba(78,205,196,0.30)',
-        font=dict(family='JetBrains Mono, monospace', size=12, color='#EEF2F9'),
+        bgcolor='rgba(11,9,20,0.98)',
+        bordercolor='rgba(0,242,255,0.25)',
+        font=dict(family='JetBrains Mono, monospace', size=12, color='#EEF2FA'),
     ),
 )
 _TITLE_BASE = dict(x=0.01, xanchor='left',
-                   font=dict(family='Outfit, Inter, sans-serif', color='#EEF2F9', size=14))
+                   font=dict(family='Space Grotesk, Inter, sans-serif', color='#EEF2FA', size=14))
 # legend separado para evitar duplicado en update_layout(**PLOT_LAYOUT, legend=…)
 _LEG_BASE = dict(
-    font=dict(color='#6680A0', size=11, family='JetBrains Mono'),
+    font=dict(color='#5A6E90', size=11, family='JetBrains Mono'),
     bgcolor='rgba(0,0,0,0)',
-    bordercolor='rgba(255,255,255,0.05)',
+    bordercolor='rgba(255,255,255,0.04)',
     borderwidth=1,
 )
 AXIS_STYLE = dict(
-    gridcolor='rgba(99,120,255,0.07)',
-    linecolor='rgba(99,120,255,0.10)',
+    gridcolor='rgba(155,127,255,0.06)',
+    linecolor='rgba(155,127,255,0.08)',
     zeroline=False,
-    tickfont=dict(color='#3D4E7A', family='JetBrains Mono', size=10),
+    tickfont=dict(color='#3D4A6A', family='JetBrains Mono', size=10),
     showgrid=True,
 )
 
@@ -491,10 +568,18 @@ def _pl(**kw):
         # else: ignorar valores inválidos
     merged.update(kw)
     return merged
+# ── PALETA UNIFICADA — sincronizada con CSS :root tokens ──
 COLORES_ELEGANTES = [
-    '#4ECDC4', '#FF6B8A', '#9B7FFF', '#6C8EFF',
-    '#FFB347', '#00E5B0', '#FF8C69', '#5BC8F5',
-    '#A8E6CF', '#FFD93D',
+    '#00F2FF',  # --cyan
+    '#FF007F',  # --magenta
+    '#9B7FFF',  # --purple
+    '#00FF85',  # --emerald
+    '#FFB347',  # --amber
+    '#4D8DFF',  # --blue
+    '#FF3366',  # --red
+    '#00E5CC',  # --teal
+    '#FF6B6B',  # coral
+    '#C8A8FF',  # purple light
 ]
 
 
@@ -508,19 +593,19 @@ def ring(value, title, bar_color, max_v=100, suffix="%", reference=None):
         value=value,
         number=dict(
             suffix=suffix,
-            font=dict(family="Outfit, Inter, sans-serif", size=38, color="#E8EDF5"),
+            font=dict(family="Space Grotesk, Inter, sans-serif", size=38, color="#EEF2FA"),
             valueformat=".1f",
         ),
         delta=dict(
             reference=reference,
-            increasing=dict(color="#00E5B0"),
-            decreasing=dict(color="#FF4D6A"),
+            increasing=dict(color="#00FF85"),
+            decreasing=dict(color="#FF3366"),
             font=dict(size=12, family="JetBrains Mono"),
         ) if reference else None,
         title=dict(
             text=(
                 "<span style='font-family:JetBrains Mono,monospace;font-size:9px;"
-                "color:#556680;text-transform:uppercase;letter-spacing:0.12em'>"
+                "color:#4A5A7A;text-transform:uppercase;letter-spacing:0.14em'>"
                 f"{title}</span>"
             ),
         ),
@@ -533,7 +618,7 @@ def ring(value, title, bar_color, max_v=100, suffix="%", reference=None):
             ),
             bgcolor="rgba(0,0,0,0)",
             borderwidth=0,
-            steps=[dict(range=[0, max_v], color="rgba(255,255,255,0.04)")],
+            steps=[dict(range=[0, max_v], color="rgba(155,127,255,0.05)")],
             threshold=dict(
                 line=dict(color=bar_color, width=3),
                 thickness=0.32,
@@ -545,13 +630,13 @@ def ring(value, title, bar_color, max_v=100, suffix="%", reference=None):
     fig.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#E8EDF5", family="Inter, sans-serif"),
+        font=dict(color="#EEF2FA", family="Space Grotesk, Inter, sans-serif"),
         height=210,
         margin=dict(t=22, b=18, l=18, r=18),
         hoverlabel=dict(
-            bgcolor="#131928",
-            bordercolor="rgba(78,205,196,0.25)",
-            font=dict(family="JetBrains Mono, monospace", size=12, color="#E8EDF5"),
+            bgcolor="rgba(11,9,20,0.98)",
+            bordercolor="rgba(0,242,255,0.22)",
+            font=dict(family="JetBrains Mono, monospace", size=12, color="#EEF2FA"),
         ),
     )
     return fig
@@ -748,33 +833,35 @@ SUBMENU_VISTAS = [
     "🚦 Monitor de Estatus", "📣 Marketing", "🛍️ Catálogo", "🤖 Asistente IA",
 ]
 
-# Labels limpios para mostrar (sin emoji) y su ícono CSS
+# Labels limpios para mostrar (sin emoji)
 _NAV_LABELS = {
-    "📊 Panel Ejecutivo":   "⬡  Panel Ejecutivo",
-    "📈 P&G":               "◈  P&G",
-    "💹 Finanzas":          "◉  Finanzas",
-    "🔮 Proyecciones":      "◎  Proyecciones",
-    "🧠 Asesor Financiero": "⬢  Asesor Financiero",
-    "📡 Tendencias & Clima":"◆  Tendencias & Clima",
-    "📦 Operaciones":       "▣  Operaciones",
-    "🚦 Monitor de Estatus":"◫  Monitor de Estatus",
-    "📣 Marketing":         "◐  Marketing",
-    "🛍️ Catálogo":          "▤  Catálogo",
-    "🤖 Asistente IA":      "◑  Asistente IA",
+    "📊 Panel Ejecutivo":    "Panel Ejecutivo",
+    "📈 P&G":                "P&G",
+    "💹 Finanzas":           "Finanzas",
+    "🔮 Proyecciones":       "Proyecciones",
+    "🧠 Asesor Financiero":  "Asesor Financiero",
+    "📡 Tendencias & Clima": "Tendencias & Clima",
+    "📦 Operaciones":        "Operaciones",
+    "🚦 Monitor de Estatus": "Monitor de Estatus",
+    "📣 Marketing":          "Marketing",
+    "🛍️ Catálogo":           "Catálogo",
+    "🤖 Asistente IA":       "Asistente IA",
 }
-_NAV_ICONS = {
-    "📊 Panel Ejecutivo":   "panel",
-    "📈 P&G":               "pyg",
-    "💹 Finanzas":          "fin",
-    "🔮 Proyecciones":      "proy",
-    "🧠 Asesor Financiero": "asesor",
-    "📡 Tendencias & Clima":"tend",
-    "📦 Operaciones":       "ops",
-    "🚦 Monitor de Estatus":"monitor",
-    "📣 Marketing":         "mkt",
-    "🛍️ Catálogo":          "cat",
-    "🤖 Asistente IA":      "ia",
+# SVG icons por vista (14x14, stroke currentColor)
+_NAV_SVG = {
+    "📊 Panel Ejecutivo":   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+    "📈 P&G":               '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
+    "💹 Finanzas":          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+    "🔮 Proyecciones":      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+    "🧠 Asesor Financiero":  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>',
+    "📡 Tendencias & Clima": '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+    "📦 Operaciones":        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
+    "🚦 Monitor de Estatus": '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    "📣 Marketing":          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>',
+    "🛍️ Catálogo":           '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>',
+    "🤖 Asistente IA":       '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>',
 }
+_NAV_ICONS = {k: k.split()[1].lower()[:4] for k in _NAV_SVG}
 
 _HUB_VIEW = "⚡ Centro de Datos"
 if "nav_activa" not in st.session_state: st.session_state.nav_activa = _HUB_VIEW
@@ -859,9 +946,47 @@ with st.sidebar:
 
     _sl = st.session_state.op_activa.split(" ", 1)[1] if " " in st.session_state.op_activa else st.session_state.op_activa
     st.markdown(f'<span class="nav-section-lbl">Vistas · {_sl}</span>', unsafe_allow_html=True)
+    # ── NAV con SVG icons — estilo premium ──
+    st.markdown("""<style>
+    /* Ocultar labels de botones nav y hacer área click invisible sobre el HTML */
+    div[data-testid="stVerticalBlock"] button[kind="secondary"].nav-svg-btn,
+    div[data-testid="stVerticalBlock"] button[kind="primary"].nav-svg-btn {
+        position:absolute!important; opacity:0!important; height:44px!important;
+        width:100%!important; cursor:pointer!important; z-index:10!important;
+    }
+    .nav-item-wrap {
+        position:relative; display:flex; align-items:center; gap:10px;
+        padding:9px 14px; border-radius:10px; margin:1px 0;
+        cursor:pointer; transition:all 0.18s; user-select:none;
+    }
+    .nav-item-wrap:hover { background:rgba(155,127,255,0.07); }
+    .nav-item-wrap.active {
+        background:rgba(0,242,255,0.07);
+        border-left:2px solid #00F2FF;
+        padding-left:12px;
+    }
+    .nav-svg { flex-shrink:0; display:flex; align-items:center; }
+    .nav-item-wrap.active .nav-svg { color:#00F2FF; }
+    .nav-item-wrap:not(.active) .nav-svg { color:rgba(122,139,173,0.55); }
+    .nav-item-txt {
+        font-family:'Inter',sans-serif; font-size:0.785rem; white-space:nowrap;
+        overflow:hidden; text-overflow:ellipsis;
+    }
+    .nav-item-wrap.active .nav-item-txt { color:#EEF2FA; font-weight:600; }
+    .nav-item-wrap:not(.active) .nav-item-txt { color:rgba(140,150,180,0.65); font-weight:400; }
+    </style>""", unsafe_allow_html=True)
     for item in SUBMENU_VISTAS:
         _ia = st.session_state.nav_activa == item
         _lbl = _NAV_LABELS.get(item, item)
+        _svg = _NAV_SVG.get(item, "")
+        _cls = "active" if _ia else ""
+        st.markdown(
+            f'''<div class="nav-item-wrap {_cls}">
+            <span class="nav-svg">{_svg}</span>
+            <span class="nav-item-txt">{_lbl}</span>
+            </div>''',
+            unsafe_allow_html=True
+        )
         if st.button(_lbl, key=f"nav_{item}", use_container_width=True,
                      type="primary" if _ia else "secondary"):
             st.session_state.nav_activa = item
@@ -1035,34 +1160,48 @@ _data_key = DATA_KEYS.get(_op_key)
 if _data_key and _data_key in st.session_state:
     df = st.session_state[_data_key].copy()
 else:
-    @st.cache_data
+    @st.cache_data(ttl=600, show_spinner=False)
     def cargar(f):
-        _df = pd.read_excel(f)
+        _df = pd.read_excel(f, engine='openpyxl')
         _df.columns = [str(c).strip() for c in _df.columns]
+        # Pre-parsear fechas en carga para evitar re-proceso posterior
+        for _c in [C_FECHA, C_FECHA_MOV]:
+            if _c in _df.columns:
+                _df[_c] = pd.to_datetime(_df[_c], dayfirst=True, errors='coerce')
+        # Pre-convertir numéricos
+        for _c in [C_TOTAL, C_GANANCIA, C_FLETE, C_CANTIDAD]:
+            if _c in _df.columns:
+                _df[_c] = pd.to_numeric(_df[_c], errors='coerce').fillna(0)
         return _df
 
-    with st.spinner("Procesando datos..."):
+    with st.spinner("Cargando datos..."):
         df = cargar(archivo)
     # Guardar en session_state para futuras cargas
     if _data_key:
         st.session_state[_data_key] = df.copy()
 
+# Solo convertir si no vienen ya parseadas del cache
 for col_f in [C_FECHA, C_FECHA_MOV]:
-    if col_f in df.columns:
+    if col_f in df.columns and not pd.api.types.is_datetime64_any_dtype(df[col_f]):
         df[col_f] = pd.to_datetime(df[col_f], dayfirst=True, errors='coerce')
 
+# ── VECTORIZADO: hasta 100x más rápido que row-by-row apply ──────────────
+_ahora = pd.Timestamp.now()
 if C_FECHA_MOV in df.columns:
-    df['_h_mov'] = df[C_FECHA_MOV].apply(horas_desde)
-    df['_d_mov'] = df['_h_mov'].apply(lambda h: round(h/24,1) if h is not None else None)
+    _delta_mov      = (_ahora - df[C_FECHA_MOV])
+    df['_h_mov']    = _delta_mov.dt.total_seconds().div(3600).where(df[C_FECHA_MOV].notna())
+    df['_d_mov']    = (df['_h_mov'] / 24).round(1)
 
 if C_FECHA in df.columns:
-    df['_h_ped'] = df[C_FECHA].apply(horas_desde)
-    df['_d_ped'] = df['_h_ped'].apply(lambda h: round(h/24,1) if h is not None else None)
-    df['_mes']   = df[C_FECHA].dt.to_period('M').astype(str)
-    df['_dia']   = df[C_FECHA].dt.day
+    _delta_ped      = (_ahora - df[C_FECHA])
+    df['_h_ped']    = _delta_ped.dt.total_seconds().div(3600).where(df[C_FECHA].notna())
+    df['_d_ped']    = (df['_h_ped'] / 24).round(1)
+    df['_mes']      = df[C_FECHA].dt.to_period('M').astype(str)
+    df['_dia']      = df[C_FECHA].dt.day
 
+# Solo convertir numéricos si no son ya numéricos (vienen del cache ya parseados)
 for col_n in [C_TOTAL, C_GANANCIA, C_FLETE, C_CANTIDAD]:
-    if col_n in df.columns:
+    if col_n in df.columns and not pd.api.types.is_numeric_dtype(df[col_n]):
         df[col_n] = pd.to_numeric(df[col_n], errors='coerce').fillna(0)
 
 # Conversión CLP → COP para Carrito Naranja
@@ -1073,7 +1212,10 @@ if es_clp and trm_clp_cop > 0:
     st.toast(f"💱 Valores convertidos: 1 CLP = {trm_clp_cop} COP", icon="🇨🇱")
 
 if C_TAGS in df.columns:
-    df['_tags_lista'] = df[C_TAGS].apply(parse_tags)
+    # Vectorizado: split directo sin apply fila por fila
+    df['_tags_lista'] = df[C_TAGS].fillna('').astype(str).apply(
+        lambda v: [t.strip() for t in v.split(',') if t.strip()] if v else []
+    )
 
 total = len(df)
 
@@ -1093,9 +1235,115 @@ pct_gan    = round(tot_gan/tot_venta*100,1) if tot_venta else 0
 
 
 # ═══════════════════════════════════════════════════════════
+# ⚡ SISTEMA DE ALERTAS INTELIGENTES — Detección automática
+# ═══════════════════════════════════════════════════════════
+def _generar_alertas_smart(df, total, entregados, cancelados, devolucion):
+    """Genera alertas de negocio basadas en umbrales inteligentes."""
+    alertas = []
+    if total == 0:
+        return alertas
+
+    # ── 1. Tasa de devolución global alta
+    pct_dev = round(devolucion / total * 100, 1)
+    if pct_dev > 12:
+        alertas.append(dict(
+            nivel="critical",
+            icono="🚨",
+            titulo=f"Tasa de devolución elevada: {pct_dev}%",
+            cuerpo="Supera el umbral del 12%. Revisar embalaje, descripción de producto y transportadora."
+        ))
+    elif pct_dev > 8:
+        alertas.append(dict(
+            nivel="warning",
+            icono="⚠️",
+            titulo=f"Devolución en alerta: {pct_dev}%",
+            cuerpo="Supera el 8%. Monitorear tendencia en los próximos 7 días."
+        ))
+
+    # ── 2. Tasa de cancelación alta
+    pct_can = round(cancelados / total * 100, 1)
+    if pct_can > 25:
+        alertas.append(dict(
+            nivel="critical",
+            icono="🚨",
+            titulo=f"Cancelaciones críticas: {pct_can}%",
+            cuerpo="Más del 25% de pedidos cancelados. Revisar proceso de confirmación y calidad de leads."
+        ))
+
+    # ── 3. Transportadora con alta devolución
+    if C_TRANSP in df.columns and C_ESTATUS in df.columns:
+        _df_t = df.copy()
+        _df_t['_es_dev'] = _df_t[C_ESTATUS].astype(str).str.upper().str.contains('DEVOLUCI|RETUR', na=False).astype(int)
+        _transp_stats = _df_t.groupby(C_TRANSP).agg(
+            total_=('_es_dev', 'count'),
+            devs_=('_es_dev', 'sum')
+        )
+        _transp_stats['tasa_dev'] = (_transp_stats['devs_'] / _transp_stats['total_'] * 100).round(1)
+        _criticos = _transp_stats[(_transp_stats['tasa_dev'] > 18) & (_transp_stats['total_'] >= 10)]
+        for transp, row in _criticos.iterrows():
+            alertas.append(dict(
+                nivel="critical",
+                icono="🚛",
+                titulo=f"Devolución alta en {transp}: {row['tasa_dev']}%",
+                cuerpo=f"{int(row['devs_'])} devoluciones de {int(row['total_'])} pedidos. Evaluar cambio de transportadora."
+            ))
+
+    # ── 4. Caída de ventas semana vs semana
+    if '_mes' in df.columns and C_FECHA in df.columns and pd.api.types.is_datetime64_any_dtype(df[C_FECHA]):
+        try:
+            _semanas = df.groupby(df[C_FECHA].dt.isocalendar().week.astype(str)).size()
+            if len(_semanas) >= 2:
+                _cambio = (_semanas.iloc[-1] - _semanas.iloc[-2]) / _semanas.iloc[-2] * 100
+                if _cambio < -25:
+                    alertas.append(dict(
+                        nivel="warning",
+                        icono="📉",
+                        titulo=f"Caída de pedidos: {_cambio:.1f}% vs semana anterior",
+                        cuerpo="Revisar campañas activas, disponibilidad de stock y factores estacionales."
+                    ))
+        except Exception:
+            pass
+
+    # ── 5. Tasa de entrega muy baja
+    pct_ent_check = round(entregados / total * 100, 1)
+    if pct_ent_check < 40 and total > 50:
+        alertas.append(dict(
+            nivel="warning",
+            icono="📦",
+            titulo=f"Tasa de entrega baja: {pct_ent_check}%",
+            cuerpo="Menos del 40% de pedidos entregados. Verificar estados de pedidos en tránsito."
+        ))
+
+    return alertas
+
+def _render_alertas(alertas):
+    """Renderiza alertas inteligentes con diseño premium."""
+    if not alertas:
+        return
+    # Ordenar: critical primero
+    alertas_ord = sorted(alertas, key=lambda a: 0 if a['nivel']=='critical' else 1)
+    cols_al = st.columns(min(len(alertas_ord), 2))
+    for i, a in enumerate(alertas_ord):
+        _col_map = {"critical": "#FF3366", "warning": "#FFB347", "info": "#00F2FF", "success": "#00FF85"}
+        _c = _col_map.get(a['nivel'], '#7A8BAD')
+        with cols_al[i % len(cols_al)]:
+            st.markdown(
+                f'<div class="smart-alert {a["nivel"]}">'
+                f'<div><div class="alert-title" style="color:{_c}">{a["icono"]} {a["titulo"]}</div>'
+                f'<div class="alert-body">{a["cuerpo"]}</div></div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+
+_alertas_globales = _generar_alertas_smart(df, total, entregados, cancelados, devolucion)
+
+
+# ═══════════════════════════════════════════════════════════
 # ██████  VISTA 1: VENTAS & ANÁLISIS
 # ═══════════════════════════════════════════════════════════
-if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" in vista_activa or "Finanzas" in vista_activa or "Marketing" in vista_activa or "Catálogo" in vista_activa:
+# ── ROUTER ROBUSTO — comparación exacta contra set de constantes ──────
+VISTAS_ANALISIS = {"📊 Panel Ejecutivo", "📈 P&G", "🔮 Proyecciones", "💹 Finanzas", "📣 Marketing", "🛍️ Catálogo"}
+if vista_activa in VISTAS_ANALISIS:
 
     op_nombre = operacion.split(" ", 1)[1]
     op_color  = op_info["color"]
@@ -1104,27 +1352,7 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
     modulo_nombre = vista_activa.split(" ", 1)[1] if " " in vista_activa else vista_activa.strip()
     clp_badge = (f"&nbsp;&middot;&nbsp;<span style='color:#FFB347;font-size:0.75rem'>💱 CLP→COP @{trm_clp_cop}</span>") if es_clp else ""
 
-    st.markdown("""
-    <style>
-    .hdr-card {
-        background: rgba(15,20,30,0.5);
-        backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-        border: 1px solid rgba(78,205,196,0.08); border-radius: 18px;
-        padding: 20px 24px 0; margin-bottom: 0; position: relative; overflow: hidden;
-    }
-    .hdr-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, transparent, rgba(78,205,196,0.2), transparent); }
-    .ftab-wrap { display: flex; gap: 6px; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 5px; width: fit-content; border: 1px solid rgba(78,205,196,0.06); }
-    .ftab { display: flex; align-items: center; gap: 7px; padding: 9px 20px; border-radius: 8px; font-family: Inter, sans-serif; font-size: 0.84rem; font-weight: 600; cursor: pointer; color: rgba(136,153,178,0.6); border: 1px solid transparent; transition: all 0.18s; white-space: nowrap; }
-    .ftab.active { background: rgba(78,205,196,0.1); color: #4ECDC4; border-color: rgba(78,205,196,0.2); box-shadow: 0 4px 18px rgba(78,205,196,0.1); font-weight: 700; }
-    .ftab .ficon { font-size: 1rem; display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 7px; background: rgba(255,255,255,0.05); }
-    .ftab.active .ficon { background: rgba(78,205,196,0.12); }
-    .mes-pills { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
-    .mes-pill { padding: 5px 14px; border-radius: 20px; font-family: Inter, sans-serif; font-size: 0.78rem; font-weight: 600; background: rgba(255,255,255,0.03); color: rgba(136,153,178,0.5); border: 1px solid rgba(78,205,196,0.06); cursor: pointer; transition: all 0.15s; }
-    .mes-pill.active { background: rgba(78,205,196,0.1); color: #4ECDC4; border-color: rgba(78,205,196,0.2); box-shadow: 0 2px 12px rgba(78,205,196,0.1); }
-    .sem-pill { padding: 5px 14px; border-radius: 20px; font-family: Inter, sans-serif; font-size: 0.78rem; font-weight: 600; border: 1px solid; cursor: pointer; transition: all 0.15s; }
-    .periodo-badge { display: inline-flex; align-items: center; gap: 7px; padding: 6px 14px; border-radius: 20px; font-family: Inter, sans-serif; font-size: 0.78rem; font-weight: 700; background: rgba(78,205,196,0.06); color: #4ECDC4; border: 1px solid rgba(78,205,196,0.15); margin-top: 10px; margin-bottom: 14px; }
-    </style>
-    """, unsafe_allow_html=True)
+    # Estilos de tabs y pills ya declarados en CSS global (:root) — no re-declarar aquí
 
     st.markdown(
         f'''<div class="hdr-card">
@@ -1279,6 +1507,11 @@ if "Panel Ejecutivo" in vista_activa or "P&G" in vista_activa or "Proyecciones" 
         with c5: st.markdown(kpi("red","❌ Cancelación",f"{pct_cancel}%",f"{cancelados:,} pedidos"), unsafe_allow_html=True)
         with c6: st.markdown(kpi("purple","🔁 Devolución",f"{pct_dev_g}%",f"{devolucion:,} pedidos"), unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
+        # ── ALERTAS INTELIGENTES — solo en Panel Ejecutivo ──
+        if "Panel Ejecutivo" in vista_activa and _alertas_globales:
+            st.markdown('<div style="margin-bottom:8px">', unsafe_allow_html=True)
+            _render_alertas(_alertas_globales)
+            st.markdown('</div>', unsafe_allow_html=True)
 
     # ── NAVEGACIÓN INTERACTIVA ──
     st.markdown('<div class="seccion-titulo">Explorar datos</div>', unsafe_allow_html=True)
