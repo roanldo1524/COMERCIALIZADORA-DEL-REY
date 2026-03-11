@@ -926,18 +926,22 @@ _HUB_VIEW = "⚡ Centro de Datos"
 if "nav_activa" not in st.session_state: st.session_state.nav_activa = _HUB_VIEW
 if "op_activa"  not in st.session_state: st.session_state.op_activa  = "🤖 LUCID BOT"
 
-# ── Auto-recover: si hay datos cargados pero nav sigue en HUB → ir al panel ──
+# ── Auto-recover: solo redirige UNA VEZ al cargar datos por primera vez ──
 _any_data_loaded = any(
     st.session_state.get(f"_file_{t['key']}") is not None for t in TIENDAS_REPO
 )
-if _any_data_loaded and st.session_state.get("nav_activa") == _HUB_VIEW:
+# Solo redirige si: hay datos Y nav está en HUB Y aún no se ha redirigido antes
+# Esto permite al usuario VOLVER al Centro de Datos cuando quiera usando el botón
+_hub_ya_redirigido = st.session_state.get("_hub_redir_done", False)
+if _any_data_loaded and st.session_state.get("nav_activa") == _HUB_VIEW and not _hub_ya_redirigido:
     _first_with_data = next(
         (t["key"] for t in TIENDAS_REPO
          if st.session_state.get(f"_file_{t['key']}") is not None), None
     )
     if _first_with_data:
-        st.session_state.op_activa  = _first_with_data
-        st.session_state.nav_activa = "📊 Panel Ejecutivo"
+        st.session_state.op_activa    = _first_with_data
+        st.session_state.nav_activa   = "📊 Panel Ejecutivo"
+        st.session_state._hub_redir_done = True  # Solo redirige una vez
 
 with st.sidebar:
     st.markdown("""
@@ -970,7 +974,8 @@ with st.sidebar:
     st.markdown('<div class="hub-btn-wrap">', unsafe_allow_html=True)
     if st.button(f"⚡ Centro de Datos  ·  {_n_files}/5", key="_nav_hub", use_container_width=True,
                  type="primary" if _hub_active else "secondary"):
-        st.session_state.nav_activa = _HUB_VIEW
+        st.session_state.nav_activa      = _HUB_VIEW
+        st.session_state._hub_redir_done = False  # Permitir acceso explícito
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('<div class="nav-sep-strong"></div>', unsafe_allow_html=True)
