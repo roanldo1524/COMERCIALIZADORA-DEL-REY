@@ -91,9 +91,9 @@ html, body, [class*="css"] {
 section[data-testid="stSidebar"] {
     display: block !important; visibility: visible !important;
     min-width: 240px !important; width: 240px !important;
-    background: linear-gradient(180deg, #0c0f2a 0%, #090b22 50%, #07091c 100%) !important;
-    border-right: 1px solid rgba(99,120,255,0.08) !important;
-    box-shadow: 6px 0 60px rgba(0,0,0,0.8) !important;
+    background: #111318 !important;
+    border-right: 1px solid rgba(255,255,255,0.05) !important;
+    box-shadow: 4px 0 40px rgba(0,0,0,0.9) !important;
     transform: none !important; opacity: 1 !important;
 }
 section[data-testid="stSidebar"][aria-expanded="false"] {
@@ -564,61 +564,128 @@ def ring(value, title, bar_color, max_v=100, suffix="%", reference=None):
 
 st.markdown("""
 <style>
-/* ── SIDEBAR PREMIUM ── */
+/* ══════════════════════════════════════════════
+   SIDEBAR — ESTILO GRAND LINE (oscuro, compacto)
+══════════════════════════════════════════════ */
 section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0c0f2a 0%, #090b22 50%, #07091c 100%) !important;
-    border-right: 1px solid rgba(99,120,255,0.08) !important;
-    box-shadow: 6px 0 60px rgba(0,0,0,0.8) !important;
+    background: #111318 !important;
+    border-right: 1px solid rgba(255,255,255,0.05) !important;
+    box-shadow: 4px 0 40px rgba(0,0,0,0.9) !important;
 }
-section[data-testid="stSidebar"] > div { padding-top: 0 !important; }
+section[data-testid="stSidebar"] > div {
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* ── Todos los botones del sidebar ── */
 section[data-testid="stSidebar"] .stButton { margin: 0 !important; }
 section[data-testid="stSidebar"] .stButton > button {
-    width: 100% !important; text-align: left !important; justify-content: flex-start !important;
-    background: transparent !important; border: 1px solid transparent !important;
-    border-radius: 10px !important; color: rgba(128,144,184,0.85) !important;
-    font-family: 'Outfit', sans-serif !important; font-size: 0.82rem !important;
-    font-weight: 500 !important; padding: 9px 14px !important; margin: 1px 0 !important;
-    line-height: 1.3 !important; min-height: 0 !important; height: auto !important;
-    transition: all 0.2s !important; box-shadow: none !important;
-    transform: none !important; outline: none !important;
+    width: 100% !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    border-left: 3px solid transparent !important;
+    color: rgba(160,168,185,0.75) !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 0.80rem !important;
+    font-weight: 500 !important;
+    padding: 8px 16px 8px 14px !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    transition: all 0.18s ease !important;
+    box-shadow: none !important;
+    transform: none !important;
+    outline: none !important;
     letter-spacing: 0.01em !important;
+    border-radius: 0 6px 6px 0 !important;
 }
 section[data-testid="stSidebar"] .stButton > button:focus,
 section[data-testid="stSidebar"] .stButton > button:focus-visible {
-    outline: none !important; box-shadow: none !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 section[data-testid="stSidebar"] .stButton > button:hover {
-    background: rgba(108,142,255,0.06) !important; border-color: rgba(108,142,255,0.12) !important;
-    color: #EEF2FA !important; transform: none !important; box-shadow: none !important;
+    background: rgba(255,255,255,0.04) !important;
+    border-left-color: rgba(78,205,196,0.35) !important;
+    color: #E8EDF8 !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
+
+/* ── Botón activo (primary) — acento lateral naranja/teal como GRAND LINE ── */
 section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
-    background: rgba(78,205,196,0.08) !important; border-color: rgba(78,205,196,0.18) !important;
-    color: #4ECDC4 !important; font-weight: 700 !important;
-    box-shadow: 0 0 20px rgba(78,205,196,0.07), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+    background: rgba(78,205,196,0.07) !important;
+    border-left: 3px solid #4ECDC4 !important;
+    color: #E8EDF8 !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+    border-radius: 0 6px 6px 0 !important;
 }
 section[data-testid="stSidebar"] .stButton > button[kind="primary"]:hover {
-    background: rgba(78,205,196,0.12) !important; transform: none !important;
+    background: rgba(78,205,196,0.10) !important;
+    transform: none !important;
 }
+
+/* ── Hub button especial ── */
 .hub-btn-wrap .stButton > button {
-    background: linear-gradient(135deg, rgba(78,205,196,0.10), rgba(0,229,204,0.06)) !important;
-    border: 1px solid rgba(78,205,196,0.20) !important; border-radius: 12px !important;
-    color: #4ECDC4 !important; font-weight: 700 !important; font-size: 0.82rem !important;
-    padding: 10px 14px !important; box-shadow: 0 4px 24px rgba(78,205,196,0.08) !important;
+    background: rgba(78,205,196,0.06) !important;
+    border: none !important;
+    border-left: 3px solid rgba(78,205,196,0.40) !important;
+    border-radius: 0 6px 6px 0 !important;
+    color: #4ECDC4 !important;
+    font-weight: 700 !important;
+    font-size: 0.80rem !important;
+    padding: 8px 16px 8px 14px !important;
 }
 .hub-btn-wrap .stButton > button:hover {
-    background: linear-gradient(135deg, rgba(78,205,196,0.16), rgba(0,229,204,0.10)) !important;
-    box-shadow: 0 6px 32px rgba(78,205,196,0.14) !important; color: #4ECDC4 !important;
+    background: rgba(78,205,196,0.10) !important;
+    color: #4ECDC4 !important;
 }
-.nav-section-lbl { font-size: 0.55rem; color: rgba(61,74,106,0.9); font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; padding: 0 6px; margin: 12px 0 4px; font-family: 'JetBrains Mono', monospace; display: block; }
-.nav-sep        { height: 1px; background: linear-gradient(90deg, transparent, rgba(78,205,196,0.07), transparent); margin: 8px 4px; }
-.nav-sep-strong { height: 1px; background: linear-gradient(90deg, transparent, rgba(78,205,196,0.12), transparent); margin: 10px 0; }
+
+/* ── Labels de sección — estilo GRAND LINE ── */
+.nav-section-lbl {
+    font-size: 0.52rem;
+    color: rgba(120,130,155,0.55);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 0 16px;
+    margin: 18px 0 6px;
+    font-family: 'JetBrains Mono', monospace;
+    display: block;
+}
+.nav-sep {
+    height: 1px;
+    background: rgba(255,255,255,0.05);
+    margin: 10px 14px;
+}
+.nav-sep-strong {
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+    margin: 12px 0;
+}
+
+/* ── Selectbox tienda ── */
 section[data-testid="stSidebar"] .stSelectbox > div > div {
-    background: rgba(12,13,24,0.92) !important; border: 1px solid rgba(78,205,196,0.10) !important;
-    border-radius: 10px !important; color: #EEF2FA !important;
-    font-family: 'Outfit', sans-serif !important; font-weight: 600 !important;
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 8px !important;
+    color: #E8EDF8 !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.80rem !important;
 }
-section[data-testid="stSidebar"] .stSelectbox > div > div:hover { border-color: rgba(78,205,196,0.26) !important; }
-section[data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] span { color: #EEF2FA !important; }
+section[data-testid="stSidebar"] .stSelectbox > div > div:hover {
+    border-color: rgba(78,205,196,0.22) !important;
+}
+section[data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] span {
+    color: #E8EDF8 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -686,22 +753,24 @@ if _any_data_loaded and st.session_state.get("nav_activa") == _HUB_VIEW:
 
 with st.sidebar:
     st.markdown("""
-    <div style="padding:18px 10px 8px;display:flex;align-items:center;gap:11px">
-        <div style="display:inline-flex;align-items:center;justify-content:center;
-                    width:38px;height:38px;border-radius:10px;flex-shrink:0;
-                    background:linear-gradient(135deg,#4ECDC4,#00E5B0);
-                    box-shadow:0 4px 18px rgba(78,205,196,0.3)">
-            <span style="font-size:1.1rem;filter:brightness(0)">🌐</span>
-        </div>
-        <div>
-            <div style="font-family:Inter,sans-serif;font-size:1.1rem;font-weight:800;
-                        letter-spacing:-0.03em;line-height:1;margin-bottom:2px">
-                <span style="color:#E8EDF5">Visió</span><span style="background:linear-gradient(90deg,#4ECDC4,#00E5B0);
-                -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">N360</span>
+    <div style="padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,0.05)">
+        <div style="display:flex;align-items:center;gap:10px">
+            <div style="display:inline-flex;align-items:center;justify-content:center;
+                        width:34px;height:34px;border-radius:8px;flex-shrink:0;
+                        background:linear-gradient(135deg,#4ECDC4,#00E5B0);
+                        box-shadow:0 2px 12px rgba(78,205,196,0.25)">
+                <span style="font-size:1.0rem;filter:brightness(0)">🌐</span>
             </div>
-            <div style="font-size:0.5rem;color:rgba(136,153,178,0.4);font-weight:600;
-                        letter-spacing:0.12em;text-transform:uppercase;font-family:Inter,sans-serif">
-                Inteligencia Comercial
+            <div>
+                <div style="font-family:'Outfit',sans-serif;font-size:1.0rem;font-weight:800;
+                            letter-spacing:-0.03em;line-height:1;margin-bottom:2px">
+                    <span style="color:#E8EDF5">Visió</span><span style="background:linear-gradient(90deg,#4ECDC4,#00E5B0);
+                    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">N360</span>
+                </div>
+                <div style="font-size:0.48rem;color:rgba(120,130,155,0.5);font-weight:600;
+                            letter-spacing:0.14em;text-transform:uppercase;font-family:'JetBrains Mono',monospace">
+                    Command Center
+                </div>
             </div>
         </div>
     </div>
@@ -763,7 +832,18 @@ with st.sidebar:
         st.markdown('<span class="nav-section-lbl">💱 CLP → COP</span>', unsafe_allow_html=True)
         trm_clp_cop = st.number_input("1 CLP = ? COP", min_value=1.0, max_value=20.0, value=4.2, step=0.1)
         st.session_state["_trm_global"] = trm_clp_cop
-    st.markdown('<div style="padding:14px 8px;text-align:center"><div style="font-size:0.52rem;color:rgba(136,153,178,0.2);font-family:Inter,sans-serif">VisióN360 · v4.0</div></div>', unsafe_allow_html=True)
+    st.markdown('<div style="height:1px;background:rgba(255,255,255,0.05);margin:8px 0 0"></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div style="padding:12px 16px;display:flex;align-items:center;gap:10px">'
+        '<div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#4ECDC4,#9B7FFF);'
+        'display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;'
+        'color:#111318;flex-shrink:0">C</div>'
+        '<div><div style="font-size:0.72rem;font-weight:700;color:#C8D0E0;font-family:Outfit,sans-serif">CEO</div>'
+        '<div style="font-size:0.50rem;color:rgba(120,130,155,0.55);font-family:JetBrains Mono,monospace;'
+        'text-transform:uppercase;letter-spacing:0.10em">Admin Mode</div></div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
 vista_activa = st.session_state.get("nav_activa", "📊 Panel Ejecutivo")
 _op_key = st.session_state.get("op_activa", "🤖 LUCID BOT")
