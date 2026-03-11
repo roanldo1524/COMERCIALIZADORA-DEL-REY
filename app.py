@@ -22,12 +22,12 @@ st.markdown("""
    TOKENS GLOBALES — Paleta Premium Índigo Neon
 ═══════════════════════════════════════════════════════════════ */
 :root {
-    /* ── Fondos azul marino (referencia visual) ── */
-    --bg:          #0e1130;
-    --bg-deep:     #090b20;
-    --bg-card:     rgba(19,24,60,0.92);
-    --bg-glass:    rgba(16,20,52,0.85);
-    --bg-sidebar:  #0c0f28;
+    /* ── Fondos negro-morado ── */
+    --bg:          #0f0a1e;
+    --bg-deep:     #0a0a12;
+    --bg-card:     rgba(20,14,40,0.90);
+    --bg-glass:    rgba(18,12,36,0.85);
+    --bg-sidebar:  #111318;
     --border:      rgba(99,120,255,0.10);
     --border-2:    rgba(99,120,255,0.22);
     --border-glow: rgba(78,205,196,0.35);
@@ -73,12 +73,12 @@ html, body, [class*="css"] {
 
 /* ─── FONDO GENERAL ─────────────────────────────────────────── */
 .stApp {
-    background-color: var(--bg-deep) !important;
+    background-color: #0a0a12 !important;
     background-image:
-        radial-gradient(ellipse 100% 60% at  -5%   0%, rgba(108,142,255,0.07) 0%, transparent 55%),
-        radial-gradient(ellipse  70% 50% at 110%   5%, rgba(155,127,255,0.07) 0%, transparent 50%),
-        radial-gradient(ellipse  55% 40% at  50% 110%, rgba(78,205,196,0.05) 0%, transparent 45%),
-        linear-gradient(175deg, #090b20 0%, #0d1035 55%, #0a0d28 100%) !important;
+        radial-gradient(ellipse 80% 70% at 100% 0%,   rgba(120,60,220,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 0%   100%, rgba(80,30,160,0.14)  0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 50%  50%,  rgba(100,50,200,0.06) 0%, transparent 50%),
+        linear-gradient(160deg, #0a0a12 0%, #0f0a1e 40%, #130a24 70%, #0a0a12 100%) !important;
 }
 
 /* ─── CONTAINER ──────────────────────────────────────────────── */
@@ -115,9 +115,9 @@ h1, h2, h3 {
 
 /* ─── KPI CARD ───────────────────────────────────────────────── */
 .kpi {
-    background: var(--bg-card);
+    background: rgba(22,14,46,0.85);
     backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur));
-    border: 1px solid var(--border); border-radius: var(--r-xl);
+    border: 1px solid rgba(120,60,220,0.12); border-radius: var(--r-xl);
     padding: 22px 18px; text-align: center;
     position: relative; overflow: hidden;
     transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), box-shadow 0.35s, border-color 0.3s;
@@ -310,9 +310,9 @@ hr { border-color: rgba(78,205,196,0.05) !important; }
 
 /* ─── CHART WRAPPER .cw ─────────────────────────────────────── */
 .cw {
-    background: var(--bg-card);
+    background: rgba(20,12,42,0.88);
     backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur));
-    border: 1px solid var(--border); border-radius: var(--r-xl);
+    border: 1px solid rgba(120,60,220,0.10); border-radius: var(--r-xl);
     padding: 22px 20px 14px; box-shadow: var(--shadow-md);
     position: relative; overflow: hidden;
     transition: border-color 0.3s, box-shadow 0.3s;
@@ -328,8 +328,8 @@ hr { border-color: rgba(78,205,196,0.05) !important; }
 
 /* ─── KCARD ─────────────────────────────────────────────────── */
 .kcard {
-    background: var(--bg-card); backdrop-filter: blur(var(--blur));
-    border: 1px solid var(--border); border-radius: var(--r-xl);
+    background: rgba(22,14,46,0.85); backdrop-filter: blur(var(--blur));
+    border: 1px solid rgba(120,60,220,0.12); border-radius: var(--r-xl);
     padding: 20px 18px 16px; position: relative; overflow: hidden;
     transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), border-color 0.3s, box-shadow 0.3s;
     box-shadow: var(--shadow-md);
@@ -681,17 +681,6 @@ section[data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] span {
 }
 
 
-/* ── Ocultar emojis de botones del sidebar ── */
-section[data-testid="stSidebar"] .stButton > button p {
-    display: flex !important;
-    align-items: center !important;
-    gap: 0 !important;
-    font-size: 0.82rem !important;
-}
-/* Emojis — hacerlos pequeños e integrados */
-section[data-testid="stSidebar"] .stButton > button p::first-letter {
-    font-size: 0 !important;
-}
 
 /* ── Quitar padding excesivo de elementos markdown del sidebar ── */
 section[data-testid="stSidebar"] .stMarkdown {
@@ -863,32 +852,8 @@ with st.sidebar:
     st.markdown(f'<span class="nav-section-lbl">Vistas · {_sl}</span>', unsafe_allow_html=True)
     for item in SUBMENU_VISTAS:
         _ia = st.session_state.nav_activa == item
-        _ico = _NAV_ICONS.get(item, "·")
-        _btn_style = (
-            f"display:flex;align-items:center;gap:10px;width:100%;padding:8px 18px 8px 16px;"
-            f"border-left:3px solid {'#4ECDC4' if _ia else 'transparent'};"
-            f"background:{'rgba(78,205,196,0.07)' if _ia else 'transparent'};"
-            f"cursor:pointer;border-radius:0 6px 6px 0;margin:1px 0;"
-            f"transition:all 0.18s;"
-        )
-        _ico_style = (
-            f"font-size:0.75rem;color:{'#4ECDC4' if _ia else 'rgba(100,112,140,0.7)'};"
-            f"flex-shrink:0;line-height:1;"
-        )
-        _lbl_style = (
-            f"font-family:'Outfit',sans-serif;font-size:0.80rem;"
-            f"font-weight:{'600' if _ia else '400'};"
-            f"color:{'#E8EDF8' if _ia else 'rgba(160,168,185,0.75)'};"
-            f"letter-spacing:0.01em;line-height:1.2;"
-        )
-        st.markdown(
-            f'<div style="{_btn_style}">'
-            f'<span style="{_ico_style}">{_ico}</span>'
-            f'<span style="{_lbl_style}">{item}</span>'
-            f'</div>',
-            unsafe_allow_html=True
-        )
-        if st.button(item, key=f"nav_{item}", use_container_width=True,
+        _lbl = _NAV_LABELS.get(item, item)
+        if st.button(_lbl, key=f"nav_{item}", use_container_width=True,
                      type="primary" if _ia else "secondary"):
             st.session_state.nav_activa = item
             st.rerun()
