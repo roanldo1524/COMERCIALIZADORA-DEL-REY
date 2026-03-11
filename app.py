@@ -361,6 +361,72 @@ section[data-testid="stSidebar"][aria-expanded="false"] {
 /* 5. Pills de día: mismo estilo que sem-pill pero más compactas */
 .dia-pills { display: flex; gap: 5px; flex-wrap: wrap; margin: 8px 0 4px; }
 
+
+/* ═══════════════════════════════════════════════
+   SMART DATE PICKER — CATÁLOGO PREMIUM
+   ═══════════════════════════════════════════════ */
+.sdp-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(0,242,255,0.06);
+    border: 1px solid rgba(0,242,255,0.18);
+    border-radius: 24px; padding: 7px 18px;
+    font-family: var(--font-body); font-size: 0.80rem; font-weight: 600;
+    color: #00F2FF;
+    box-shadow: 0 0 18px rgba(0,242,255,0.08);
+    white-space: nowrap; letter-spacing: 0.01em;
+}
+.sdp-pill-icon { font-size: 0.90rem; }
+.sdp-presets-bar {
+    display: flex; gap: 7px; flex-wrap: wrap;
+    align-items: center; margin: 8px 0 2px;
+}
+.sdp-preset {
+    display: inline-flex; align-items: center;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(155,127,255,0.10);
+    border-radius: 20px; padding: 4px 14px;
+    font-family: var(--font-body); font-size: 0.75rem; font-weight: 500;
+    color: rgba(190,175,220,0.50);
+    white-space: nowrap; cursor: pointer;
+    transition: all 0.15s;
+}
+.sdp-preset.active {
+    background: rgba(0,242,255,0.08);
+    border-color: rgba(0,242,255,0.25);
+    color: #00F2FF; font-weight: 600;
+}
+.sdp-sep {
+    width: 1px; height: 20px;
+    background: rgba(255,255,255,0.06); margin: 0 3px;
+    flex-shrink: 0;
+}
+/* Calendar input glassmorphism */
+.sdp-calendar-wrap [data-testid="stDateInput"] input {
+    background: rgba(22,19,38,0.88) !important;
+    border: 1px solid rgba(0,242,255,0.14) !important;
+    border-radius: 10px !important;
+    color: #00F2FF !important; font-weight: 600 !important;
+    font-family: var(--font-mono) !important; font-size: 0.79rem !important;
+}
+/* Botones de preset: invisibles pero clickeables */
+.sdp-preset-btns [data-testid="stHorizontalBlock"] button {
+    opacity: 0 !important; height: 26px !important;
+    min-height: 26px !important; padding: 0 !important;
+    cursor: pointer !important; pointer-events: all !important;
+}
+/* Ordenar selectbox compacto */
+.cat-ctrl-bar [data-testid="stSelectbox"] > label {
+    font-size: 0.72rem !important; color: rgba(155,127,255,0.50) !important;
+    font-family: var(--font-mono) !important; letter-spacing: 0.06em !important;
+    text-transform: uppercase !important; margin-bottom: 2px !important;
+}
+.cat-ctrl-bar [data-testid="stSelectbox"] > div > div {
+    background: rgba(18,14,32,0.75) !important;
+    border: 1px solid rgba(155,127,255,0.12) !important;
+    border-radius: 8px !important; min-height: 34px !important;
+    font-size: 0.80rem !important; color: #C4B8F0 !important;
+}
+
 /* ── P&G COMPONENTES ─────────────────────────────────── */
 .pg-header {
     font-family: var(--font-display);
@@ -5559,11 +5625,10 @@ if vista_activa in VISTAS_ANALISIS:
 
         C_CST_PROD = "PRECIO PROVEEDOR X CANTIDAD"
 
-        # ── Filtrar solo pedidos cerrados (Entregado, Cancelado, Devolución) ──
+        # ── Filtrar solo pedidos cerrados ──
         def es_cerrado(est):
             e = str(est).upper()
             return any(x in e for x in ['ENTREGAD','CANCELAD','DEVOLUCI'])
-
         if C_ESTATUS in df.columns:
             df_cat = df[df[C_ESTATUS].apply(es_cerrado)].copy()
         else:
@@ -5574,7 +5639,6 @@ if vista_activa in VISTAS_ANALISIS:
         # ════════════════════════════════
         st.markdown('<div style="background:rgba(15,20,30,0.65);border:1px solid rgba(0,242,255,0.08);border-radius:14px;padding:18px;margin-bottom:20px">', unsafe_allow_html=True)
         st.markdown('<div style="font-family:Inter,sans-serif;font-weight:700;color:#E8EDF5;font-size:0.95rem;margin-bottom:12px">💾 Inversión Publicitaria por Producto (Pauta)</div>', unsafe_allow_html=True)
-
         col_pa, col_pb = st.columns([1,1])
         with col_pa:
             st.markdown('<div style="color:#8899B2;font-size:0.78rem;margin-bottom:8px">📁 Opción A — Subir Excel/CSV con columnas: <b>Producto, Pauta</b></div>', unsafe_allow_html=True)
@@ -5586,7 +5650,6 @@ if vista_activa in VISTAS_ANALISIS:
                         df_pauta = pd.read_csv(f_pauta)
                     else:
                         df_pauta = pd.read_excel(f_pauta, engine="openpyxl")
-                    # Normalizar nombres de columnas
                     df_pauta.columns = [c.strip().upper() for c in df_pauta.columns]
                     col_prod_p = next((c for c in df_pauta.columns if 'PROD' in c or 'ITEM' in c or 'SKU' in c), df_pauta.columns[0])
                     col_paut_p = next((c for c in df_pauta.columns if 'PAUT' in c or 'INVER' in c or 'ADS' in c or 'PAUTA' in c), df_pauta.columns[1] if len(df_pauta.columns)>1 else None)
@@ -5597,7 +5660,6 @@ if vista_activa in VISTAS_ANALISIS:
                         st.success(f"✅ Pauta cargada: {len(pauta_dict)} productos")
                 except Exception as ex:
                     st.error(f"Error leyendo archivo: {ex}")
-
         with col_pb:
             st.markdown('<div style="color:#8899B2;font-size:0.78rem;margin-bottom:8px">✏️ Opción B — Ingresar pauta manualmente por producto</div>', unsafe_allow_html=True)
             if C_PRODUCTO in df_cat.columns:
@@ -5613,34 +5675,95 @@ if vista_activa in VISTAS_ANALISIS:
                     if st.button("💾 Guardar pauta", key="btn_save_pauta"):
                         st.session_state['pauta_dict'] = pauta_manual
                         st.success("✅ Pauta guardada en sesión")
-
         st.markdown('</div>', unsafe_allow_html=True)
-
-        pauta_dict = st.session_state.get('pauta_dict', {})
+        pauta_dict  = st.session_state.get('pauta_dict', {})
         pauta_total = sum(pauta_dict.values())
 
-        # ════════════════════════════════
-        # SECCIÓN 2 — CONTROLES
-        # ════════════════════════════════
-        ctrl1, ctrl2, ctrl3 = st.columns([2,2,2])
-        with ctrl1:
-            meses_cat = sorted(df_cat['_mes'].dropna().unique().tolist(), reverse=True) if '_mes' in df_cat.columns else []
-            mes_cat = st.selectbox("📅 Mes", meses_cat if meses_cat else ["Sin datos"], key="mes_cat")
-        with ctrl2:
-            orden_cat = st.selectbox("📊 Ordenar por", ["% VNT","UT. BRT","% UT. PAUTA","MRGN BRT"], key="ord_cat")
-        with ctrl3:
-            sem_cat = st.selectbox("🗓️ Semana", ["Todas","Sem 1 (1-8)","Sem 2 (9-16)","Sem 3 (17-24)","Sem 4 (25-31)"], key="sem_cat")
+        # ════════════════════════════════════════════════════════════
+        # SMART DATE PICKER — selector de rango de fechas unificado
+        # ════════════════════════════════════════════════════════════
+        _hoy_cat  = pd.Timestamp.now().normalize()
+        _PRESETS_CAT = {
+            "Hoy":         (_hoy_cat, _hoy_cat),
+            "Ayer":        (_hoy_cat - pd.Timedelta(days=1), _hoy_cat - pd.Timedelta(days=1)),
+            "Esta Semana": (_hoy_cat - pd.Timedelta(days=_hoy_cat.weekday()), _hoy_cat),
+            "Últimos 7D":  (_hoy_cat - pd.Timedelta(days=6), _hoy_cat),
+            "Este Mes":    (_hoy_cat.replace(day=1), _hoy_cat),
+            "Mes Pasado":  (
+                (_hoy_cat.replace(day=1) - pd.Timedelta(days=1)).replace(day=1),
+                _hoy_cat.replace(day=1) - pd.Timedelta(days=1),
+            ),
+        }
+        # Inicializar con "Este Mes" solo la primera vez
+        if "cat_fecha_ini" not in st.session_state:
+            st.session_state.cat_fecha_ini  = _PRESETS_CAT["Este Mes"][0].date()
+            st.session_state.cat_fecha_fin  = _PRESETS_CAT["Este Mes"][1].date()
+            st.session_state.cat_preset_act = "Este Mes"
 
-        if '_mes' in df_cat.columns and mes_cat != "Sin datos":
-            df_m = df_cat[df_cat['_mes'] == mes_cat].copy()
+        _f_ini      = st.session_state.cat_fecha_ini
+        _f_fin      = st.session_state.cat_fecha_fin
+        _preset_act = st.session_state.get("cat_preset_act", "")
+
+        # ── Pill de fecha + presets ──
+        _lbl_ini  = _f_ini.strftime("%-d %b %Y")
+        _lbl_fin  = _f_fin.strftime("%-d %b %Y")
+        _pill_txt = _lbl_ini if _f_ini == _f_fin else f"{_lbl_ini} → {_lbl_fin}"
+        _n_dias   = (_f_fin - _f_ini).days + 1
+
+        st.markdown(
+            f'''<div class="sdp-presets-bar">
+            <div class="sdp-pill"><span class="sdp-pill-icon">📅</span>{_pill_txt}
+            <span style="opacity:0.45;font-size:0.70rem;margin-left:4px">({_n_dias}d)</span></div>
+            <div class="sdp-sep"></div>'''
+            + "".join(
+                f'<div class="sdp-preset {"active" if _pn == _preset_act else ""}">{_pn}</div>'
+                for _pn in _PRESETS_CAT
+            )
+            + '</div>',
+            unsafe_allow_html=True
+        )
+
+        # Botones de preset invisibles (se superponen sobre las pills)
+        st.markdown('<div class="sdp-preset-btns">', unsafe_allow_html=True)
+        _p_cols_cat = st.columns([0.9, 0.9, 1.2, 1.2, 1.1, 1.3, 3.4])
+        for _pi, _pn in enumerate(list(_PRESETS_CAT.keys())):
+            with _p_cols_cat[_pi]:
+                if st.button(_pn, key=f"cat_preset_{_pn}", use_container_width=True):
+                    st.session_state.cat_fecha_ini  = _PRESETS_CAT[_pn][0].date()
+                    st.session_state.cat_fecha_fin  = _PRESETS_CAT[_pn][1].date()
+                    st.session_state.cat_preset_act = _pn
+                    st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        # Calendar + ordenar
+        st.markdown('<div class="sdp-calendar-wrap">', unsafe_allow_html=True)
+        _c_cal, _c_ord, _c_esp = st.columns([2.4, 1.5, 6.1])
+        with _c_cal:
+            _rango_cat = st.date_input(
+                "Rango", value=(_f_ini, _f_fin),
+                key="cat_date_range", label_visibility="collapsed",
+            )
+            if isinstance(_rango_cat, (list, tuple)) and len(_rango_cat) == 2:
+                if _rango_cat[0] != _f_ini or _rango_cat[1] != _f_fin:
+                    st.session_state.cat_fecha_ini  = _rango_cat[0]
+                    st.session_state.cat_fecha_fin  = _rango_cat[1]
+                    st.session_state.cat_preset_act = ""
+                    st.rerun()
+        with _c_ord:
+            st.markdown('<div class="cat-ctrl-bar">', unsafe_allow_html=True)
+            orden_cat = st.selectbox("Ordenar", ["% VNT","UT. BRT","% UT. PAUTA","MRGN BRT"],
+                                     key="ord_cat", label_visibility="visible")
+            st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        # ── Filtrar df con el rango seleccionado ──
+        _f_ini_ts = pd.Timestamp(st.session_state.cat_fecha_ini)
+        _f_fin_ts = pd.Timestamp(st.session_state.cat_fecha_fin) + pd.Timedelta(hours=23, minutes=59, seconds=59)
+        if C_FECHA in df_cat.columns:
+            df_m = df_cat[(df_cat[C_FECHA] >= _f_ini_ts) & (df_cat[C_FECHA] <= _f_fin_ts)].copy()
         else:
             df_m = df_cat.copy()
-
-        # Filtrar por semana
-        sem_rangos = {"Sem 1 (1-8)":(1,8),"Sem 2 (9-16)":(9,16),"Sem 3 (17-24)":(17,24),"Sem 4 (25-31)":(25,31)}
-        if sem_cat != "Todas" and sem_cat in sem_rangos and C_FECHA in df_m.columns:
-            ini_s, fin_s = sem_rangos[sem_cat]
-            df_m = df_m[df_m[C_FECHA].dt.day.between(ini_s, fin_s)]
+        mes_cat = st.session_state.cat_fecha_ini.strftime("%Y-%m-%d")
 
         if C_PRODUCTO not in df_m.columns or len(df_m) == 0:
             st.info("Sin datos de productos para este período.")
