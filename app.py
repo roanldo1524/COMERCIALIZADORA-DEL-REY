@@ -578,91 +578,63 @@ section[data-testid="stSidebar"] > div {
     padding-right: 0 !important;
 }
 
-/* ── Todos los botones del sidebar ── */
+/* ── Ocultar botones Streamlit nativos del nav (usamos HTML custom) ── */
 section[data-testid="stSidebar"] .stButton { margin: 0 !important; }
 section[data-testid="stSidebar"] .stButton > button {
+    display: none !important;
+}
+
+/* ── Hub button visible (el de Centro de Datos) ── */
+.hub-btn-wrap .stButton > button {
+    display: flex !important;
     width: 100% !important;
     text-align: left !important;
     justify-content: flex-start !important;
     background: transparent !important;
     border: none !important;
-    border-radius: 0 !important;
-    border-left: 3px solid transparent !important;
-    color: rgba(160,168,185,0.75) !important;
+    border-left: 3px solid rgba(78,205,196,0.30) !important;
+    border-radius: 0 6px 6px 0 !important;
+    color: rgba(78,205,196,0.85) !important;
     font-family: 'Outfit', sans-serif !important;
-    font-size: 0.80rem !important;
-    font-weight: 500 !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
     padding: 8px 16px 8px 14px !important;
     margin: 0 !important;
     line-height: 1.3 !important;
     min-height: 0 !important;
     height: auto !important;
-    transition: all 0.18s ease !important;
+    transition: all 0.18s !important;
     box-shadow: none !important;
     transform: none !important;
     outline: none !important;
-    letter-spacing: 0.01em !important;
-    border-radius: 0 6px 6px 0 !important;
+    letter-spacing: 0.02em !important;
+}
+.hub-btn-wrap .stButton > button:hover {
+    background: rgba(78,205,196,0.06) !important;
+    border-left-color: #4ECDC4 !important;
+    color: #4ECDC4 !important;
 }
 section[data-testid="stSidebar"] .stButton > button:focus,
 section[data-testid="stSidebar"] .stButton > button:focus-visible {
-    outline: none !important;
-    box-shadow: none !important;
-}
-section[data-testid="stSidebar"] .stButton > button:hover {
-    background: rgba(255,255,255,0.04) !important;
-    border-left-color: rgba(78,205,196,0.35) !important;
-    color: #E8EDF8 !important;
-    transform: none !important;
-    box-shadow: none !important;
+    outline: none !important; box-shadow: none !important;
 }
 
-/* ── Botón activo (primary) — acento lateral naranja/teal como GRAND LINE ── */
-section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
-    background: rgba(78,205,196,0.07) !important;
-    border-left: 3px solid #4ECDC4 !important;
-    color: #E8EDF8 !important;
-    font-weight: 600 !important;
-    box-shadow: none !important;
-    border-radius: 0 6px 6px 0 !important;
-}
-section[data-testid="stSidebar"] .stButton > button[kind="primary"]:hover {
-    background: rgba(78,205,196,0.10) !important;
-    transform: none !important;
-}
-
-/* ── Hub button especial ── */
-.hub-btn-wrap .stButton > button {
-    background: rgba(78,205,196,0.06) !important;
-    border: none !important;
-    border-left: 3px solid rgba(78,205,196,0.40) !important;
-    border-radius: 0 6px 6px 0 !important;
-    color: #4ECDC4 !important;
-    font-weight: 700 !important;
-    font-size: 0.80rem !important;
-    padding: 8px 16px 8px 14px !important;
-}
-.hub-btn-wrap .stButton > button:hover {
-    background: rgba(78,205,196,0.10) !important;
-    color: #4ECDC4 !important;
-}
-
-/* ── Labels de sección — estilo GRAND LINE ── */
+/* ── Labels de sección ── */
 .nav-section-lbl {
-    font-size: 0.52rem;
-    color: rgba(120,130,155,0.55);
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    padding: 0 16px;
-    margin: 18px 0 6px;
-    font-family: 'JetBrains Mono', monospace;
     display: block;
+    font-size: 0.50rem;
+    color: rgba(120,130,155,0.45);
+    font-weight: 700;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    padding: 0 18px;
+    margin: 20px 0 6px;
+    font-family: 'JetBrains Mono', monospace;
 }
 .nav-sep {
     height: 1px;
     background: rgba(255,255,255,0.05);
-    margin: 10px 14px;
+    margin: 10px 16px;
 }
 .nav-sep-strong {
     height: 1px;
@@ -678,13 +650,23 @@ section[data-testid="stSidebar"] .stSelectbox > div > div {
     color: #E8EDF8 !important;
     font-family: 'Outfit', sans-serif !important;
     font-weight: 600 !important;
-    font-size: 0.80rem !important;
+    font-size: 0.78rem !important;
 }
 section[data-testid="stSidebar"] .stSelectbox > div > div:hover {
     border-color: rgba(78,205,196,0.22) !important;
 }
 section[data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] span {
     color: #E8EDF8 !important;
+}
+
+/* ── Quitar padding excesivo de elementos markdown del sidebar ── */
+section[data-testid="stSidebar"] .stMarkdown {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+section[data-testid="stSidebar"] .element-container {
+    margin: 0 !important;
+    padding: 0 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -729,12 +711,27 @@ _TIENDA_OPCIONES = [t["key"] for t in TIENDAS_REPO]
 
 
 SUBMENU_VISTAS = [
-    "📊 Panel Ejecutivo", "📈 P&G", "💹 Finanzas", "🔮 Proyecciones",
-    "🧠 Asesor Financiero", "📡 Tendencias & Clima", "📦 Operaciones",
-    "🚦 Monitor de Estatus", "📣 Marketing", "🛍️ Catálogo", "🤖 Asistente IA",
+    "Panel Ejecutivo", "P&G", "Finanzas", "Proyecciones",
+    "Asesor Financiero", "Tendencias & Clima", "Operaciones",
+    "Monitor de Estatus", "Marketing", "Catálogo", "Asistente IA",
 ]
 
-_HUB_VIEW = "⚡ Centro de Datos"
+# Mapeo de íconos SVG/Unicode por vista
+_NAV_ICONS = {
+    "Panel Ejecutivo":   "▦",
+    "P&G":               "◐",
+    "Finanzas":          "◑",
+    "Proyecciones":      "◒",
+    "Asesor Financiero": "⬡",
+    "Tendencias & Clima":"◈",
+    "Operaciones":       "▣",
+    "Monitor de Estatus":"◫",
+    "Marketing":         "◆",
+    "Catálogo":          "▤",
+    "Asistente IA":      "◉",
+}
+
+_HUB_VIEW = "Centro de Datos"
 if "nav_activa" not in st.session_state: st.session_state.nav_activa = _HUB_VIEW
 if "op_activa"  not in st.session_state: st.session_state.op_activa  = "🤖 LUCID BOT"
 
@@ -815,15 +812,39 @@ with st.sidebar:
     )
     st.markdown('<div class="nav-sep"></div>', unsafe_allow_html=True)
 
-    _sl = st.session_state.op_activa.split(" ", 1)[1]
+    _sl = st.session_state.op_activa.split(" ", 1)[1] if " " in st.session_state.op_activa else st.session_state.op_activa
     st.markdown(f'<span class="nav-section-lbl">Vistas · {_sl}</span>', unsafe_allow_html=True)
     for item in SUBMENU_VISTAS:
         _ia = st.session_state.nav_activa == item
-        if _ia: st.markdown('<div class="nav-active">', unsafe_allow_html=True)
-        if st.button(item, key=f"nav_{item}", use_container_width=True, type="primary" if _ia else "secondary"):
+        _ico = _NAV_ICONS.get(item, "·")
+        _btn_style = (
+            f"display:flex;align-items:center;gap:10px;width:100%;padding:8px 18px 8px 16px;"
+            f"border-left:3px solid {'#4ECDC4' if _ia else 'transparent'};"
+            f"background:{'rgba(78,205,196,0.07)' if _ia else 'transparent'};"
+            f"cursor:pointer;border-radius:0 6px 6px 0;margin:1px 0;"
+            f"transition:all 0.18s;"
+        )
+        _ico_style = (
+            f"font-size:0.75rem;color:{'#4ECDC4' if _ia else 'rgba(100,112,140,0.7)'};"
+            f"flex-shrink:0;line-height:1;"
+        )
+        _lbl_style = (
+            f"font-family:'Outfit',sans-serif;font-size:0.80rem;"
+            f"font-weight:{'600' if _ia else '400'};"
+            f"color:{'#E8EDF8' if _ia else 'rgba(160,168,185,0.75)'};"
+            f"letter-spacing:0.01em;line-height:1.2;"
+        )
+        st.markdown(
+            f'<div style="{_btn_style}">'
+            f'<span style="{_ico_style}">{_ico}</span>'
+            f'<span style="{_lbl_style}">{item}</span>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+        if st.button(item, key=f"nav_{item}", use_container_width=True,
+                     type="primary" if _ia else "secondary"):
             st.session_state.nav_activa = item
             st.rerun()
-        if _ia: st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="nav-sep"></div>', unsafe_allow_html=True)
     _op_sb = OPERACIONES[st.session_state.op_activa]
