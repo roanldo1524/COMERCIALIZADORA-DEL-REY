@@ -578,45 +578,66 @@ section[data-testid="stSidebar"] > div {
     padding-right: 0 !important;
 }
 
-/* ── Ocultar botones Streamlit nativos del nav (usamos HTML custom) ── */
+/* ── Todos los botones del nav sidebar ── */
 section[data-testid="stSidebar"] .stButton { margin: 0 !important; }
 section[data-testid="stSidebar"] .stButton > button {
-    display: none !important;
-}
-
-/* ── Hub button visible (el de Centro de Datos) ── */
-.hub-btn-wrap .stButton > button {
     display: flex !important;
+    align-items: center !important;
     width: 100% !important;
     text-align: left !important;
     justify-content: flex-start !important;
     background: transparent !important;
     border: none !important;
-    border-left: 3px solid rgba(78,205,196,0.30) !important;
+    border-left: 3px solid transparent !important;
     border-radius: 0 6px 6px 0 !important;
-    color: rgba(78,205,196,0.85) !important;
+    color: rgba(140,152,175,0.75) !important;
     font-family: 'Outfit', sans-serif !important;
-    font-size: 0.78rem !important;
-    font-weight: 600 !important;
-    padding: 8px 16px 8px 14px !important;
-    margin: 0 !important;
+    font-size: 0.82rem !important;
+    font-weight: 400 !important;
+    padding: 9px 16px 9px 14px !important;
+    margin: 1px 0 !important;
     line-height: 1.3 !important;
     min-height: 0 !important;
     height: auto !important;
-    transition: all 0.18s !important;
+    transition: all 0.18s ease !important;
     box-shadow: none !important;
     transform: none !important;
     outline: none !important;
-    letter-spacing: 0.02em !important;
+    letter-spacing: 0.01em !important;
 }
-.hub-btn-wrap .stButton > button:hover {
-    background: rgba(78,205,196,0.06) !important;
+section[data-testid="stSidebar"] .stButton > button:hover {
+    background: rgba(255,255,255,0.04) !important;
+    border-left-color: rgba(78,205,196,0.40) !important;
+    color: #E8EDF8 !important;
+    transform: none !important;
+}
+section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
+    background: rgba(78,205,196,0.07) !important;
+    border-left: 3px solid #4ECDC4 !important;
+    color: #E8EDF8 !important;
+    font-weight: 600 !important;
+}
+section[data-testid="stSidebar"] .stButton > button[kind="primary"]:hover {
+    background: rgba(78,205,196,0.10) !important;
     border-left-color: #4ECDC4 !important;
-    color: #4ECDC4 !important;
 }
 section[data-testid="stSidebar"] .stButton > button:focus,
 section[data-testid="stSidebar"] .stButton > button:focus-visible {
     outline: none !important; box-shadow: none !important;
+}
+
+/* ── Hub button (Centro de Datos) ── */
+.hub-btn-wrap .stButton > button {
+    background: rgba(78,205,196,0.06) !important;
+    border-left: 3px solid rgba(78,205,196,0.35) !important;
+    color: rgba(78,205,196,0.85) !important;
+    font-weight: 600 !important;
+    font-size: 0.80rem !important;
+}
+.hub-btn-wrap .stButton > button:hover {
+    background: rgba(78,205,196,0.10) !important;
+    border-left-color: #4ECDC4 !important;
+    color: #4ECDC4 !important;
 }
 
 /* ── Labels de sección ── */
@@ -657,6 +678,19 @@ section[data-testid="stSidebar"] .stSelectbox > div > div:hover {
 }
 section[data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] span {
     color: #E8EDF8 !important;
+}
+
+
+/* ── Ocultar emojis de botones del sidebar ── */
+section[data-testid="stSidebar"] .stButton > button p {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0 !important;
+    font-size: 0.82rem !important;
+}
+/* Emojis — hacerlos pequeños e integrados */
+section[data-testid="stSidebar"] .stButton > button p::first-letter {
+    font-size: 0 !important;
 }
 
 /* ── Quitar padding excesivo de elementos markdown del sidebar ── */
@@ -711,27 +745,40 @@ _TIENDA_OPCIONES = [t["key"] for t in TIENDAS_REPO]
 
 
 SUBMENU_VISTAS = [
-    "Panel Ejecutivo", "P&G", "Finanzas", "Proyecciones",
-    "Asesor Financiero", "Tendencias & Clima", "Operaciones",
-    "Monitor de Estatus", "Marketing", "Catálogo", "Asistente IA",
+    "📊 Panel Ejecutivo", "📈 P&G", "💹 Finanzas", "🔮 Proyecciones",
+    "🧠 Asesor Financiero", "📡 Tendencias & Clima", "📦 Operaciones",
+    "🚦 Monitor de Estatus", "📣 Marketing", "🛍️ Catálogo", "🤖 Asistente IA",
 ]
 
-# Mapeo de íconos SVG/Unicode por vista
+# Labels limpios para mostrar (sin emoji) y su ícono CSS
+_NAV_LABELS = {
+    "📊 Panel Ejecutivo":   "Panel Ejecutivo",
+    "📈 P&G":               "P&G",
+    "💹 Finanzas":          "Finanzas",
+    "🔮 Proyecciones":      "Proyecciones",
+    "🧠 Asesor Financiero": "Asesor Financiero",
+    "📡 Tendencias & Clima":"Tendencias & Clima",
+    "📦 Operaciones":       "Operaciones",
+    "🚦 Monitor de Estatus":"Monitor de Estatus",
+    "📣 Marketing":         "Marketing",
+    "🛍️ Catálogo":          "Catálogo",
+    "🤖 Asistente IA":      "Asistente IA",
+}
 _NAV_ICONS = {
-    "Panel Ejecutivo":   "▦",
-    "P&G":               "◐",
-    "Finanzas":          "◑",
-    "Proyecciones":      "◒",
-    "Asesor Financiero": "⬡",
-    "Tendencias & Clima":"◈",
-    "Operaciones":       "▣",
-    "Monitor de Estatus":"◫",
-    "Marketing":         "◆",
-    "Catálogo":          "▤",
-    "Asistente IA":      "◉",
+    "📊 Panel Ejecutivo":   "panel",
+    "📈 P&G":               "pyg",
+    "💹 Finanzas":          "fin",
+    "🔮 Proyecciones":      "proy",
+    "🧠 Asesor Financiero": "asesor",
+    "📡 Tendencias & Clima":"tend",
+    "📦 Operaciones":       "ops",
+    "🚦 Monitor de Estatus":"monitor",
+    "📣 Marketing":         "mkt",
+    "🛍️ Catálogo":          "cat",
+    "🤖 Asistente IA":      "ia",
 }
 
-_HUB_VIEW = "Centro de Datos"
+_HUB_VIEW = "⚡ Centro de Datos"
 if "nav_activa" not in st.session_state: st.session_state.nav_activa = _HUB_VIEW
 if "op_activa"  not in st.session_state: st.session_state.op_activa  = "🤖 LUCID BOT"
 
