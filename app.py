@@ -293,6 +293,63 @@ section[data-testid="stSidebar"][aria-expanded="false"] {
     font-family: var(--font-body); font-size: 0.76rem; font-weight: 600;
     border: 1px solid; cursor: pointer; transition: all 0.15s;
 }
+/* ── SELECTOR DE FECHAS — SISTEMA UNIFICADO ───────────── */
+/* 1. Botones de modo (Mes/Semana/Día): estilados como tabs premium */
+[data-testid="stMarkdownContainer"]:has(.uf-mode-header) + [data-testid="stHorizontalBlock"] button {
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    border-radius: 8px !important;
+    font-family: var(--font-body) !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    color: rgba(122,139,173,0.60) !important;
+    box-shadow: none !important;
+    min-height: 36px !important;
+    padding: 6px 14px !important;
+    transition: all 0.18s !important;
+}
+[data-testid="stMarkdownContainer"]:has(.uf-mode-header) + [data-testid="stHorizontalBlock"] button[kind="primary"] {
+    background: rgba(0,242,255,0.09) !important;
+    border-color: rgba(0,242,255,0.20) !important;
+    color: #00F2FF !important;
+    box-shadow: 0 4px 18px rgba(0,242,255,0.10) !important;
+    font-weight: 700 !important;
+}
+/* 2. Botones de mes (pills): invisible pero clickeable */
+[data-testid="stMarkdownContainer"]:has(.mes-pills) + [data-testid="stHorizontalBlock"] button,
+[data-testid="stMarkdownContainer"]:has(.mes-pills) + * + [data-testid="stHorizontalBlock"] button {
+    opacity: 0 !important;
+    cursor: pointer !important;
+    min-height: 28px !important;
+    height: 28px !important;
+    padding: 0 !important;
+}
+/* 3. Botones de semana (pills): invisible pero clickeable */
+[data-testid="stMarkdownContainer"]:has(.sem-pill-wrap) + [data-testid="stHorizontalBlock"] button {
+    opacity: 0 !important;
+    cursor: pointer !important;
+    min-height: 28px !important;
+    height: 28px !important;
+    padding: 0 !important;
+}
+/* 4. Botones de día: invisible pero clickeable */
+[data-testid="stMarkdownContainer"]:has(.dia-pills) + [data-testid="stHorizontalBlock"] button {
+    opacity: 0 !important;
+    cursor: pointer !important;
+    min-height: 28px !important;
+    height: 28px !important;
+    padding: 0 !important;
+}
+/* Contenedor visual de los tabs de modo */
+.uf-mode-header {
+    background: rgba(0,0,0,0.35);
+    border-radius: 10px;
+    padding: 5px;
+    width: fit-content;
+    border: 1px solid rgba(155,127,255,0.07);
+    margin-bottom: 2px;
+    display: inline-block;
+}
 .periodo-badge {
     display: inline-flex; align-items: center; gap: 7px;
     padding: 6px 14px; border-radius: 20px;
@@ -301,6 +358,8 @@ section[data-testid="stSidebar"][aria-expanded="false"] {
     border: 1px solid rgba(0,242,255,0.16);
     margin-top: 10px; margin-bottom: 14px;
 }
+/* 5. Pills de día: mismo estilo que sem-pill pero más compactas */
+.dia-pills { display: flex; gap: 5px; flex-wrap: wrap; margin: 8px 0 4px; }
 
 /* ── P&G COMPONENTES ─────────────────────────────────── */
 .pg-header {
@@ -1379,24 +1438,31 @@ if vista_activa in VISTAS_ANALISIS:
 
     _hoy = pd.Timestamp.now().normalize()
     if "uf_modo" not in st.session_state: st.session_state.uf_modo = "mes"
-    tab_html = (
-        '<div style="padding:0 0 16px">'
-        '<div class="ftab-wrap">'
-        f'<div class="ftab {"active" if st.session_state.uf_modo == "mes" else ""}">'
-        '<div class="ficon">📅</div>Por Mes</div>'
-        f'<div class="ftab {"active" if st.session_state.uf_modo == "sem" else ""}">'
-        '<div class="ficon">📆</div>Por Semana</div>'
-        '</div></div>'
-    )
-    st.markdown(tab_html, unsafe_allow_html=True)
-    _tc1, _tc2, _tc3 = st.columns([1.2, 1.2, 6])
+    _modo = st.session_state.uf_modo
+    _es_marketing_vista = "Marketing" in vista_activa
+
+    # ── SELECTOR UNIFICADO: div vacío para anclar CSS, luego botones reales ──
+    st.markdown('<div class="uf-mode-header"></div>', unsafe_allow_html=True)
+    if _es_marketing_vista:
+        _tc1, _tc2, _tc3, _tc4 = st.columns([1.1, 1.3, 0.9, 6.7])
+    else:
+        _tc1, _tc2, _tc3 = st.columns([1.2, 1.4, 7.4])
     with _tc1:
-        if st.button("📅 Mes", key="uf_btn_mes", use_container_width=True):
-            st.session_state.uf_modo = "mes"
+        if st.button("📅  Mes", key="uf_btn_mes", use_container_width=True,
+                     type="primary" if _modo == "mes" else "secondary"):
+            st.session_state.uf_modo = "mes"; st.rerun()
     with _tc2:
-        if st.button("📆 Semana", key="uf_btn_sem", use_container_width=True):
-            st.session_state.uf_modo = "sem"
+        if st.button("📆  Semana", key="uf_btn_sem", use_container_width=True,
+                     type="primary" if _modo == "sem" else "secondary"):
+            st.session_state.uf_modo = "sem"; st.rerun()
+    if _es_marketing_vista:
+        with _tc3:
+            if st.button("🗓️  Día", key="uf_btn_dia", use_container_width=True,
+                         type="primary" if _modo == "dia" else "secondary"):
+                st.session_state.uf_modo = "dia"; st.rerun()
     _modo_es_mes = st.session_state.uf_modo == "mes"
+    _modo_es_sem = st.session_state.uf_modo == "sem"
+    _modo_es_dia = st.session_state.uf_modo == "dia" and _es_marketing_vista
 
     if "_mes" in df.columns and len(df["_mes"].dropna()) > 0:
         _meses_disp = sorted(df["_mes"].dropna().unique().tolist(), reverse=True)
@@ -1426,8 +1492,8 @@ if vista_activa in VISTAS_ANALISIS:
 
     _mes_sel = st.session_state.uf_mes
 
-    # ── Si modo Semana: mostrar pills de semana ──
-    if not _modo_es_mes:
+    # ── MODO SEMANA: pills de semanas ──
+    if _modo_es_sem:
         _inicio_ms = pd.Period(_mes_sel, "M").start_time
         _fin_ms    = pd.Period(_mes_sel, "M").end_time
         _sems = []
@@ -1441,7 +1507,7 @@ if vista_activa in VISTAS_ANALISIS:
         _sem_idx = min(st.session_state.uf_sem_idx, len(_sems)-1)
 
         _sem_colors = ["#00F2FF","#60a5fa","#34d399","#fb923c","#f472b6"]
-        _spills = '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px">'
+        _spills = '<div class="sem-pill-wrap" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px">'
         for _si, _sd in enumerate(_sems):
             _sc_c = _sem_colors[_si % len(_sem_colors)]
             _is_a = _si == _sem_idx
@@ -1457,20 +1523,60 @@ if vista_activa in VISTAS_ANALISIS:
         for _si, _sd in enumerate(_sems[:5]):
             with _sem_btn_cols[_si]:
                 if st.button(_sd["lbl"], key=f"uf_sem_{_mes_sel}_{_si}", use_container_width=True):
-                    st.session_state.uf_sem_idx = _si
+                    st.session_state.uf_sem_idx = _si; st.rerun()
 
         _sem_idx = min(st.session_state.uf_sem_idx, len(_sems)-1)
         _sem_sel = _sems[_sem_idx]
         _periodo_lbl = _sem_sel["lbl"]
         if C_FECHA in df.columns:
             df = df[(df[C_FECHA] >= _sem_sel["ini"]) & (df[C_FECHA] <= _sem_sel["fin"])].copy()
+
+    # ── MODO DÍA: pills de días (solo Marketing) ──
+    elif _modo_es_dia:
+        # Días disponibles en el mes seleccionado con datos
+        if C_FECHA in df.columns and "_mes" in df.columns:
+            _df_mes = df[df["_mes"] == _mes_sel].copy()
+            _dias_con_datos = sorted(_df_mes[C_FECHA].dt.day.dropna().unique().astype(int).tolist())
+        else:
+            _dias_con_datos = list(range(1, 32))
+        if "uf_dia_sel" not in st.session_state or st.session_state.uf_dia_sel not in _dias_con_datos:
+            st.session_state.uf_dia_sel = _dias_con_datos[0] if _dias_con_datos else 1
+
+        _dia_colors = ["#00F2FF","#9B7FFF","#00FF85","#FFB347","#FF6B8A"]
+        _dpills = '<div class="dia-pills" style="display:flex;gap:5px;flex-wrap:wrap;margin:8px 0 4px">'
+        for _d in _dias_con_datos:
+            _is_a = _d == st.session_state.uf_dia_sel
+            _ci = _dias_con_datos.index(_d) % len(_dia_colors)
+            _c  = _dia_colors[_ci]
+            _bg  = f"background:{_c}22;" if _is_a else "background:rgba(255,255,255,0.03);"
+            _brd = f"border-color:{_c}66;" if _is_a else "border-color:rgba(155,127,255,0.10);"
+            _clr = f"color:{_c};" if _is_a else "color:rgba(190,175,220,0.45);"
+            _fw  = "font-weight:700;" if _is_a else ""
+            _dpills += f'<div class="sem-pill" style="{_bg}{_brd}{_clr}{_fw}padding:4px 10px;font-size:0.74rem">D{_d}</div>'
+        _dpills += '</div>'
+        st.markdown(_dpills, unsafe_allow_html=True)
+
+        _dia_btn_cols = st.columns(min(len(_dias_con_datos), 10))
+        for _di, _d in enumerate(_dias_con_datos[:10]):
+            with _dia_btn_cols[_di]:
+                if st.button(f"D{_d}", key=f"uf_dia_{_mes_sel}_{_d}", use_container_width=True):
+                    st.session_state.uf_dia_sel = _d; st.rerun()
+
+        _dia_sel = st.session_state.uf_dia_sel
+        _inicio_dia = pd.Timestamp(f"{_mes_sel}-{_dia_sel:02d}")
+        _fin_dia    = _inicio_dia + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
+        _periodo_lbl = f"D{_dia_sel} {_meses_lbl.get(_mes_sel, _mes_sel)}"
+        if C_FECHA in df.columns:
+            df = df[(df[C_FECHA] >= _inicio_dia) & (df[C_FECHA] <= _fin_dia)].copy()
+
+    # ── MODO MES ──
     else:
         _periodo_lbl = _meses_lbl.get(_mes_sel, _mes_sel)
         if "_mes" in df.columns:
             df = df[df["_mes"] == _mes_sel].copy()
 
     # Cerrar card header + badge resultado
-    _badge_ico = "📅" if _modo_es_mes else "📆"
+    _badge_ico = "📅" if _modo_es_mes else ("🗓️" if _modo_es_dia else "📆")
     st.markdown(
         f'</div>' +
         f'<div class="periodo-badge">' +
@@ -1479,7 +1585,7 @@ if vista_activa in VISTAS_ANALISIS:
     )
 
     # Compatibilidad con código legacy
-    _modo_periodo = "📅 Por Mes" if _modo_es_mes else "📆 Por Semana"
+    _modo_periodo = "📅 Por Mes" if _modo_es_mes else ("🗓️ Diario" if _modo_es_dia else "📆 Por Semana")
 
     # ── Recalcular totales globales con df filtrado ──
     total      = len(df)
@@ -2693,6 +2799,52 @@ if vista_activa in VISTAS_ANALISIS:
         roas = ventas_act / pauta_total if pauta_total > 0 else 0
         ticket_prom = ventas_act / n_tot if n_tot else 0
         saldo_transito = n_proc * ticket_prom
+
+        # ── VISTA DIARIA: CPA por producto ──
+        if _modo_es_dia and pauta_total > 0:
+            st.markdown(
+                f'''<div style="background:rgba(0,242,255,0.04);border:1px solid rgba(0,242,255,0.12);
+                border-radius:12px;padding:16px 20px;margin-bottom:16px">
+                <div style="font-family:Inter,sans-serif;font-weight:700;color:#00F2FF;font-size:0.85rem;margin-bottom:10px">
+                🗓️ CPA del Día — {_periodo_lbl}</div>''',
+                unsafe_allow_html=True
+            )
+            if C_PRODUCTO in df.columns and len(df) > 0:
+                _cpa_df = df.groupby(C_PRODUCTO).agg(
+                    Pedidos=(C_PRODUCTO, 'count')
+                ).reset_index()
+                _cpa_df = _cpa_df.sort_values('Pedidos', ascending=False).head(10)
+                _cpa_df['CPA'] = pauta_total / _cpa_df['Pedidos']
+                _cpa_df['CPA'] = _cpa_df['CPA'].apply(lambda x: f"$ {x:,.0f}")
+                _c_cpa1, _c_cpa2 = st.columns(2)
+                for _ri, _row in _cpa_df.iterrows():
+                    _col_cpa = _c_cpa1 if _ri % 2 == 0 else _c_cpa2
+                    with _col_cpa:
+                        _cpa_color = "#00FF85" if pauta_total / max(int(_row["Pedidos"]),1) < ticket_prom * 0.3 else (
+                                     "#FFB347" if pauta_total / max(int(_row["Pedidos"]),1) < ticket_prom * 0.6 else "#FF6B8A")
+                        st.markdown(
+                            f'<div style="background:rgba(15,10,30,0.6);border:1px solid {_cpa_color}22;'
+                            f'border-radius:8px;padding:10px 14px;margin:3px 0;display:flex;'
+                            f'align-items:center;justify-content:space-between">'
+                            f'<span style="font-size:0.76rem;color:#9BACC8;font-family:Inter">{str(_row[C_PRODUCTO])[:28]}</span>'
+                            f'<span style="font-family:JetBrains Mono,monospace;font-weight:700;color:{_cpa_color};font-size:0.82rem">'
+                            f'{_row["CPA"]}</span></div>',
+                            unsafe_allow_html=True
+                        )
+            else:
+                st.markdown(
+                    '<div style="color:rgba(155,140,180,0.5);font-size:0.8rem;text-align:center;padding:8px">'
+                    'Sin datos de productos para este día</div>',
+                    unsafe_allow_html=True
+                )
+            st.markdown('<div style="height:4px"></div>', unsafe_allow_html=True)
+            _cpa_total = pauta_total / n_tot if n_tot > 0 else 0
+            st.markdown(
+                f'<div style="text-align:right;font-family:JetBrains Mono;font-size:0.78rem;color:#8090B8">'
+                f'CPA total: <b style="color:#00F2FF">$ {_cpa_total:,.0f}</b> &nbsp;·&nbsp; '
+                f'ROAS: <b style="color:#00FF85">{roas:.2f}x</b></div></div>',
+                unsafe_allow_html=True
+            )
 
         # ── GLASS KPI CARDS ──
         st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
